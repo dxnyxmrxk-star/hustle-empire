@@ -475,6 +475,13 @@
      From LV4 onward, LV3 values scale by +50% per level.
   ========================================================== */
 
+  /*
+     Early-game quality-of-life:
+     base automatic energy regeneration is 30% faster.
+     Existing Card / Wardrobe regen multipliers still stack normally.
+  */
+  const BASE_ENERGY_REGEN_SPEED_MULTIPLIER = 1.30;
+
   const MISSION_ICONS = {
     taps: "☝",
     jobs: "📦",
@@ -1014,7 +1021,7 @@
       },
       jobs: {
         en: `Complete ${formatNumber(target)} ${target === 1 ? "job" : "jobs"}`,
-        ru: `Выполнить заданий: ${formatNumber(target)}`
+        ru: `Выполнить подработки: ${formatNumber(target)}`
       },
       earn: {
         en: `Earn ${formatCompactMoney(target)} total`,
@@ -1022,7 +1029,7 @@
       },
       upgrades: {
         en: `Buy ${formatNumber(target)} ${target === 1 ? "upgrade" : "upgrades"}`,
-        ru: `Купить улучшений: ${formatNumber(target)}`
+        ru: `Улучшить бизнес: ${formatNumber(target)}`
       },
       bonuses: {
         en: `Collect ${formatNumber(target)} ${target === 1 ? "bonus" : "bonuses"}`,
@@ -1127,6 +1134,29 @@
     const earned = Math.max(0, Number(amount) || 0);
     if (!earned) return false;
     return updateMissionProgress("earn", earned, source, options);
+  }
+
+  /*
+     Central bonus tracker for the "Collect bonuses" mission.
+
+     Counts any actual bonus collected by the player:
+     - timed cases
+     - free accessory case
+     - premium accessory cases bought with Gems
+     - random flying bonuses / butterflies / energy drops
+
+     It intentionally does NOT count merely seeing or missing an event.
+  */
+  function registerBonusCollected(source = "gameplayBonus", options = {}) {
+    const updated = updateMissionProgress("bonuses", 1, source, options);
+
+    emitGameEvent("bonusCollected", {
+      level: state.level,
+      source,
+      missionUpdated: Boolean(updated)
+    });
+
+    return updated;
   }
 
   function completeCurrentMissionsForTesting() {
@@ -1244,7 +1274,13 @@
   }
 
   function getEnergyIntervalMs() {
-    return (CONFIG.ENERGY_REGEN_INTERVAL_SECONDS * 1000) / computePlayerStats(state).energyRegenMultiplier;
+    const stats = computePlayerStats(state);
+    const totalRegenSpeed =
+      Math.max(0.01, Number(stats.energyRegenMultiplier) || 1)
+      *
+      BASE_ENERGY_REGEN_SPEED_MULTIPLIER;
+
+    return (CONFIG.ENERGY_REGEN_INTERVAL_SECONDS * 1000) / totalRegenSpeed;
   }
 
   function regenerateEnergy() {
@@ -1817,7 +1853,7 @@
     if (cardReward) state.cards[cardReward.cardId].fragments += cardReward.fragments;
 
     registerMoneyEarned(moneyReward, "timedCase", { save: false, render: false });
-    updateMissionProgress("bonuses", 1, "timedCase", { save: false, render: false });
+    registerBonusCollected("timedCase", { save: false, render: false });
 
     cs.unlockAt = Date.now() + cfg.durationSeconds * 1000;
     cs.opens += 1;
@@ -1965,7 +2001,7 @@
       state.gems += 5;
       state.accessoryCases.freeUnlockAt = Date.now() + cfg.durationSeconds * 1000;
       state.accessoryCases.freeOpens += 1;
-      updateMissionProgress("bonuses", 1, "freeAccessoryCase", { save: false, render: false });
+      registerBonusCollected("freeAccessoryCase", { save: false, render: false });
       saveGame();
       updateUI();
       renderAccessoryCases();
@@ -1976,7 +2012,7 @@
     unlockWardrobeCatalogItem(reward.itemId, caseId);
     state.accessoryCases.freeUnlockAt = Date.now() + cfg.durationSeconds * 1000;
     state.accessoryCases.freeOpens += 1;
-    updateMissionProgress("bonuses", 1, "freeAccessoryCase", { save: false, render: false });
+    registerBonusCollected("freeAccessoryCase", { save: false, render: false });
 
     saveGame();
     updateUI();
@@ -2007,6 +2043,11 @@
     unlockWardrobeCatalogItem(reward.itemId, caseId);
     state.accessoryCases.premiumOpens[caseId] =
       (state.accessoryCases.premiumOpens[caseId] || 0) + 1;
+
+    registerBonusCollected("premiumAccessoryCase", {
+      save: false,
+      render: false
+    });
 
     saveGame();
     updateUI();
@@ -2315,7 +2356,7 @@
     state.randomEvents.activeEvent = null;
 
     updateMissionProgress("events", 1, "randomEvent", { save: false, render: false });
-    updateMissionProgress("bonuses", 1, "randomEvent", { save: false, render: false });
+    registerBonusCollected("randomEvent", { save: false, render: false });
 
     scheduleNextRandomEvent();
     saveGame();
