@@ -4839,7 +4839,7 @@ img[src*="assets/"] {
 
 
 /* ==========================================================
-   V15.7 — HOME VIEWPORT / CHARACTER / TAP / COLUMNS
+   V15.8 — HOME VIEWPORT / CHARACTER / TAP / COLUMNS
    Final layout override. Keep this block LAST in style.css.
 ========================================================== */
 
@@ -5209,5 +5209,160 @@ body .screen[data-screen="home"] .home-center > .home-character-stage {
 
   .screen[data-screen="home"] .home-main-tap {
     min-height: 56px !important;
+  }
+}
+
+
+/* ==========================================================
+   V15.8 — DIRECT TRANSPARENT ASSETS + AVATAR FACE
+   No business/card/case/wardrobe visual depends on a sprite sheet.
+========================================================== */
+
+.asset-direct-image {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 0 !important;
+  image-rendering: auto !important;
+}
+
+/* Override old defensive rules that hid <img> children during the sprite era. */
+.catalog-item-image > img.asset-direct-image,
+.premium-product-image > img.asset-direct-image,
+.business-live-image > img.asset-direct-image,
+.district-business-image > img.asset-direct-image,
+.compact-card-image > img.asset-direct-image,
+.exclusive-card-image > img.asset-direct-image,
+.real-case-art > img.asset-direct-image,
+.free-accessory-icon > img.asset-direct-image,
+.premium-accessory-case-icon > img.asset-direct-image,
+.wardrobe-item-icon > img.asset-direct-image {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Dedicated face avatar: head fills the circle instead of shrinking the full body. */
+.player-avatar {
+  overflow: hidden !important;
+  border-radius: 50% !important;
+}
+
+.avatar-face-image {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  object-position: 50% 45% !important;
+  background: transparent !important;
+}
+
+/* Individual business/card/case assets use their full transparent frame. */
+.business-live-image .asset-direct-image,
+.district-business-image .asset-direct-image {
+  transform: scale(.96) !important;
+}
+
+.compact-card-image .asset-direct-image,
+.exclusive-card-image .asset-direct-image {
+  transform: scale(.94) !important;
+}
+
+.real-case-art .asset-direct-image,
+.free-accessory-icon .asset-direct-image,
+.premium-accessory-case-icon .asset-direct-image,
+#level-up-case-image {
+  object-fit: contain !important;
+  background: transparent !important;
+}
+
+.catalog-item-image .asset-direct-image,
+.wardrobe-item-icon .asset-direct-image,
+.accessory-reward-image .asset-direct-image {
+  object-fit: contain !important;
+  transform: scale(.94) !important;
+}
+
+/* Tight character PNGs + true flex centering. */
+.screen[data-screen="home"] .home-center {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 100% !important;
+}
+
+.home-character-stage {
+  display: flex !important;
+  flex: 1 1 auto !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+}
+
+.screen[data-screen="home"]
+.home-character-stage
+.home-character-sprite.character-real-image {
+  position: relative !important;
+  inset: auto !important;
+  width: auto !important;
+  height: min(60vh, 96%) !important;
+  max-width: 128% !important;
+  max-height: 96% !important;
+  margin: 0 auto !important;
+  transform: none !important;
+  object-fit: contain !important;
+  object-position: center !important;
+}
+
+.screen[data-screen="home"] .home-tap-zone {
+  position: relative !important;
+  flex: 0 0 auto !important;
+  margin: 4px auto 10px !important;
+  bottom: auto !important;
+  transform: none !important;
+}
+
+.wardrobe-character {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 100% !important;
+  overflow: visible !important;
+}
+
+.wardrobe-character-sprite.character-real-image {
+  position: relative !important;
+  inset: auto !important;
+  width: auto !important;
+  height: min(60vh, 94%) !important;
+  max-width: 132% !important;
+  max-height: 94% !important;
+  margin: auto !important;
+  transform: none !important;
+  object-fit: contain !important;
+  object-position: center !important;
+}
+
+@media (max-width: 430px) {
+  .screen[data-screen="home"]
+  .home-character-stage
+  .home-character-sprite.character-real-image {
+    height: min(56vh, 95%) !important;
+    max-width: 138% !important;
+  }
+
+  .wardrobe-character-sprite.character-real-image {
+    height: min(57vh, 93%) !important;
+    max-width: 140% !important;
   }
 }
