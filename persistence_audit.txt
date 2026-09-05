@@ -1,0 +1,42 @@
+URBAN TYCOON V19.1 — PERSISTENCE STATIC AUDIT
+
+Root issue / hardening:
+- The game already had localStorage and a 10-second autosave, but not every
+  nested state mutation was guaranteed to save immediately.
+- Telegram/WKWebView can terminate/background a page before a periodic timer
+  or conventional beforeunload path runs.
+- localStorage alone may also be unavailable/cleared in some WebView lifecycle
+  scenarios, so V19.1 adds an optional Telegram CloudStorage mirror.
+
+V19.1 persistence:
+1. New primary local key:
+   urbanTycoonSave_v19_1
+2. Previous current key hustleEmpireSave_v12_5 remains in migration fallback.
+3. Local backup slot keeps the previous valid snapshot.
+4. Every nested state assignment/delete is observed by a deep Proxy.
+5. State changes queue a local write after 120ms.
+6. Existing saveGame() calls force an immediate local durable write.
+7. Telegram CloudStorage is mirrored after a 1400ms coalescing delay.
+8. Cloud payload is split into 3200-character chunks; metadata is committed LAST.
+9. Startup loads local immediately, then compares Telegram cloud updatedAt and
+   restores the newer snapshot BEFORE offline income/energy calculations.
+10. visibilitychange(hidden), pagehide and beforeunload force an exit save.
+11. resetGame() no longer calls localStorage.clear(); it deletes game keys only.
+12. HustleGame.persistence diagnostics/API added.
+
+Durability strategy:
+- Fast path / crash resistance: synchronous localStorage.
+- WebView/session recovery: Telegram CloudStorage when available.
+- Corrupt/incomplete local write recovery: backup slot.
+- Interrupted cloud upload recovery: meta-last commit protocol.
+
+Validation:
+- node --check script.js: OK
+- node --check game.js: OK
+- node --check translations.js: OK
+- Cloud restore is before checkOfflineEarnings(): OK
+- Legacy V12.5 save migration retained: OK
+- localStorage.clear() removed: OK
+- version/cache refs: 19.1
+
+No real Telegram CloudStorage network round-trip was possible in this environment.

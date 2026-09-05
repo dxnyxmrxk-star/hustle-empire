@@ -25,8 +25,31 @@
     window.i18n = window.I18N;
   }
 
-  const SAVE_KEY = "hustleEmpireSave_v12_5";
-  const LEGACY_SAVE_KEYS = ["hustleEmpireSave_v11", "hustleEmpireSave_v10", "hustleEmpireSave_v9", "hustleEmpireSave_v8", "hustleEmpireSave_v7", "hustleEmpireSave_v6"];
+  const SAVE_KEY = "urbanTycoonSave_v19_1";
+  const SAVE_BACKUP_KEY = "urbanTycoonSave_v19_1_backup";
+  const SAVE_META_KEY = "urbanTycoonSave_v19_1_meta";
+
+  const LEGACY_SAVE_KEYS = [
+    "hustleEmpireSave_v12_5",
+    "hustleEmpireSave_v11",
+    "hustleEmpireSave_v10",
+    "hustleEmpireSave_v9",
+    "hustleEmpireSave_v8",
+    "hustleEmpireSave_v7",
+    "hustleEmpireSave_v6"
+  ];
+
+  /*
+     Telegram CloudStorage values are intentionally chunked below the
+     per-item size limit. Meta is written LAST, so an interrupted upload
+     never points to a half-written snapshot.
+  */
+  const TELEGRAM_CLOUD_SAVE_PREFIX = "urbanTycoon_v19_1";
+  const TELEGRAM_CLOUD_META_KEY = `${TELEGRAM_CLOUD_SAVE_PREFIX}_meta`;
+  const TELEGRAM_CLOUD_CHUNK_SIZE = 3200;
+
+  const LOCAL_SAVE_DEBOUNCE_MS = 120;
+  const CLOUD_SAVE_DEBOUNCE_MS = 1400;
 
   const BUSINESS_CONFIGS = CONFIG.BUSINESSES || {};
   const BUSINESS_IDS = Object.keys(BUSINESS_CONFIGS);
@@ -61,7 +84,7 @@
      CSS/UI frame overlay rendered above it.
   ========================================================== */
 
-  const SPRITE_BUILD_VERSION = "19.0";
+  const SPRITE_BUILD_VERSION = "19.1";
 
   const REAL_GAME_ASSET_PATHS = Object.freeze([
     "assets/acc_epic.png",
@@ -2431,32 +2454,597 @@
     return s;
   }
 
-  function loadGame() {
+  let persistenceMuted = false;
+  let localSaveTimer = 0;
+  let cloudSaveTimer = 0;
+  let cloudSaveInFlight = false;
+  let cloudSaveQueued = false;
+  let lastLocalSaveAt = 0;
+  let lastCloudSaveAt = 0;
+
+  const persistenceProxyCache = new WeakMap();
+
+  function parseSavedState(raw) {
+    if (!raw) return null;
+
     try {
-      let raw = localStorage.getItem(SAVE_KEY);
-      if (!raw) {
-        for (const key of LEGACY_SAVE_KEYS) {
-          raw = localStorage.getItem(key);
-          if (raw) break;
-        }
+      const parsed = JSON.parse(raw);
+
+      /*
+         V19.1 supports both the new envelope and all older plain-state
+         snapshots so existing players never lose their progress on update.
+      */
+      if (
+        parsed
+        && typeof parsed === "object"
+        && parsed.state
+        && typeof parsed.state === "object"
+      ) {
+        return {
+          state: parsed.state,
+          updatedAt:
+            Math.max(
+              0,
+              Number(parsed.updatedAt)
+              || Number(parsed.state?.timestamps?.lastSaveAt)
+              || 0
+            ),
+          schema: Number(parsed.schema) || 1
+        };
       }
-      if (!raw) return clone(DEFAULT_STATE);
-      return sanitizeState(deepMerge(clone(DEFAULT_STATE), JSON.parse(raw)));
+
+      return {
+        state: parsed,
+        updatedAt:
+          Math.max(0, Number(parsed?.timestamps?.lastSaveAt) || 0),
+        schema: 0
+      };
     } catch (error) {
-      console.warn("[Hustle Empire] Save load failed:", error);
-      return clone(DEFAULT_STATE);
+      return null;
     }
   }
 
-  const state = loadGame();
+  function buildSaveEnvelope(timestamp = Date.now()) {
+    const updatedAt = Math.max(0, Number(timestamp) || Date.now());
 
-  function saveGame() {
-    state.timestamps.lastSaveAt = Date.now();
+    return {
+      schema: 2,
+      appVersion: "19.1",
+      updatedAt,
+      state: JSON.parse(JSON.stringify(state))
+    };
+  }
+
+  function readLocalSaveCandidate(key) {
     try {
-      localStorage.setItem(SAVE_KEY, JSON.stringify(state));
-    } catch (error) {
-      console.warn("[Hustle Empire] Save failed:", error);
+      const raw = localStorage.getItem(key);
+      const parsed = parseSavedState(raw);
+      return parsed ? { key, raw, ...parsed } : null;
+    } catch (_) {
+      return null;
     }
+  }
+
+  function loadBestLocalSave() {
+    const candidates = [
+      readLocalSaveCandidate(SAVE_KEY),
+      readLocalSaveCandidate(SAVE_BACKUP_KEY),
+      ...LEGACY_SAVE_KEYS.map(readLocalSaveCandidate)
+    ].filter(Boolean);
+
+    if (!candidates.length) {
+      return {
+        state: clone(DEFAULT_STATE),
+        updatedAt: 0,
+        source: "default"
+      };
+    }
+
+    candidates.sort((a, b) => b.updatedAt - a.updatedAt);
+    const best = candidates[0];
+
+    try {
+      return {
+        state: sanitizeState(
+          deepMerge(clone(DEFAULT_STATE), best.state)
+        ),
+        updatedAt: best.updatedAt,
+        source: best.key
+      };
+    } catch (error) {
+      console.warn(
+        "[Urban Tycoon] Local save sanitize failed:",
+        error
+      );
+
+      return {
+        state: clone(DEFAULT_STATE),
+        updatedAt: 0,
+        source: "default"
+      };
+    }
+  }
+
+  const initialLocalSave = loadBestLocalSave();
+
+  function createPersistentProxy(target) {
+    if (
+      !target
+      || typeof target !== "object"
+    ) {
+      return target;
+    }
+
+    if (persistenceProxyCache.has(target)) {
+      return persistenceProxyCache.get(target);
+    }
+
+    const proxy = new Proxy(target, {
+      get(object, property, receiver) {
+        const value = Reflect.get(object, property, receiver);
+
+        return (
+          value
+          && typeof value === "object"
+        )
+          ? createPersistentProxy(value)
+          : value;
+      },
+
+      set(object, property, value, receiver) {
+        const previous = Reflect.get(object, property, receiver);
+        const changed = !Object.is(previous, value);
+        const result = Reflect.set(object, property, value, receiver);
+
+        if (changed && !persistenceMuted) {
+          queueStateSave("state-change");
+        }
+
+        return result;
+      },
+
+      deleteProperty(object, property) {
+        const existed = Reflect.has(object, property);
+        const result = Reflect.deleteProperty(object, property);
+
+        if (existed && !persistenceMuted) {
+          queueStateSave("state-delete");
+        }
+
+        return result;
+      }
+    });
+
+    persistenceProxyCache.set(target, proxy);
+    return proxy;
+  }
+
+  const state = createPersistentProxy(initialLocalSave.state);
+
+  function getTelegramCloudStorage() {
+    const cloudStorage =
+      window.Telegram?.WebApp?.CloudStorage;
+
+    return (
+      cloudStorage
+      && typeof cloudStorage.getItem === "function"
+      && typeof cloudStorage.setItem === "function"
+    )
+      ? cloudStorage
+      : null;
+  }
+
+  function cloudGetItem(key) {
+    const cloudStorage = getTelegramCloudStorage();
+    if (!cloudStorage) return Promise.resolve("");
+
+    return new Promise((resolve) => {
+      try {
+        cloudStorage.getItem(key, (error, value) => {
+          if (error) {
+            console.warn(
+              "[Urban Tycoon] Telegram CloudStorage getItem failed:",
+              error
+            );
+            resolve("");
+            return;
+          }
+
+          resolve(String(value || ""));
+        });
+      } catch (error) {
+        console.warn(
+          "[Urban Tycoon] Telegram CloudStorage getItem exception:",
+          error
+        );
+        resolve("");
+      }
+    });
+  }
+
+  function cloudSetItem(key, value) {
+    const cloudStorage = getTelegramCloudStorage();
+    if (!cloudStorage) return Promise.resolve(false);
+
+    return new Promise((resolve) => {
+      try {
+        cloudStorage.setItem(
+          key,
+          String(value),
+          (error, success) => {
+            if (error) {
+              console.warn(
+                "[Urban Tycoon] Telegram CloudStorage setItem failed:",
+                error
+              );
+              resolve(false);
+              return;
+            }
+
+            resolve(success !== false);
+          }
+        );
+      } catch (error) {
+        console.warn(
+          "[Urban Tycoon] Telegram CloudStorage setItem exception:",
+          error
+        );
+        resolve(false);
+      }
+    });
+  }
+
+  function splitCloudPayload(serialized) {
+    const chunks = [];
+
+    for (
+      let index = 0;
+      index < serialized.length;
+      index += TELEGRAM_CLOUD_CHUNK_SIZE
+    ) {
+      chunks.push(
+        serialized.slice(
+          index,
+          index + TELEGRAM_CLOUD_CHUNK_SIZE
+        )
+      );
+    }
+
+    return chunks;
+  }
+
+  async function writeTelegramCloudSnapshot(envelope) {
+    if (!getTelegramCloudStorage()) return false;
+
+    const serialized = JSON.stringify(envelope);
+    const chunks = splitCloudPayload(serialized);
+
+    for (let index = 0; index < chunks.length; index += 1) {
+      const success = await cloudSetItem(
+        `${TELEGRAM_CLOUD_SAVE_PREFIX}_${index}`,
+        chunks[index]
+      );
+
+      if (!success) return false;
+    }
+
+    /*
+       Commit marker LAST. Readers only trust chunks referenced by this
+       metadata, so a killed WebView cannot create a partial valid save.
+    */
+    const meta = {
+      schema: 2,
+      updatedAt: envelope.updatedAt,
+      chunks: chunks.length,
+      length: serialized.length
+    };
+
+    const metaSaved = await cloudSetItem(
+      TELEGRAM_CLOUD_META_KEY,
+      JSON.stringify(meta)
+    );
+
+    if (metaSaved) {
+      lastCloudSaveAt = envelope.updatedAt;
+    }
+
+    return metaSaved;
+  }
+
+  async function readTelegramCloudSnapshot() {
+    if (!getTelegramCloudStorage()) return null;
+
+    const rawMeta = await cloudGetItem(
+      TELEGRAM_CLOUD_META_KEY
+    );
+
+    if (!rawMeta) return null;
+
+    let meta;
+
+    try {
+      meta = JSON.parse(rawMeta);
+    } catch (_) {
+      return null;
+    }
+
+    const chunkCount = Math.max(
+      0,
+      Math.min(64, Math.floor(Number(meta?.chunks) || 0))
+    );
+
+    if (!chunkCount) return null;
+
+    const chunks = [];
+
+    for (let index = 0; index < chunkCount; index += 1) {
+      const chunk = await cloudGetItem(
+        `${TELEGRAM_CLOUD_SAVE_PREFIX}_${index}`
+      );
+
+      if (!chunk) return null;
+      chunks.push(chunk);
+    }
+
+    const serialized = chunks.join("");
+
+    if (
+      Number(meta.length) > 0
+      && serialized.length !== Number(meta.length)
+    ) {
+      console.warn(
+        "[Urban Tycoon] Telegram cloud save length mismatch."
+      );
+      return null;
+    }
+
+    const parsed = parseSavedState(serialized);
+    if (!parsed) return null;
+
+    return {
+      ...parsed,
+      updatedAt:
+        Math.max(
+          parsed.updatedAt,
+          Number(meta.updatedAt) || 0
+        )
+    };
+  }
+
+  function applyLoadedSnapshot(snapshot) {
+    if (!snapshot?.state) return false;
+
+    let sanitized;
+
+    try {
+      sanitized = sanitizeState(
+        deepMerge(clone(DEFAULT_STATE), snapshot.state)
+      );
+    } catch (error) {
+      console.warn(
+        "[Urban Tycoon] Snapshot sanitize failed:",
+        error
+      );
+      return false;
+    }
+
+    persistenceMuted = true;
+
+    try {
+      Object.keys(state).forEach((key) => {
+        delete state[key];
+      });
+
+      Object.entries(sanitized).forEach(([key, value]) => {
+        state[key] = value;
+      });
+    } finally {
+      persistenceMuted = false;
+    }
+
+    return true;
+  }
+
+  function writeLocalSnapshot(envelope) {
+    const serialized = JSON.stringify(envelope);
+
+    try {
+      const current = localStorage.getItem(SAVE_KEY);
+
+      if (current) {
+        localStorage.setItem(
+          SAVE_BACKUP_KEY,
+          current
+        );
+      }
+
+      localStorage.setItem(
+        SAVE_KEY,
+        serialized
+      );
+
+      localStorage.setItem(
+        SAVE_META_KEY,
+        JSON.stringify({
+          schema: envelope.schema,
+          updatedAt: envelope.updatedAt,
+          appVersion: envelope.appVersion
+        })
+      );
+
+      lastLocalSaveAt = envelope.updatedAt;
+      return true;
+    } catch (error) {
+      console.warn(
+        "[Urban Tycoon] Local save failed:",
+        error
+      );
+      return false;
+    }
+  }
+
+  async function flushCloudSave() {
+    if (cloudSaveInFlight) {
+      cloudSaveQueued = true;
+      return false;
+    }
+
+    cloudSaveInFlight = true;
+
+    try {
+      persistenceMuted = true;
+      state.timestamps ||= {};
+      state.timestamps.lastSaveAt = Date.now();
+      const envelope = buildSaveEnvelope(
+        state.timestamps.lastSaveAt
+      );
+      persistenceMuted = false;
+
+      return await writeTelegramCloudSnapshot(
+        envelope
+      );
+    } finally {
+      persistenceMuted = false;
+      cloudSaveInFlight = false;
+
+      if (cloudSaveQueued) {
+        cloudSaveQueued = false;
+        queueCloudSave("queued-cloud-save");
+      }
+    }
+  }
+
+  function queueCloudSave(reason = "state-change") {
+    if (!getTelegramCloudStorage()) return;
+
+    if (cloudSaveTimer) {
+      clearTimeout(cloudSaveTimer);
+    }
+
+    cloudSaveTimer = window.setTimeout(() => {
+      cloudSaveTimer = 0;
+      flushCloudSave().catch((error) => {
+        console.warn(
+          "[Urban Tycoon] Cloud save flush failed:",
+          error,
+          reason
+        );
+      });
+    }, CLOUD_SAVE_DEBOUNCE_MS);
+  }
+
+  function flushLocalSave(reason = "manual") {
+    if (localSaveTimer) {
+      clearTimeout(localSaveTimer);
+      localSaveTimer = 0;
+    }
+
+    const now = Date.now();
+
+    persistenceMuted = true;
+    state.timestamps ||= {};
+    state.timestamps.lastSaveAt = now;
+    const envelope = buildSaveEnvelope(now);
+    persistenceMuted = false;
+
+    const saved = writeLocalSnapshot(envelope);
+
+    if (!saved) {
+      console.warn(
+        "[Urban Tycoon] Save was not persisted:",
+        reason
+      );
+    }
+
+    return saved;
+  }
+
+  function queueStateSave(reason = "state-change") {
+    if (persistenceMuted) return;
+
+    if (localSaveTimer) {
+      clearTimeout(localSaveTimer);
+    }
+
+    localSaveTimer = window.setTimeout(() => {
+      localSaveTimer = 0;
+      flushLocalSave(reason);
+    }, LOCAL_SAVE_DEBOUNCE_MS);
+
+    queueCloudSave(reason);
+  }
+
+  /*
+     Existing gameplay code already calls saveGame() in important actions.
+     Keep that API, but V19.1 now performs an immediate LOCAL durable write
+     and a coalesced Telegram CloudStorage mirror.
+  */
+  function saveGame(reason = "game-action") {
+    const saved = flushLocalSave(reason);
+    queueCloudSave(reason);
+    return saved;
+  }
+
+  async function hydratePersistence() {
+    const localUpdatedAt =
+      Math.max(
+        initialLocalSave.updatedAt,
+        Number(state.timestamps?.lastSaveAt) || 0
+      );
+
+    const cloudSnapshot =
+      await readTelegramCloudSnapshot();
+
+    if (
+      cloudSnapshot
+      && cloudSnapshot.updatedAt > localUpdatedAt
+    ) {
+      const restored =
+        applyLoadedSnapshot(cloudSnapshot);
+
+      if (restored) {
+        /*
+           Immediately mirror the winning Cloud snapshot locally so future
+           launches do not depend on a second network call.
+        */
+        flushLocalSave("cloud-restore");
+        return {
+          source: "telegram-cloud",
+          updatedAt: cloudSnapshot.updatedAt
+        };
+      }
+    }
+
+    /*
+       Local is newer (or CloudStorage unavailable). Mirror it asynchronously
+       so Telegram can restore the same player on the next WebView session.
+    */
+    if (getTelegramCloudStorage()) {
+      queueCloudSave("startup-local-newer");
+    }
+
+    return {
+      source: initialLocalSave.source,
+      updatedAt: localUpdatedAt
+    };
+  }
+
+  function persistOnExit(reason = "exit") {
+    /*
+       localStorage is synchronous and is the only persistence API safe to
+       depend on during beforeunload/pagehide.
+    */
+    recordSessionCloseTimestamp();
+
+    /*
+       Best effort cloud mirror. visibilitychange normally fires early enough
+       for this to complete; pagehide/beforeunload still have the local copy.
+    */
+    if (getTelegramCloudStorage()) {
+      flushCloudSave().catch(() => {});
+    }
+
+    return reason;
   }
 
   /* ==========================================================
@@ -7683,7 +8271,18 @@
   }
 
   function resetGame() {
-    localStorage.clear();
+    try {
+      [
+        SAVE_KEY,
+        SAVE_BACKUP_KEY,
+        SAVE_META_KEY,
+        OFFLINE_LAST_CLAIM_STORAGE_KEY,
+        DAILY_RETENTION_STORAGE_KEY,
+        LEADERBOARD_SEASON_STORAGE_KEY,
+        ...LEGACY_SAVE_KEYS
+      ].forEach((key) => localStorage.removeItem(key));
+    } catch (_) {}
+
     location.reload();
   }
 
@@ -7885,6 +8484,13 @@
     document.documentElement.classList.add("sprites-loading");
 
     /*
+       Restore the newest durable snapshot BEFORE any energy/offline-income
+       calculation mutates state. Local loads synchronously; Telegram cloud
+       wins only when its updatedAt timestamp is newer.
+    */
+    const persistenceRestore = await hydratePersistence();
+
+    /*
        Bind <img> fallbacks before first paint. This is important on Telegram
        iOS where an SVG request can fail before the rest of the app is ready.
     */
@@ -7952,7 +8558,7 @@
 
     document.addEventListener("visibilitychange", () => {
       if (document.hidden) {
-        recordSessionCloseTimestamp();
+        persistOnExit("visibility-hidden");
       } else {
         const resumedOfflineResult = checkOfflineEarnings();
 
@@ -7981,12 +8587,28 @@
     }, { passive: true });
 
     window.addEventListener("pagehide", () => {
-      recordSessionCloseTimestamp();
+      persistOnExit("pagehide");
     }, { passive: true });
 
     window.addEventListener("beforeunload", () => {
-      recordSessionCloseTimestamp();
+      persistOnExit("beforeunload");
     });
+
+    /*
+       Telegram Mini Apps may background/close without a conventional browser
+       unload path. Telegram's viewportChanged is another chance to flush when
+       the app is no longer stable/fully visible.
+    */
+    try {
+      window.Telegram?.WebApp?.onEvent?.(
+        "viewportChanged",
+        (event) => {
+          if (event?.isStateStable === false) {
+            saveGame("telegram-viewport-change");
+          }
+        }
+      );
+    } catch (_) {}
 
     window.addEventListener("hustle:languageChanged", () => {
       renderAllDynamic();
@@ -8126,6 +8748,21 @@
         scheduleDynamicScreenRender(screenName, options),
       warmScreens: scheduleIdleScreenWarmup,
       getWarmedScreens: () => [...warmedPerformanceScreens]
+    },
+
+    persistence: {
+      saveNow: (reason = "api") => saveGame(reason),
+      saveCloudNow: () => flushCloudSave(),
+      hydrate: () => hydratePersistence(),
+      hasTelegramCloud: () => Boolean(getTelegramCloudStorage()),
+      getStatus: () => ({
+        localUpdatedAt: lastLocalSaveAt,
+        cloudUpdatedAt: lastCloudSaveAt,
+        cloudAvailable: Boolean(getTelegramCloudStorage()),
+        localSaveQueued: Boolean(localSaveTimer),
+        cloudSaveQueued: Boolean(cloudSaveTimer || cloudSaveQueued),
+        cloudSaveInFlight
+      })
     },
 
     i18n: {
@@ -8318,3 +8955,5 @@
 /* V18.6: HUD trophy now directly opens and renders the Leaderboard screen. */
 
 /* V18.9: coalesced tab rendering, idle screen warmup and instant nav shell switching. */
+
+/* V19.1: real-time local persistence + backup + Telegram CloudStorage mirror. */
