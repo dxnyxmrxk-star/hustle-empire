@@ -1,0 +1,28 @@
+URBAN TYCOON V19.3 — HOME COMPACTNESS / READABILITY STATIC AUDIT
+
+Changes:
+- Added Home-only scope: .home-screen-compact
+- Reduced main Home stage maximum height (old max 680px -> new max 616px / 38.5rem)
+- Reduced main three-column gap
+- Reduced center/side padding and lower-panel top margins
+- Increased character visible size:
+  desktop 142% -> 156% width
+  mobile previous 154% -> 166% width
+  <=390px -> 171%
+- Character PNG remains clipped only inside its dedicated center stage
+- Tap CTA stays below character, not over it
+- Introduced Home-specific readable typography tokens
+- Increased logo, left-widget labels, mission text, tap CTA, Quick Jobs,
+  Active Businesses, totals, badges and buttons
+- Long EN/RU strings retain min-width:0 / wrapping protection
+- Lower section total moves below title on very narrow phones instead of
+  shrinking the font again
+
+Validation:
+- node --check script.js: OK
+- node --check game.js: OK
+- node --check translations.js: OK
+- CSS brace balance: OK
+- version/cache refs: 19.3
+
+No live browser/Telegram screenshot test was performed.
