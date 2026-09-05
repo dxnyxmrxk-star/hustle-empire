@@ -121,7 +121,7 @@
     premium_legendary: "case-gold"
   };
 
-  const SPRITE_BUILD_VERSION = "15.3";
+  const SPRITE_BUILD_VERSION = "15.4";
 
   /*
      V14.0 asset manifest.
@@ -133,18 +133,73 @@
      - old *_v124 sprite names are fallback-only, so an older deployment can
        still recover without rendering a blank game screen.
   */
+  /*
+     V15.4 — REAL ASSET MANIFEST
+     Audited 1:1 against the user-uploaded assets.zip.
+
+     Uploaded archive:
+       - 62 physical files
+       - 61 image files
+
+     This build uses only paths present in REAL_GAME_ASSET_PATHS.
+  */
+  const REAL_GAME_ASSET_PATHS = Object.freeze([
+    "assets/avatar-small.svg",
+    "assets/avatar.png",
+    "assets/case_24h.png",
+    "assets/case_2h.png",
+    "assets/case_4h.png",
+    "assets/case_8h.png",
+    "assets/case_boss.png",
+    "assets/case_hustler.png",
+    "assets/case_street.png",
+    "assets/case_tycoon.png",
+    "assets/character-01.svg",
+    "assets/character-02.svg",
+    "assets/character-03.svg",
+    "assets/character-04.svg",
+    "assets/character-main.svg",
+    "assets/character_hustler.png",
+    "assets/character_novice.png",
+    "assets/character_street.png",
+    "assets/character_tycoon.png",
+    "assets/city-map.svg",
+    "assets/sprite_businesses.png",
+    "assets/sprite_cards_workers.png",
+    "assets/sprite_cases.png",
+    "assets/sprite_character_evolution.png",
+    "assets/sprite_city_map.png",
+    "assets/sprite_wardrobe_items.png"
+]);
+  const REAL_GAME_ASSET_PATH_SET = new Set(REAL_GAME_ASSET_PATHS);
+
   const ASSET_PATHS = Object.freeze({
     avatar: "assets/avatar-small.svg",
     avatarFallback: "assets/avatar.png",
     characterMain: "assets/character-main.svg",
+
     characters: Object.freeze({
-      1: Object.freeze({ primary: "assets/character-01.svg", fallback: "assets/character_novice.png" }),
-      2: Object.freeze({ primary: "assets/character-02.svg", fallback: "assets/character_street.png" }),
-      3: Object.freeze({ primary: "assets/character-03.svg", fallback: "assets/character_hustler.png" }),
-      4: Object.freeze({ primary: "assets/character-04.svg", fallback: "assets/character_tycoon.png" })
+      1: Object.freeze({
+        primary: "assets/character-01.svg",
+        fallback: "assets/character_novice.png"
+      }),
+      2: Object.freeze({
+        primary: "assets/character-02.svg",
+        fallback: "assets/character_street.png"
+      }),
+      3: Object.freeze({
+        primary: "assets/character-03.svg",
+        fallback: "assets/character_hustler.png"
+      }),
+      4: Object.freeze({
+        primary: "assets/character-04.svg",
+        fallback: "assets/character_tycoon.png"
+      })
     }),
+
     cityMap: "assets/sprite_city_map.png",
     cityMapFallback: "assets/city-map.svg",
+
     cases: Object.freeze({
       case_2h: "assets/case_2h.png",
       case_4h: "assets/case_4h.png",
@@ -155,6 +210,7 @@
       tycoon: "assets/case_tycoon.png",
       boss: "assets/case_boss.png"
     }),
+
     spriteSheets: Object.freeze({
       character: "assets/sprite_character_evolution.png",
       cityMap: "assets/sprite_city_map.png",
@@ -175,16 +231,8 @@
   });
 
   /*
-     V14.4 — fallback paths are ALWAYS arrays.
-     Never build a fallback as "pathA pathB": WebKit will treat that as one
-     invalid URL. The loader advances to the next array item only on error.
-  */
-  /*
-     V15.3 — audited fallback paths.
-     Only physically existing alternative files are listed here.
-     The primary file is supplied separately by OFFICIAL_SPRITE_ASSETS.
-     For City Map the effective candidate array becomes:
-       ["assets/sprite_city_map.png", "assets/city-map.svg"]
+     Only real alternatives from the uploaded assets.zip.
+     No hypothetical fallback filenames remain.
   */
   const SPRITE_ASSET_FALLBACKS = Object.freeze({
     character: Object.freeze([]),
@@ -195,11 +243,6 @@
     wardrobe: Object.freeze([])
   });
 
-  /*
-     V14.0: the sprite sheets remain the canonical six source assets, but
-     individual cells are painted into tiny DPR-aware canvases. This removes
-     the WebKit-sensitive dependency on huge CSS background-position crops.
-  */
   const SPRITE_CELLS = Object.freeze({
     "char-level-1": { sheet: "character", cols: 2, rows: 2, col: 0, row: 0 },
     "char-level-2": { sheet: "character", cols: 2, rows: 2, col: 1, row: 0 },
@@ -337,7 +380,16 @@
         .forEach((rawPath) => {
           const cleanPath = normalizeRelativeAssetPath(rawPath);
 
-          if (cleanPath && !candidates.includes(cleanPath)) {
+          if (!cleanPath) return;
+
+          if (!REAL_GAME_ASSET_PATH_SET.has(cleanPath)) {
+            console.warn(
+              `[Hustle Empire] Skipping non-existent asset path: ${cleanPath}`
+            );
+            return;
+          }
+
+          if (!candidates.includes(cleanPath)) {
             candidates.push(cleanPath);
           }
         });
@@ -660,46 +712,16 @@
 
 
   /*
-     V15.3 — ASSET AUDIT (PHYSICAL FILES ONLY)
+     V15.4 — ASSET AUDIT (PHYSICAL FILES ONLY)
      Exact case-sensitive paths expected by the current build.
      Run HustleAssetAudit() in DevTools to print the full list and resolved URL.
   */
   /*
-     V15.3 — EXACT IMAGE PATHS USED BY THE GAME
-     These are the 26 image files the current build may request.
-     Compare this list 1:1 with the GitHub assets/ folder.
+     V15.4 — runtime audit uses the same verified real-asset allowlist.
   */
-  const PROJECT_IMAGE_PATHS_26 = Object.freeze([
-    "assets/avatar-small.svg",
-    "assets/avatar.png",
-    "assets/case_24h.png",
-    "assets/case_2h.png",
-    "assets/case_4h.png",
-    "assets/case_8h.png",
-    "assets/case_boss.png",
-    "assets/case_hustler.png",
-    "assets/case_street.png",
-    "assets/case_tycoon.png",
-    "assets/character-01.svg",
-    "assets/character-02.svg",
-    "assets/character-03.svg",
-    "assets/character-04.svg",
-    "assets/character-main.svg",
-    "assets/character_hustler.png",
-    "assets/character_novice.png",
-    "assets/character_street.png",
-    "assets/character_tycoon.png",
-    "assets/city-map.svg",
-    "assets/sprite_businesses.png",
-    "assets/sprite_cards_workers.png",
-    "assets/sprite_cases.png",
-    "assets/sprite_character_evolution.png",
-    "assets/sprite_city_map.png",
-    "assets/sprite_wardrobe_items.png"
-]);
 
   function getAssetAuditList() {
-    return PROJECT_IMAGE_PATHS_26.map((path, index) => ({
+    return REAL_GAME_ASSET_PATHS.map((path, index) => ({
       index: index + 1,
       path,
       fileName: path.split("/").pop(),
@@ -724,8 +746,8 @@
   }
 
   window.HustleAssetAudit = logAssetAudit;
-  window.HustleAssetPathsExact = PROJECT_IMAGE_PATHS_26;
-  window.HustleImagePaths26 = PROJECT_IMAGE_PATHS_26;
+  window.HustleAssetPathsExact = REAL_GAME_ASSET_PATHS;
+  window.HustleImagePaths26 = REAL_GAME_ASSET_PATHS;
 
   window.HustleAssetPaths = ASSET_PATHS;
   window.HustleSpriteAssets = OFFICIAL_SPRITE_ASSETS;
@@ -1183,7 +1205,7 @@
   const OFFLINE_LAST_CLAIM_STORAGE_KEY = "lastClaimTime";
 
   /* ==========================================================
-     V15.3 — DAILY RETENTION
+     V15.4 — DAILY RETENTION
      Daily Combo + Morse Cipher + 7-Day Check-in.
   ========================================================== */
   const DAILY_RETENTION_STORAGE_KEY = "hustleEmpireDailyRetentionV1";
@@ -1646,7 +1668,7 @@
   }
 
   /* ==========================================================
-     V15.3 — DAILY RETENTION SYSTEM
+     V15.4 — DAILY RETENTION SYSTEM
   ========================================================== */
 
   function getUtcDayKey(timestamp = Date.now()) {
