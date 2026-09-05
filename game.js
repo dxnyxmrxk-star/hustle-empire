@@ -122,18 +122,25 @@
   };
 
   const OFFICIAL_SPRITE_ASSETS = Object.freeze({
-    character: "./assets/sprite_character_evolution.png?v=12.2",
-    cityMap: "./assets/sprite_city_map.png?v=12.2",
-    businesses: "./assets/sprite_businesses.png?v=12.2",
-    cases: "./assets/sprite_cases.png?v=12.2",
-    workers: "./assets/sprite_cards_workers.png?v=12.2",
-    wardrobe: "./assets/sprite_wardrobe_items.png?v=12.2"
+    character: "./assets/sprite_character_evolution.png?v=12.3",
+    cityMap: "./assets/sprite_city_map.png?v=12.3",
+    businesses: "./assets/sprite_businesses.png?v=12.3",
+    cases: "./assets/sprite_cases.png?v=12.3",
+    workers: "./assets/sprite_cards_workers.png?v=12.3",
+    wardrobe: "./assets/sprite_wardrobe_items.png?v=12.3"
   });
 
   function preloadOfficialSpriteSheets() {
-    Object.values(OFFICIAL_SPRITE_ASSETS).forEach((src) => {
+    Object.entries(OFFICIAL_SPRITE_ASSETS).forEach(([key, src]) => {
       const image = new Image();
       image.decoding = "async";
+      image.onload = () => {
+        document.documentElement.dataset[`sprite${key[0].toUpperCase()}${key.slice(1)}`] = "ready";
+      };
+      image.onerror = () => {
+        console.error(`[Hustle Empire] Missing sprite asset: ${key} -> ${src}`);
+        document.documentElement.dataset.spriteError = key;
+      };
       image.src = src;
     });
   }
@@ -1061,13 +1068,17 @@
   function addCardFragments(cardId, amount, source = "manual") {
     const cs = state.cards[cardId];
     if (!cs || !CARD_CONFIGS[cardId]) return false;
+
     const qty = Math.max(0, Math.floor(Number(amount) || 0));
     if (!qty) return false;
+
     /* Fragment-only: no random auto-unlock. */
     cs.fragments += qty;
+
     saveGame();
     renderCollectionUI();
     emitGameEvent("cardFragmentsAdded", { cardId, amount: qty, source });
+
     return true;
   }
 
