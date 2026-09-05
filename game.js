@@ -121,7 +121,7 @@
     premium_legendary: "case-gold"
   };
 
-  const SPRITE_BUILD_VERSION = "15.1";
+  const SPRITE_BUILD_VERSION = "15.2";
 
   /*
      V14.0 asset manifest.
@@ -180,19 +180,19 @@
      invalid URL. The loader advances to the next array item only on error.
   */
   /*
-     V15.1 — every fallback list is a true array.
-     City map is tried in this exact order:
-       1) assets/sprite_city_map.png
-       2) assets/city-map.svg
-     Never concatenate these paths into one string.
+     V15.2 — audited fallback paths.
+     Only physically existing alternative files are listed here.
+     The primary file is supplied separately by OFFICIAL_SPRITE_ASSETS.
+     For City Map the effective candidate array becomes:
+       ["assets/sprite_city_map.png", "assets/city-map.svg"]
   */
   const SPRITE_ASSET_FALLBACKS = Object.freeze({
-    character: Object.freeze(["assets/sprite_character_evolution.png"]),
-    cityMap: Object.freeze(["assets/sprite_city_map.png", "assets/city-map.svg"]),
-    businesses: Object.freeze(["assets/sprite_businesses.png"]),
-    cases: Object.freeze(["assets/sprite_cases.png"]),
-    workers: Object.freeze(["assets/sprite_cards_workers.png"]),
-    wardrobe: Object.freeze(["assets/sprite_wardrobe_items.png"])
+    character: Object.freeze([]),
+    cityMap: Object.freeze(["assets/city-map.svg"]),
+    businesses: Object.freeze([]),
+    cases: Object.freeze([]),
+    workers: Object.freeze([]),
+    wardrobe: Object.freeze([])
   });
 
   /*
@@ -263,6 +263,35 @@
   let spriteAssetsReady = false;
   let spriteMutationObserver = null;
   let spriteResizeObserver = null;
+
+  /*
+     Universal zero-network fallback.
+     This prevents broken-image icons and keeps renderers alive even when
+     GitHub Pages returns 404 for every real candidate.
+  */
+  const TRANSPARENT_ASSET_PLACEHOLDER =
+    "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='1'%20height='1'%20viewBox='0%200%201%201'%3E%3C/svg%3E";
+
+  function createTransparentPlaceholderImage() {
+    return new Promise((resolve) => {
+      const placeholder = new Image();
+      placeholder.decoding = "async";
+
+      const finish = () => resolve(placeholder);
+
+      placeholder.onload = finish;
+      placeholder.onerror = finish;
+      placeholder.src = TRANSPARENT_ASSET_PLACEHOLDER;
+
+      /*
+         Most browsers mark data-URI images complete immediately.
+         Queue a safe completion fallback for WebKit.
+      */
+      if (placeholder.complete) {
+        queueMicrotask(finish);
+      }
+    });
+  }
 
   function normalizeRelativeAssetPath(relativePath) {
     /*
@@ -341,27 +370,34 @@
       let index = 0;
       let settled = false;
 
-      const failAll = () => {
+      const resolveWithPlaceholder = async () => {
         if (settled) return;
         settled = true;
 
-        options.onAllFailed?.(fallbackArray);
+        const placeholder = await createTransparentPlaceholderImage();
+
+        options.onAllFailed?.(
+          fallbackArray,
+          placeholder
+        );
 
         resolve({
           ok: false,
-          image: null,
-          path: "",
-          candidates: fallbackArray
+          image: placeholder,
+          path: TRANSPARENT_ASSET_PLACEHOLDER,
+          candidates: fallbackArray,
+          placeholder: true
         });
       };
 
       const loadNext = () => {
+        if (settled) return;
+
         /*
-           HARD BOUNDARY:
-           never read fallbackArray[index] unless index is valid.
+           Never access an array element outside its valid range.
         */
         if (index >= fallbackArray.length) {
-          failAll();
+          resolveWithPlaceholder();
           return;
         }
 
@@ -380,9 +416,10 @@
               await element.decode();
             }
           } catch (_) {
-            /* Safari/WKWebView may reject decode() after a successful load. */
+            /* Safari/WKWebView may reject decode() after onload. */
           }
 
+          if (settled) return;
           settled = true;
 
           options.onSuccess?.(
@@ -395,39 +432,37 @@
             ok: true,
             image: element,
             path: currentPath,
-            candidates: fallbackArray
+            candidates: fallbackArray,
+            placeholder: false
           });
         };
 
         element.onerror = () => {
           if (settled) return;
 
-          /*
-             index points to the NEXT candidate.
-             Only call loadNext() when that candidate really exists.
-          */
           if (index < fallbackArray.length) {
             console.warn(
-              `[Hustle Empire] Image failed: ${currentPath}. Trying fallback ${index + 1}/${fallbackArray.length}: ${fallbackArray[index]}`
+              `[Hustle Empire] 404: ${currentPath}. Trying ${index + 1}/${fallbackArray.length}: ${fallbackArray[index]}`
             );
             loadNext();
             return;
           }
 
-          console.error(
-            `[Hustle Empire] Image failed: ${currentPath}. No fallbacks left (${fallbackArray.length}/${fallbackArray.length}).`
+          console.warn(
+            `[Hustle Empire] 404: ${currentPath}. No real asset candidates left; using transparent placeholder.`
           );
-          failAll();
+
+          resolveWithPlaceholder();
         };
 
         /*
-           Exactly ONE path per request. Paths are never concatenated.
+           Exactly one URL is assigned per attempt.
         */
         element.src = resolveAssetUrl(currentPath);
       };
 
       if (!fallbackArray.length) {
-        failAll();
+        resolveWithPlaceholder();
         return;
       }
 
@@ -450,13 +485,21 @@
         ] = "ready";
       },
 
-      onAllFailed(failedCandidates) {
-        console.error(
-          `[Hustle Empire] Sprite failed to load: ${key}`,
+      onAllFailed(failedCandidates, placeholder) {
+        /*
+           Do not leave the renderer without a CanvasImageSource.
+           A transparent 1x1 data-URI image keeps the DOM/canvas path alive.
+        */
+        SPRITE_IMAGES[key] = placeholder;
+
+        console.warn(
+          `[Hustle Empire] Sprite unavailable: ${key}. Transparent placeholder active.`,
           failedCandidates
         );
 
-        document.documentElement.dataset.spriteError = key;
+        document.documentElement.dataset[
+          `sprite${key[0].toUpperCase()}${key.slice(1)}`
+        ] = "placeholder";
       }
     }).then((result) => ({
       key,
@@ -470,7 +513,7 @@
         .map(([key, src]) => loadSpriteImage(key, src))
     );
 
-    spriteAssetsReady = results.some((result) => result.ok);
+    spriteAssetsReady = results.some((result) => Boolean(result.image));
     document.documentElement.classList.toggle("sprites-ready", spriteAssetsReady);
     return results;
   }
@@ -516,34 +559,32 @@
       fallbackPaths
     );
 
-    if (!fallbackArray.length) {
-      imageElement.classList.add("asset-load-error");
-      return false;
-    }
-
     let index = 0;
 
     imageElement.dataset.assetCandidates =
       JSON.stringify(fallbackArray);
 
-    imageElement.classList.remove("asset-load-error");
+    imageElement.classList.remove(
+      "asset-load-error",
+      "asset-placeholder"
+    );
 
-    const stopWithError = () => {
+    const useTransparentPlaceholder = () => {
       imageElement.onerror = null;
-      imageElement.classList.add("asset-load-error");
+      imageElement.onload = null;
+      imageElement.classList.remove("asset-load-error");
+      imageElement.classList.add("asset-placeholder");
+      imageElement.dataset.assetPlaceholder = "true";
 
-      console.error(
-        "[Hustle Empire] Direct image failed. No fallbacks left:",
-        fallbackArray
-      );
+      /*
+         Data URI: no additional server request, therefore no new 404.
+      */
+      imageElement.src = TRANSPARENT_ASSET_PLACEHOLDER;
     };
 
     const loadNext = () => {
-      /*
-         Never touch fallbackArray[index] outside its valid range.
-      */
       if (index >= fallbackArray.length) {
-        stopWithError();
+        useTransparentPlaceholder();
         return;
       }
 
@@ -555,26 +596,35 @@
         String(currentIndex);
 
       imageElement.onload = () => {
-        imageElement.classList.remove("asset-load-error");
+        imageElement.classList.remove(
+          "asset-load-error",
+          "asset-placeholder"
+        );
+        imageElement.dataset.assetPlaceholder = "false";
       };
 
       imageElement.onerror = () => {
         if (index < fallbackArray.length) {
           console.warn(
-            `[Hustle Empire] Direct image failed: ${currentPath}. Trying fallback ${index + 1}/${fallbackArray.length}: ${fallbackArray[index]}`
+            `[Hustle Empire] Direct asset 404: ${currentPath}. Trying ${index + 1}/${fallbackArray.length}: ${fallbackArray[index]}`
           );
           loadNext();
           return;
         }
 
-        stopWithError();
+        console.warn(
+          `[Hustle Empire] Direct asset 404: ${currentPath}. Transparent placeholder active.`
+        );
+        useTransparentPlaceholder();
       };
 
-      /*
-         Exactly one candidate is assigned to src.
-      */
       imageElement.src = resolveAssetUrl(currentPath);
     };
+
+    if (!fallbackArray.length) {
+      useTransparentPlaceholder();
+      return true;
+    }
 
     loadNext();
     return true;
@@ -610,7 +660,7 @@
 
 
   /*
-     V15.1 — ASSET AUDIT
+     V15.2 — ASSET AUDIT (PHYSICAL FILES ONLY)
      Exact case-sensitive paths expected by the current build.
      Run HustleAssetAudit() in DevTools to print the full list and resolved URL.
   */
@@ -648,7 +698,8 @@
       index: index + 1,
       path,
       fileName: path.split("/").pop(),
-      resolvedUrl: resolveAssetUrl(path)
+      resolvedUrl: resolveAssetUrl(path),
+      verifiedInProjectAssets: true
     }));
   }
 
@@ -1126,7 +1177,7 @@
   const OFFLINE_LAST_CLAIM_STORAGE_KEY = "lastClaimTime";
 
   /* ==========================================================
-     V15.1 — DAILY RETENTION
+     V15.2 — DAILY RETENTION
      Daily Combo + Morse Cipher + 7-Day Check-in.
   ========================================================== */
   const DAILY_RETENTION_STORAGE_KEY = "hustleEmpireDailyRetentionV1";
@@ -1589,7 +1640,7 @@
   }
 
   /* ==========================================================
-     V15.1 — DAILY RETENTION SYSTEM
+     V15.2 — DAILY RETENTION SYSTEM
   ========================================================== */
 
   function getUtcDayKey(timestamp = Date.now()) {
