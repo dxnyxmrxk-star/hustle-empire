@@ -121,7 +121,7 @@
     premium_legendary: "case-gold"
   };
 
-  const SPRITE_BUILD_VERSION = "15.4";
+  const SPRITE_BUILD_VERSION = "15.5";
 
   /*
      V14.0 asset manifest.
@@ -134,7 +134,7 @@
        still recover without rendering a blank game screen.
   */
   /*
-     V15.4 — REAL ASSET MANIFEST
+     V15.5 — REAL ASSET MANIFEST
      Audited 1:1 against the user-uploaded assets.zip.
 
      Uploaded archive:
@@ -154,11 +154,6 @@
     "assets/case_hustler.png",
     "assets/case_street.png",
     "assets/case_tycoon.png",
-    "assets/character-01.svg",
-    "assets/character-02.svg",
-    "assets/character-03.svg",
-    "assets/character-04.svg",
-    "assets/character-main.svg",
     "assets/character_hustler.png",
     "assets/character_novice.png",
     "assets/character_street.png",
@@ -176,24 +171,24 @@
   const ASSET_PATHS = Object.freeze({
     avatar: "assets/avatar-small.svg",
     avatarFallback: "assets/avatar.png",
-    characterMain: "assets/character-main.svg",
+    characterMain: "assets/character_novice.png",
 
     characters: Object.freeze({
       1: Object.freeze({
-        primary: "assets/character-01.svg",
-        fallback: "assets/character_novice.png"
+        primary: "assets/character_novice.png",
+        fallback: ""
       }),
       2: Object.freeze({
-        primary: "assets/character-02.svg",
-        fallback: "assets/character_street.png"
+        primary: "assets/character_street.png",
+        fallback: ""
       }),
       3: Object.freeze({
-        primary: "assets/character-03.svg",
-        fallback: "assets/character_hustler.png"
+        primary: "assets/character_hustler.png",
+        fallback: ""
       }),
       4: Object.freeze({
-        primary: "assets/character-04.svg",
-        fallback: "assets/character_tycoon.png"
+        primary: "assets/character_tycoon.png",
+        fallback: ""
       })
     }),
 
@@ -712,12 +707,12 @@
 
 
   /*
-     V15.4 — ASSET AUDIT (PHYSICAL FILES ONLY)
+     V15.5 — ASSET AUDIT (PHYSICAL FILES ONLY)
      Exact case-sensitive paths expected by the current build.
      Run HustleAssetAudit() in DevTools to print the full list and resolved URL.
   */
   /*
-     V15.4 — runtime audit uses the same verified real-asset allowlist.
+     V15.5 — runtime audit uses the same verified real-asset allowlist.
   */
 
   function getAssetAuditList() {
@@ -1205,7 +1200,7 @@
   const OFFLINE_LAST_CLAIM_STORAGE_KEY = "lastClaimTime";
 
   /* ==========================================================
-     V15.4 — DAILY RETENTION
+     V15.5 — DAILY RETENTION
      Daily Combo + Morse Cipher + 7-Day Check-in.
   ========================================================== */
   const DAILY_RETENTION_STORAGE_KEY = "hustleEmpireDailyRetentionV1";
@@ -1668,7 +1663,7 @@
   }
 
   /* ==========================================================
-     V15.4 — DAILY RETENTION SYSTEM
+     V15.5 — DAILY RETENTION SYSTEM
   ========================================================== */
 
   function getUtcDayKey(timestamp = Date.now()) {
