@@ -1,0 +1,28 @@
+ASSET AUDIT — V9
+
+[OK] avatar.png
+[OK] case_hustler.png
+[OK] character_boss.png
+[OK] character_level12.png
+[OK] character_novice.png
+[OK] character_tycoon.png
+[OK] collection_chef.png
+[OK] collection_hustler.png
+[OK] collection_influencer.png
+[OK] collection_street.png
+[OK] collection_tycoon.png
+[OK] equipment_cap.png
+[OK] equipment_glasses.png
+[OK] equipment_jacket.png
+[OK] equipment_pants.png
+[OK] equipment_sneakers.png
+[OK] equipment_watch.png
+[OK] gym.png
+[OK] rome_background.png
+[OK] rome_city_map.png
+[OK] skin-01.svg
+[OK] skin-02.svg
+[OK] skin-03.svg
+[OK] skin_autodealer.png
+[OK] skin_coffee.png
+[OK] skin_influencer.png

@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<meta content="#0b0f19" name="theme-color"/>
+<title>Hustle Empire</title>
+
+<link href="./style.css" rel="stylesheet"/>
+<script defer="" src="./locales.js"></script>
+<script defer="" src="./config.js"></script>
+<script defer="" src="./script.js"></script>
+<script defer="" src="./game.js"></script>
+</head>
+<body>
+<div class="app-shell">
+<header class="topbar">
+<div class="player-level">
+<div class="player-avatar image-fallback header-avatar">
+<div aria-label="Player" class="player-avatar-image player-avatar-sprite sprite-icon sprite-character char-level-1" data-character-sprite="" role="img"></div>
+</div>
+<div class="player-level-content">
+<div class="level-row"><strong>LV 1</strong></div>
+<div class="xp-row">
+<div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+<span>0 / 100 XP</span>
+</div>
+</div>
+</div>
+<div class="topbar-resources">
+<div class="resource-card money-card"><span class="resource-symbol">$</span><strong>$0</strong></div>
+<div class="resource-card energy-card"><span class="resource-symbol">⚡</span><strong>120/120</strong></div>
+<div class="resource-card gem-card"><span class="resource-symbol">♦</span><strong>0</strong></div>
+</div>
+<div class="topbar-actions">
+<button aria-label="Notifications" class="top-action notification-button" data-action="notifications" type="button">🔔<span class="badge">2</span></button>
+<button aria-label="Menu" class="top-action" data-action="settings" type="button">☰</button>
+<button class="language-button" id="language-switch" type="button">RU</button>
+</div>
+</header>
+<main class="screens screen-content">
+<!-- HOME -->
+<section class="screen active" data-screen="home">
+<div class="home-layout page-layout">
+<aside class="home-left">
+<div class="home-logo">
+<div class="home-logo-main">HUSTLE</div>
+<div class="home-logo-main">EMPIRE</div>
+<div class="home-logo-sub" data-i18n="home.tagline">Small steps. Big empire.</div>
+</div>
+<button class="mini-feature daily-chest" data-action="daily-chest" type="button">
+<div class="mini-feature-icon">🎁</div>
+<div><strong data-i18n="home.dailyChest">Daily Chest</strong><span class="countdown" data-countdown="11658">03:14:18</span></div>
+</button>
+<div class="mini-feature">
+<div class="mini-feature-icon fire">🔥</div>
+<div><strong data-i18n="home.streak">Hustle Streak</strong><span class="feature-value">0</span><small>+0%</small></div>
+</div>
+<button class="mini-feature" data-action="offline-income" type="button">
+<div class="mini-feature-icon">⏱</div>
+<div><strong data-i18n="home.offlineEarnings">Offline Earnings</strong><span class="offline-value">$0</span></div>
+</button>
+</aside>
+<div class="home-center image-fallback">
+<div aria-label="Hustle Empire character" class="home-character home-character-sprite sprite-icon sprite-character char-level-1" data-character-sprite="" role="img"></div>
+<div class="home-tap-zone">
+<div aria-hidden="true" class="tap-float-layer" id="tap-float-layer"></div>
+<button class="tap-button home-main-tap" type="button">
+<span class="home-main-tap-glow"></span>
+<span class="home-main-tap-icon">⚡</span>
+<span class="home-main-tap-copy">
+<small data-i18n="home.quickHustle">Quick Hustle</small>
+<strong data-i18n="home.tapToEarn">Tap to Earn</strong>
+<span class="home-main-tap-value">+$1 / tap</span>
+</span>
+</button></div></div>
+<aside class="quests-panel home-missions">
+<div class="missions-title-row">
+<div><h2 data-i18n="home.missions">Missions</h2><span>LV 1</span></div>
+<strong>0/6</strong>
+</div>
+<div class="quest-level"><div class="quest-level-top"><strong>LV 1</strong><strong>0/6</strong></div></div>
+<div class="quest-list">
+<div class="quest-card" data-quest="tap250"><span class="quest-icon">☝</span><div class="quest-info"><strong data-i18n="quests.tap250">Make 250 taps</strong><div class="mini-progress"><span style="width:0%"></span></div><small>0 / 250</small></div><span class="quest-reward">+$250</span></div>
+<div class="quest-card" data-quest="deliveries8"><span class="quest-icon">📦</span><div class="quest-info"><strong data-i18n="quests.deliveries8">Complete 8 jobs</strong><div class="mini-progress"><span style="width:0%"></span></div><small>0 / 8</small></div><span class="quest-reward">+$500</span></div>
+<div class="quest-card" data-quest="earn25k"><span class="quest-icon">🎯</span><div class="quest-info"><strong data-i18n="quests.earn25k">Earn $25K</strong><div class="mini-progress"><span style="width:0%"></span></div><small>$0 / $25K</small></div><span class="quest-reward">+$1.5K</span></div>
+<div class="quest-card" data-quest="events3"><span class="quest-icon">👥</span><div class="quest-info"><strong data-i18n="quests.events3">Join 3 events</strong><div class="mini-progress"><span style="width:0%"></span></div><small>0 / 3</small></div><span class="quest-reward">+$750</span></div>
+<div class="quest-card" data-quest="buyUpgrade1"><span class="quest-icon">🛒</span><div class="quest-info"><strong data-i18n="quests.buyUpgrade1">Buy 1 upgrade</strong><div class="mini-progress"><span style="width:0%"></span></div><small>0 / 1</small></div><span class="quest-reward">+$300</span></div>
+<div class="quest-card" data-quest="collectBonus4"><span class="quest-icon">🎟</span><div class="quest-info"><strong data-i18n="quests.collectBonus4">Collect 4 bonuses</strong><div class="mini-progress"><span style="width:0%"></span></div><small>0 / 4</small></div><span class="quest-reward">+$400</span></div>
+</div>
+<button class="next-level-button" data-action="next-level" type="button"><span>⬆</span><span><strong data-i18n="home.nextLevel">Next Level</strong><small>LV 2</small></span></button>
+</aside>
+</div>
+<section class="quick-jobs-panel">
+<div class="business-section-heading">
+<div><span class="section-eyebrow" data-i18n="home.quickActivity">Quick Activity</span><h2 data-i18n="home.quickJobs">Quick Jobs</h2></div>
+<div class="home-business-total"><small data-i18n="home.completed">Completed</small><strong id="quick-jobs-total">0</strong></div>
+</div>
+<div class="quick-jobs-grid" id="quick-jobs-list"></div>
+</section>
+<section class="home-businesses-panel">
+<div class="business-section-heading">
+<div><span class="section-eyebrow" data-i18n="home.empireManagement">Empire Management</span><h2 data-i18n="home.activeBusinesses">Active Businesses</h2></div>
+<div class="home-business-total"><small data-i18n="home.totalIncome">Total Income</small><strong id="home-total-income">$0.20/s</strong></div>
+</div>
+<div class="home-business-grid" id="home-business-list"></div>
+</section>
+</section>
+<!-- CITY -->
+<section class="screen" data-screen="city">
+<div class="city-screen page-layout">
+<div class="city-map-wrapper image-fallback city-map-sprite-background">
+<button class="city-node poor selected" data-district="poor_block" type="button"><strong>POOR BLOCK</strong><span>LV 1-10</span><small>Starter District</small><i>✓</i></button>
+<button class="city-node center locked" data-district="city_center" type="button"><strong>CITY CENTER</strong><span>LV 11-20</span><small>City Hustles</small><i>🔒</i></button>
+<button class="city-node business locked" data-district="business_district" type="button"><strong>BUSINESS DISTRICT</strong><span>LV 21-30</span><small>Big Business</small><i>🔒</i></button>
+<button class="city-node rich locked" data-district="rich_skyline" type="button"><strong>RICH SKYLINE</strong><span>LV 31-40+</span><small>Endgame Empire</small><i>🔒</i></button>
+</div>
+<div class="district-activity">
+<div class="district-activity-heading">
+<div><span class="section-eyebrow" data-i18n="city.districtActivity">District Activity</span><h3 id="selected-district-name">POOR BLOCK</h3></div>
+<span class="district-level-status" data-i18n="city.unlocked" id="selected-district-status">Unlocked</span>
+</div>
+<div class="district-business-grid" id="district-business-list"></div>
+</div>
+<div class="business-panel game-compat">
+<span class="business-level">LV 0</span>
+<div class="income"><strong>0 / h</strong></div>
+<div class="next-level"><strong>0 / h</strong></div>
+<button class="green-button">Upgrade <strong>$0</strong></button>
+</div>
+</div>
+</section>
+<!-- CASES -->
+<section class="screen" data-screen="cases">
+<div class="cases-screen page-layout">
+<div class="cases-page-header">
+<div><span class="section-eyebrow" data-i18n="cases.rewards">Rewards</span><h1 data-i18n="cases.title">Cases</h1></div>
+<span class="cases-helper" data-i18n="cases.helper">Come back when the timer finishes or spend Gems to unlock instantly.</span>
+</div>
+<div class="real-cases-grid" id="timed-cases-list"></div>
+<section class="accessory-cases-panel">
+<div class="accessory-cases-heading">
+<div>
+<span class="section-eyebrow" data-i18n="accessoryCases.eyebrow">Wardrobe Loot</span>
+<h2 data-i18n="accessoryCases.title">Premium Accessory Cases</h2>
+</div>
+<span class="accessory-case-gems-label" data-i18n="accessoryCases.gemsOnly">Gems Only</span>
+</div>
+<div id="free-accessory-case"></div>
+<div class="premium-accessory-grid" id="premium-accessory-cases-list"></div>
+</section></div>
+</section>
+<!-- COLLECTION -->
+<section class="screen" data-screen="collection">
+<div class="collection-screen compact-collection page-layout">
+<details class="collection-summary compact-summary">
+<summary>
+<div>
+<span class="section-eyebrow" data-i18n="collection.book">Collection Book</span>
+<strong id="collection-summary-count">0 / 10</strong>
+</div>
+<div class="collection-summary-percent">
+<strong id="collection-summary-percent">0%</strong>
+<span>▾</span>
+</div>
+</summary>
+<div class="compact-summary-body">
+<div class="collection-ring">
+<strong>0%</strong>
+<small>0 / 10</small>
+</div>
+<div class="rarity-list">
+<div><span class="rarity-dot common"></span><span data-i18n="rarity.common">Common</span><strong>0 / 0</strong></div>
+<div><span class="rarity-dot rare"></span><span data-i18n="rarity.rare">Rare</span><strong>0 / 0</strong></div>
+<div><span class="rarity-dot epic"></span><span data-i18n="rarity.epic">Epic</span><strong>0 / 0</strong></div>
+<div><span class="rarity-dot legendary"></span><span data-i18n="rarity.legendary">Legendary</span><strong>0 / 0</strong></div>
+<div><span class="rarity-dot mythic"></span><span data-i18n="rarity.mythic">Mythic</span><strong>0 / 0</strong></div>
+</div>
+</div>
+</details>
+<div class="collection-cards compact-card-grid" id="collection-cards-list"></div>
+<section class="exclusive-cards-panel">
+<div class="exclusive-cards-heading">
+<div><span class="section-eyebrow" data-i18n="collection.specialCollection">Special Collection</span><h2 data-i18n="collection.exclusiveTitle">Special Exclusive Cards</h2></div>
+<span class="exclusive-label" data-i18n="collection.exclusiveLabel">Exclusive</span>
+</div>
+<p class="exclusive-description" data-i18n="collection.exclusiveSubtitle">These cards cannot be obtained from normal cases.</p>
+<div class="exclusive-cards-grid" id="exclusive-cards-list"></div>
+</section></div>
+</section>
+<!-- WARDROBE -->
+<section class="screen" data-screen="wardrobe">
+<div class="wardrobe-screen page-layout">
+<aside class="equipment-column">
+<h2 data-i18n="wardrobe.title">Wardrobe</h2>
+<div class="wardrobe-tabs">
+<button class="active" data-i18n="wardrobe.tabs.items" data-wardrobe-view="items" type="button">Items</button>
+<button data-i18n="wardrobe.tabs.sets" data-wardrobe-view="sets" type="button">Style Sets</button>
+</div><button class="open-accessory-catalog" id="open-accessory-catalog" type="button">
+<span>▦</span>
+<strong data-i18n="wardrobe.catalog">Accessory Catalog</strong>
+</button>
+<div class="wardrobe-dynamic-list" id="wardrobe-dynamic-list"></div>
+</aside>
+<div class="wardrobe-character image-fallback">
+<div aria-label="Character" class="wardrobe-character-image wardrobe-character-sprite sprite-icon sprite-character char-level-1" data-character-sprite="" role="img"></div>
+</div>
+<aside class="outfit-panel">
+<section><h3 data-i18n="wardrobe.outfitProgress">Outfit Progress</h3><strong>🔒</strong><div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div><small data-i18n="wardrobe.unlockSlot">Buy LV 1 to unlock</small></section>
+<section><h3 data-i18n="wardrobe.totalStats">Total Stat Bonuses</h3><p>★ +0% Income</p><p>★ +0% Tap Power</p><p>★ +0% Critical Rate</p><p>★ +0% Critical Damage</p><p>★ +0 Max Energy</p><p>★ +0% Energy Regen</p></section>
+<button class="upgrade-outfit" type="button"><span data-i18n="wardrobe.buyLevelOne">Buy LV 1</span><strong>$25</strong></button>
+</aside>
+</div>
+</section>
+<!-- SHOP -->
+<section class="screen" data-screen="shop">
+<div class="shop-screen page-layout">
+<section class="boost-shop">
+<h1 data-i18n="shop.title">Shop</h1>
+<div class="shop-panel-title" data-i18n="shop.boosts">Boosts &amp; Upgrades</div>
+<div class="boost-grid">
+<article class="boost-card"><span class="boost-icon">💰</span><strong data-i18n="shop.income2x">2x Offline Income</strong><small data-i18n="shop.sevenDays">For 7 days</small><button data-action="buy-boost" data-product="income24h">♦ 100</button></article>
+<article class="boost-card"><span class="boost-icon">💰</span><strong data-i18n="shop.income3x">3x Offline Income</strong><small data-i18n="shop.sevenDays">For 7 days</small><button data-action="buy-boost" data-product="offline3x">♦ 180</button></article>
+<article class="boost-card"><span class="boost-icon">⏱</span><strong data-i18n="shop.offlineCap">Offline Cap +24h</strong><small data-i18n="shop.extendsLimit">Extends the limit</small><button data-action="buy-boost" data-product="offline-cap">♦ 120</button></article>
+<article class="boost-card"><span class="boost-icon">⚙</span><strong data-i18n="shop.autoCollect">Auto-Collect</strong><small data-i18n="shop.automaticCollection">Automatic collection</small><button data-action="buy-boost" data-product="auto-collect">♦ 250</button></article>
+<article class="boost-card"><span class="boost-icon">🔥</span><strong data-i18n="shop.eventBooster">Event Booster</strong><small data-i18n="shop.bonus24h">+50% for 24 hours</small><button data-action="buy-boost" data-product="event-booster">♦ 150</button></article>
+<article class="boost-card"><span class="boost-icon">⚡</span><strong data-i18n="shop.tapBoost">Tap Power Boost</strong><small data-i18n="shop.bonus12h">+100% for 12 hours</small><button data-action="buy-boost" data-product="tap5x1h">♦ 120</button></article>
+<article class="boost-card"><span class="boost-icon">🔋</span><strong data-i18n="shop.energyPack">Energy Pack</strong><small data-i18n="shop.energy500">+500 Energy</small><button data-action="buy-boost" data-product="energyRefill">♦ 120</button></article>
+<article class="boost-card"><span class="boost-icon">📈</span><strong data-i18n="shop.businessBooster">Business Booster</strong><small data-i18n="shop.income12h">+100% Income 12h</small><button data-action="buy-boost" data-product="business-booster">♦ 200</button></article>
+<article class="boost-card"><span class="boost-icon">🍀</span><strong data-i18n="shop.luckyEvents">Lucky Events</strong><small data-i18n="shop.chance50">+50% event chance</small><button data-action="buy-boost" data-product="lucky-events">♦ 120</button></article>
+</div>
+<div class="gem-pack-row">
+<button class="gem-pack" data-action="buy-gem-pack" data-gems="100">♦<strong>100</strong><span data-i18n="shop.gems">Gems</span></button>
+<button class="gem-pack" data-action="buy-gem-pack" data-gems="500">♦<strong>500</strong><span data-i18n="shop.gems">Gems</span></button>
+<button class="gem-pack" data-action="buy-gem-pack" data-gems="1200">♦<strong>1200</strong><span data-i18n="shop.gems">Gems</span></button>
+</div>
+</section>
+<aside class="premium-shop-column">
+<button class="premium-product" data-action="shop-premium-case"><div class="premium-product-image"><div class="sprite-icon sprite-case case-purple shop-sprite-icon"></div></div><div><strong data-i18n="shop.premiumCase">Premium Case</strong><span data-i18n="shop.premiumCaseDesc">Open a premium case</span><small>♦ 250</small></div></button>
+<button class="premium-product" data-action="shop-outfit"><div class="premium-product-image"><div class="sprite-icon sprite-wardrobe wardrobe-full-suit shop-sprite-icon"></div></div><div><strong data-i18n="shop.outfitSkin">Outfit / Skin</strong><span data-i18n="shop.outfitSkinDesc">Unlock new outfits</span><small>♦ 400</small></div></button>
+<button class="premium-product" data-action="shop-bundle"><div class="premium-product-image bundle-sprite-stack"><div class="sprite-icon sprite-case case-gold shop-sprite-icon bundle-case-sprite"></div><div class="sprite-icon sprite-wardrobe wardrobe-gold-watch shop-sprite-icon bundle-item-sprite"></div></div><div><strong data-i18n="shop.hustleBundle">Hustle Bundle</strong><span data-i18n="shop.hustleBundleDesc">Exceptional value!</span><small>♦ 1,000</small></div></button>
+<div class="empire-pass"><div class="empire-crown">♛</div><div><strong data-i18n="shop.empirePass">Empire Pass</strong><span data-i18n="shop.empirePassDesc">Unlock your true potential</span></div><button data-action="buy-empire-pass" data-config-price="HUSTLE_PASS_MONTHLY" type="button">250 ★</button></div>
+</aside>
+</div>
+</section>
+</main>
+<nav class="bottom-navigation">
+<button class="nav-item active" data-nav="home" type="button"><span class="nav-icon">⌂</span><span data-i18n="nav.home">Home</span></button>
+<button class="nav-item" data-nav="city" type="button"><span class="nav-icon">♜</span><span data-i18n="nav.city">City</span></button>
+<button class="nav-item" data-nav="cases" type="button"><span class="nav-icon">🎁</span><span data-i18n="nav.cases">Cases</span></button>
+<button class="nav-item" data-nav="collection" type="button"><span class="nav-icon">▣</span><span data-i18n="nav.collection">Cards</span></button>
+<button class="nav-item" data-nav="wardrobe" type="button"><span class="nav-icon">♠</span><span data-i18n="nav.wardrobe">Wardrobe</span></button>
+<button class="nav-item" data-nav="shop" type="button"><span class="nav-icon">🛒</span><span data-i18n="nav.shop">Shop</span></button>
+</nav>
+</div>
+<!-- CASE REWARD OVERLAY -->
+<div class="case-reward-overlay" hidden="" id="case-reward-overlay">
+<div class="case-reward-bg"></div>
+<div class="case-reward-content">
+<span class="case-reward-eyebrow" data-i18n="cases.caseOpened">Case opened</span>
+<div class="case-reward-chest" id="case-reward-chest">🎁</div>
+<h2 data-i18n="cases.reward" id="case-reward-title">Reward</h2>
+<div class="case-reward-resources">
+<div class="reward-resource"><span>💵</span><small data-i18n="cases.money">Money</small><strong id="case-reward-money">+$0</strong></div>
+<div class="reward-resource"><span>♦</span><small data-i18n="cases.gems">Gems</small><strong id="case-reward-gems">+0</strong></div>
+</div>
+<div class="reward-card-preview common" id="case-reward-card">
+<div class="reward-card-image"><div class="sprite-icon sprite-worker worker-rider reward-card-sprite" id="case-reward-card-sprite"></div></div>
+<span id="case-reward-rarity">COMMON</span>
+<strong id="case-reward-card-name">CARD</strong>
+<small id="case-reward-fragments">+0 FRAGMENTS</small>
+</div>
+<button class="case-reward-close" data-i18n="common.continue" id="case-reward-close" type="button">Continue</button>
+</div>
+</div>
+<!-- GENERIC MODAL -->
+<div class="accessory-reward-overlay" hidden="" id="accessory-reward-overlay">
+<div class="accessory-reward-backdrop"></div>
+<div class="accessory-reward-content">
+<span class="section-eyebrow" data-i18n="accessoryCases.newItem">New Item</span>
+<div class="accessory-reward-item" id="accessory-reward-item">
+<div class="accessory-reward-image">
+<div class="sprite-icon sprite-wardrobe wardrobe-rookie-cap accessory-reward-sprite" id="accessory-reward-sprite"></div></div>
+<span class="accessory-reward-rarity" id="accessory-reward-rarity">RARE</span>
+<h2 id="accessory-reward-name">ITEM</h2>
+<small id="accessory-reward-slot">ACCESSORY</small>
+</div>
+<button class="case-reward-close" data-i18n="common.continue" id="accessory-reward-close" type="button">Continue</button>
+</div>
+</div><div class="accessory-catalog-modal" hidden="" id="accessory-catalog-modal">
+<div class="accessory-catalog-backdrop" data-accessory-catalog-close=""></div>
+<div class="accessory-catalog-window">
+<div class="accessory-catalog-header">
+<div>
+<span class="section-eyebrow" data-i18n="wardrobe.collection">Collection</span>
+<h2 data-i18n="wardrobe.catalog">Accessory Catalog</h2>
+</div>
+<button class="accessory-catalog-close" data-accessory-catalog-close="" type="button">×</button>
+</div>
+<div class="catalog-progress">
+<strong id="catalog-progress-count">0 / 12</strong>
+<div class="progress-bar"><div class="progress-fill" id="catalog-progress-bar" style="width:0%"></div></div>
+</div>
+<div class="accessory-catalog-grid" id="accessory-catalog-grid"></div>
+</div>
+</div><div class="random-event-layer" hidden="" id="random-event-layer">
+<button class="random-flying-event" id="random-flying-event" type="button">
+<span class="random-event-icon" id="random-event-icon">🦋</span>
+</button>
+</div><div class="random-event-toast" hidden="" id="random-event-toast">
+<strong id="random-event-toast-title">BONUS!</strong>
+<span id="random-event-toast-text">Tap x2</span>
+</div><div class="game-modal" hidden="" id="game-modal">
+<div class="game-modal-backdrop" data-modal-close=""></div>
+<div aria-labelledby="game-modal-title" aria-modal="true" class="game-modal-card" role="dialog">
+<button aria-label="Close" class="game-modal-close" data-modal-close="" type="button">×</button>
+<div class="game-modal-icon">◆</div>
+<h2 id="game-modal-title">Hustle Empire</h2>
+<p id="game-modal-message">Action</p>
+<button class="modal-confirm" data-modal-close="" type="button">OK</button>
+</div>
+</div>
+</body>
+</html>
