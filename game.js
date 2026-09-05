@@ -598,8 +598,25 @@
      Direct <img> fallback loader.
      Accepts strings OR arrays and switches src only after onerror.
   */
+  function applyTransparentAssetImageDefaults(imageElement, fit = "contain", position = "center") {
+    if (!(imageElement instanceof HTMLImageElement)) return;
+
+    imageElement.decoding = imageElement.decoding || "async";
+    imageElement.draggable = false;
+    imageElement.style.setProperty("background", "transparent", "important");
+    imageElement.style.setProperty("background-color", "transparent", "important");
+    imageElement.style.setProperty("image-rendering", "auto", "important");
+    imageElement.style.setProperty("display", "block", "important");
+    imageElement.style.setProperty("object-fit", fit, "important");
+    imageElement.style.setProperty("object-position", position, "important");
+  }
+
   function setDirectImageAsset(imageElement, primaryPath, fallbackPaths = []) {
     if (!(imageElement instanceof HTMLImageElement)) return false;
+
+    const fitMode = imageElement.classList.contains("player-avatar-image") ? "cover" : (imageElement.classList.contains("city-map-image") ? "cover" : "contain");
+    const fitPosition = imageElement.classList.contains("player-avatar-image") ? "center" : (imageElement.classList.contains("home-character") || imageElement.classList.contains("wardrobe-character-image") ? "center bottom" : "center");
+    applyTransparentAssetImageDefaults(imageElement, fitMode, fitPosition);
 
     const fallbackArray = normalizeAssetCandidates(
       primaryPath,
