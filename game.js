@@ -121,7 +121,7 @@
     premium_legendary: "case-gold"
   };
 
-  const SPRITE_BUILD_VERSION = "15.0";
+  const SPRITE_BUILD_VERSION = "15.1";
 
   /*
      V14.0 asset manifest.
@@ -180,7 +180,7 @@
      invalid URL. The loader advances to the next array item only on error.
   */
   /*
-     V15.0 — every fallback list is a true array.
+     V15.1 — every fallback list is a true array.
      City map is tried in this exact order:
        1) assets/sprite_city_map.png
        2) assets/city-map.svg
@@ -339,34 +339,51 @@
 
     return new Promise((resolve) => {
       let index = 0;
+      let settled = false;
+
+      const failAll = () => {
+        if (settled) return;
+        settled = true;
+
+        options.onAllFailed?.(fallbackArray);
+
+        resolve({
+          ok: false,
+          image: null,
+          path: "",
+          candidates: fallbackArray
+        });
+      };
 
       const loadNext = () => {
+        /*
+           HARD BOUNDARY:
+           never read fallbackArray[index] unless index is valid.
+        */
         if (index >= fallbackArray.length) {
-          options.onAllFailed?.(fallbackArray);
-
-          resolve({
-            ok: false,
-            image: null,
-            path: "",
-            candidates: fallbackArray
-          });
+          failAll();
           return;
         }
 
-        const currentPath = fallbackArray[index];
-        index += 1;
+        const currentIndex = index;
+        const currentPath = fallbackArray[currentIndex];
+        index = currentIndex + 1;
 
         const element = new Image();
         element.decoding = "async";
 
         element.onload = async () => {
+          if (settled) return;
+
           try {
             if (typeof element.decode === "function") {
               await element.decode();
             }
           } catch (_) {
-            /* Safari/WKWebView can reject decode() even after onload. */
+            /* Safari/WKWebView may reject decode() after a successful load. */
           }
+
+          settled = true;
 
           options.onSuccess?.(
             element,
@@ -383,20 +400,36 @@
         };
 
         element.onerror = () => {
-          console.warn(
-            `[Hustle Empire] Image failed: ${currentPath}. Trying fallback ${index + 1}/${fallbackArray.length}.`
-          );
+          if (settled) return;
 
           /*
-             IMPORTANT:
-             We do NOT build "path1 path2".
-             The next call assigns exactly one next URL.
+             index points to the NEXT candidate.
+             Only call loadNext() when that candidate really exists.
           */
-          loadNext();
+          if (index < fallbackArray.length) {
+            console.warn(
+              `[Hustle Empire] Image failed: ${currentPath}. Trying fallback ${index + 1}/${fallbackArray.length}: ${fallbackArray[index]}`
+            );
+            loadNext();
+            return;
+          }
+
+          console.error(
+            `[Hustle Empire] Image failed: ${currentPath}. No fallbacks left (${fallbackArray.length}/${fallbackArray.length}).`
+          );
+          failAll();
         };
 
+        /*
+           Exactly ONE path per request. Paths are never concatenated.
+        */
         element.src = resolveAssetUrl(currentPath);
       };
+
+      if (!fallbackArray.length) {
+        failAll();
+        return;
+      }
 
       loadNext();
     });
@@ -495,37 +528,52 @@
 
     imageElement.classList.remove("asset-load-error");
 
-    const loadNext = () => {
-      if (index >= fallbackArray.length) {
-        imageElement.onerror = null;
-        imageElement.classList.add("asset-load-error");
+    const stopWithError = () => {
+      imageElement.onerror = null;
+      imageElement.classList.add("asset-load-error");
 
-        console.error(
-          "[Hustle Empire] Direct image failed:",
-          fallbackArray
-        );
+      console.error(
+        "[Hustle Empire] Direct image failed. No fallbacks left:",
+        fallbackArray
+      );
+    };
+
+    const loadNext = () => {
+      /*
+         Never touch fallbackArray[index] outside its valid range.
+      */
+      if (index >= fallbackArray.length) {
+        stopWithError();
         return;
       }
 
-      const currentPath = fallbackArray[index];
-      index += 1;
+      const currentIndex = index;
+      const currentPath = fallbackArray[currentIndex];
+      index = currentIndex + 1;
 
       imageElement.dataset.assetCandidateIndex =
-        String(index - 1);
+        String(currentIndex);
+
+      imageElement.onload = () => {
+        imageElement.classList.remove("asset-load-error");
+      };
+
+      imageElement.onerror = () => {
+        if (index < fallbackArray.length) {
+          console.warn(
+            `[Hustle Empire] Direct image failed: ${currentPath}. Trying fallback ${index + 1}/${fallbackArray.length}: ${fallbackArray[index]}`
+          );
+          loadNext();
+          return;
+        }
+
+        stopWithError();
+      };
 
       /*
-         Exactly one URL is assigned here.
-         The next candidate is assigned only from onerror.
+         Exactly one candidate is assigned to src.
       */
       imageElement.src = resolveAssetUrl(currentPath);
-    };
-
-    imageElement.onload = () => {
-      imageElement.classList.remove("asset-load-error");
-    };
-
-    imageElement.onerror = () => {
-      loadNext();
     };
 
     loadNext();
@@ -559,6 +607,68 @@
       );
     });
   }
+
+
+  /*
+     V15.1 — ASSET AUDIT
+     Exact case-sensitive paths expected by the current build.
+     Run HustleAssetAudit() in DevTools to print the full list and resolved URL.
+  */
+  const PROJECT_ASSET_AUDIT_PATHS = Object.freeze([
+    "assets/avatar-small.svg",
+    "assets/avatar.png",
+    "assets/case_24h.png",
+    "assets/case_2h.png",
+    "assets/case_4h.png",
+    "assets/case_8h.png",
+    "assets/case_boss.png",
+    "assets/case_hustler.png",
+    "assets/case_street.png",
+    "assets/case_tycoon.png",
+    "assets/character-01.svg",
+    "assets/character-02.svg",
+    "assets/character-03.svg",
+    "assets/character-04.svg",
+    "assets/character-main.svg",
+    "assets/character_hustler.png",
+    "assets/character_novice.png",
+    "assets/character_street.png",
+    "assets/character_tycoon.png",
+    "assets/city-map.svg",
+    "assets/sprite_businesses.png",
+    "assets/sprite_cards_workers.png",
+    "assets/sprite_cases.png",
+    "assets/sprite_character_evolution.png",
+    "assets/sprite_city_map.png",
+    "assets/sprite_wardrobe_items.png"
+]);
+
+  function getAssetAuditList() {
+    return PROJECT_ASSET_AUDIT_PATHS.map((path, index) => ({
+      index: index + 1,
+      path,
+      fileName: path.split("/").pop(),
+      resolvedUrl: resolveAssetUrl(path)
+    }));
+  }
+
+  function logAssetAudit() {
+    const rows = getAssetAuditList();
+
+    console.groupCollapsed(
+      `[Hustle Empire] Asset audit v${SPRITE_BUILD_VERSION} — ${rows.length} paths`
+    );
+    console.table(rows);
+    console.info(
+      "GitHub Pages is case-sensitive: every filename above must exist exactly inside assets/."
+    );
+    console.groupEnd();
+
+    return rows;
+  }
+
+  window.HustleAssetAudit = logAssetAudit;
+  window.HustleAssetPathsExact = PROJECT_ASSET_AUDIT_PATHS;
 
   window.HustleAssetPaths = ASSET_PATHS;
   window.HustleSpriteAssets = OFFICIAL_SPRITE_ASSETS;
@@ -1016,7 +1126,7 @@
   const OFFLINE_LAST_CLAIM_STORAGE_KEY = "lastClaimTime";
 
   /* ==========================================================
-     V15.0 — DAILY RETENTION
+     V15.1 — DAILY RETENTION
      Daily Combo + Morse Cipher + 7-Day Check-in.
   ========================================================== */
   const DAILY_RETENTION_STORAGE_KEY = "hustleEmpireDailyRetentionV1";
@@ -1479,7 +1589,7 @@
   }
 
   /* ==========================================================
-     V15.0 — DAILY RETENTION SYSTEM
+     V15.1 — DAILY RETENTION SYSTEM
   ========================================================== */
 
   function getUtcDayKey(timestamp = Date.now()) {
@@ -4742,6 +4852,7 @@
     */
     installStaticImageFallbacks(document);
     normalizeSpriteFrames();
+    logAssetAudit();
 
     const spritePreloadPromise = preloadOfficialSpriteSheets();
     const directAssetPreloadPromise = preloadCriticalDirectAssets();
