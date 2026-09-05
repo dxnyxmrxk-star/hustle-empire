@@ -16,6 +16,15 @@
   const CONFIG = window.GAME_CONFIG;
   if (!CONFIG) throw new Error("[Hustle Empire] config.js must load before game.js");
 
+  /*
+     script.js is loaded before game.js and older builds overwrite window.i18n.
+     Restore the canonical V18 flat i18n API while leaving window.LOCALES
+     available in the nested legacy format for script.js itself.
+  */
+  if (window.I18N?.t && window.I18N?.setLanguage) {
+    window.i18n = window.I18N;
+  }
+
   const SAVE_KEY = "hustleEmpireSave_v12_5";
   const LEGACY_SAVE_KEYS = ["hustleEmpireSave_v11", "hustleEmpireSave_v10", "hustleEmpireSave_v9", "hustleEmpireSave_v8", "hustleEmpireSave_v7", "hustleEmpireSave_v6"];
 
@@ -52,7 +61,7 @@
      CSS/UI frame overlay rendered above it.
   ========================================================== */
 
-  const SPRITE_BUILD_VERSION = "18.2";
+  const SPRITE_BUILD_VERSION = "18.3";
 
   const REAL_GAME_ASSET_PATHS = Object.freeze([
     "assets/acc_epic.png",
@@ -1433,7 +1442,8 @@
       "modal.dailyChest": "Daily Chest",
       "modal.dailyChestText": "Come back when the timer reaches zero to claim your Daily Chest.",
       "modal.dailyChestRemaining": "Time remaining: {time}",
-      "common.ok": "OK"
+      "common.ok": "OK",
+      "modal.premiumPlaceholder": "Telegram Stars payment will open here when payments are enabled."
     }),
     ru: Object.freeze({
       "offline.cappedAway": "Максимум: 3 часа",
@@ -1441,7 +1451,8 @@
       "modal.dailyChest": "Ежедневный сундук",
       "modal.dailyChestText": "Вернись, когда таймер дойдёт до нуля, чтобы забрать ежедневный сундук.",
       "modal.dailyChestRemaining": "Осталось: {time}",
-      "common.ok": "OK"
+      "common.ok": "OK",
+      "modal.premiumPlaceholder": "Оплата через Telegram Stars откроется здесь после подключения платежей."
     })
   });
 
@@ -1670,7 +1681,20 @@
     ACCESSORY_CASE_IDS.forEach((id) => keys.add(`accessoryCases.${id}`));
     TIMED_CASE_IDS.forEach((id) => keys.add(`cases.${id}`));
     WARDROBE_CATALOG_IDS.forEach((id) => keys.add(`wardrobeItems.${id}.name`));
-    EQUIPMENT_IDS.forEach((id) => keys.add(`wardrobeSlots.${id}`));
+    EQUIPMENT_IDS.forEach((id) => {
+      keys.add(`wardrobeSlots.${id}`);
+
+      const stages = EQUIPMENT_CONFIGS[id]?.stages || [];
+      stages.forEach((stage) => {
+        const minLevel = Math.max(1, Number(stage?.minLevel) || 1);
+        keys.add(`equipment.${id}.stage${minLevel}.name`);
+      });
+    });
+
+    STYLE_SET_IDS.forEach((id) => {
+      keys.add(`styleSets.${id}.name`);
+      keys.add(`styleSets.${id}.description`);
+    });
     BUSINESS_IDS.forEach((id) => keys.add(`businesses.${id}.name`));
     DISTRICT_IDS.forEach((id) => {
       keys.add(`districts.${id}.name`);
@@ -1760,7 +1784,35 @@
       "cards.bonus.criticalRatePercent",
       "cards.bonus.criticalDamagePercent",
       "cards.bonus.energyMaxFlat",
-      "cards.bonus.energyRegenSpeedPercent"
+      "cards.bonus.energyRegenSpeedPercent",
+      "wardrobe.title",
+      "wardrobe.tabs.items",
+      "wardrobe.tabs.sets",
+      "wardrobe.catalog",
+      "wardrobe.outfitProgress",
+      "wardrobe.totalStats",
+      "wardrobe.buyLevelOne",
+      "wardrobe.upgradeByLevel",
+      "wardrobe.maxLevel",
+      "wardrobe.requiredEquipmentLevel",
+      "wardrobe.setComplete",
+      "wardrobe.completeSet",
+      "wardrobe.itemLevelName",
+      "wardrobe.styleSetFallback",
+      "wardrobe.styleSetDescriptionFallback",
+      "shop.title",
+      "shop.boosts",
+      "shop.gems",
+      "shop.premiumCase",
+      "shop.premiumCaseDesc",
+      "shop.outfitSkin",
+      "shop.outfitSkinDesc",
+      "shop.hustleBundle",
+      "shop.hustleBundleDesc",
+      "shop.empirePass",
+      "shop.empirePassDesc",
+      "shop.perMonth",
+      "modal.premiumPlaceholder"
     ].forEach((key) => keys.add(key));
 
 
@@ -4906,7 +4958,7 @@
             ${spriteMarkup("sprite-wardrobe", spriteClass)}
             ${itemState.unlocked ? "" : '<span class="catalog-lock-icon">🔒</span>'}
           </div>
-          <strong>${itemState.unlocked ? getWardrobeCatalogDisplayName(itemId, cfg) : "???"}</strong>
+          <strong>${getWardrobeCatalogDisplayName(itemId, cfg)}</strong>
           <span class="catalog-item-rarity">${tr(`rarity.${cfg.rarity}`)}</span>
           <small class="catalog-source">
             ${itemState.unlocked ? `✓ ${tr("wardrobe.unlocked")}` : `${tr("wardrobe.unlockSource")}: ${getAccessorySourceLabel(cfg)}`}
@@ -5173,12 +5225,78 @@
     return true;
   }
 
+  function getEquipmentStageLocalizedName(
+    equipmentId,
+    stage,
+    displayLevel = 1
+  ) {
+    const minLevel = Math.max(
+      1,
+      Number(stage?.minLevel) || Number(displayLevel) || 1
+    );
+
+    const key = `equipment.${equipmentId}.stage${minLevel}.name`;
+
+    if (window.i18n?.has?.(key, currentLanguage())) {
+      return tr(key);
+    }
+
+    const localized = getLocalizedValue(stage?.name);
+
+    if (
+      localized
+      && localized !== tr("common.textUnavailable")
+    ) {
+      return localized;
+    }
+
+    return tr("wardrobe.itemLevelName", {
+      slot: tr(`wardrobeSlots.${equipmentId}`),
+      level: minLevel
+    });
+  }
+
   function getEquipmentLocalizedName(equipmentId) {
     const es = state.equipment[equipmentId];
-    if (!es?.unlocked) {
-      return tr(`wardrobeSlots.${equipmentId}`);
+    const level = es?.unlocked ? Math.max(1, es.level) : 1;
+    const stage =
+      getEquipmentStage(equipmentId, level)
+      || EQUIPMENT_CONFIGS[equipmentId]?.stages?.[0];
+
+    return getEquipmentStageLocalizedName(
+      equipmentId,
+      stage,
+      level
+    );
+  }
+
+  function getStyleSetLocalizedName(setId, cfg = STYLE_SET_CONFIGS[setId]) {
+    const key = `styleSets.${setId}.name`;
+
+    if (window.i18n?.has?.(key, currentLanguage())) {
+      return tr(key);
     }
-    return getLocalizedValue(getEquipmentStage(equipmentId, es.level)?.name, `wardrobeSlots.${equipmentId}`) || tr(`wardrobeSlots.${equipmentId}`);
+
+    const localized = getLocalizedValue(cfg?.name);
+    return localized && localized !== tr("common.textUnavailable")
+      ? localized
+      : tr("wardrobe.styleSetFallback");
+  }
+
+  function getStyleSetLocalizedDescription(
+    setId,
+    cfg = STYLE_SET_CONFIGS[setId]
+  ) {
+    const key = `styleSets.${setId}.description`;
+
+    if (window.i18n?.has?.(key, currentLanguage())) {
+      return tr(key);
+    }
+
+    const localized = getLocalizedValue(cfg?.description);
+    return localized && localized !== tr("common.textUnavailable")
+      ? localized
+      : tr("wardrobe.styleSetDescriptionFallback");
   }
 
   function getEquipmentEffectLabel(equipmentId) {
@@ -5261,8 +5379,8 @@
         <button class="style-set-card ${selectedStyleSetId === setId ? "selected" : ""} ${progress.complete ? "complete" : ""}" type="button" data-style-set="${setId}">
           <div class="style-set-icon">${cfg.icon}</div>
           <div class="style-set-info">
-            <strong>${getLocalizedValue(cfg.name)}</strong>
-            <small>${getLocalizedValue(cfg.description)}</small>
+            <strong>${getStyleSetLocalizedName(setId, cfg)}</strong>
+            <small>${getStyleSetLocalizedDescription(setId, cfg)}</small>
             <div class="style-set-progress-row"><div class="mini-progress"><span style="width:${progress.percent}%"></span></div><span>${progress.complete ? tr("wardrobe.setComplete") : `${progress.completed}/${progress.total}`}</span></div>
           </div>
         </button>`;
@@ -5293,7 +5411,7 @@
     if (sections[0]) {
       sections[0].innerHTML = `
         <h3>${tr("wardrobe.styleSetProgress")}</h3>
-        <strong>${cfg.icon} ${getLocalizedValue(cfg.name)}</strong>
+        <strong>${cfg.icon} ${getStyleSetLocalizedName(selectedStyleSetId, cfg)}</strong>
         <div class="progress-bar"><div class="progress-fill" style="width:${progress.percent}%"></div></div>
         <small>${progress.completed}/${progress.total} · ${tr("wardrobe.requiredEquipmentLevel", { level: cfg.requiredEquipmentLevel })}</small>`;
     }
@@ -7892,3 +8010,5 @@
 /* V18.1: Step 2 — City Map / Business names, unlock labels and Active Businesses EN/RU fix. */
 
 /* V18.2: Step 3 — Cases + Collection/Cards EN/RU localization fix. */
+
+/* V18.3: Step 4 — Wardrobe/Shop localization + definitive legacy-safe RU/EN toggle. */

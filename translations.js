@@ -1,11 +1,12 @@
 /* ============================================================
    URBAN TYCOON — CENTRAL EN/RU TRANSLATIONS
-   V18.2
+   V18.3
 ============================================================ */
 (() => {
   "use strict";
 
   const STORAGE_KEY = "urbanTycoonLanguageV1";
+  const LEGACY_STORAGE_KEY = "hustleEmpireLanguage";
   const SUPPORTED = Object.freeze(["en", "ru"]);
 
   const TRANSLATIONS = Object.freeze({
@@ -270,6 +271,33 @@
       "wardrobeItems.royal_coat.name": "Royal Coat",
       "wardrobeItems.diamond_watch.name": "Diamond Watch",
       "wardrobeItems.imperial_shoes.name": "Imperial Shoes",
+      "equipment.cap.stage1.name": "Canvas Cap",
+      "equipment.cap.stage5.name": "Designer Snapback",
+      "equipment.cap.stage10.name": "Empire Crown",
+      "equipment.glasses.stage1.name": "Basic Glasses",
+      "equipment.glasses.stage5.name": "Street Shades",
+      "equipment.glasses.stage10.name": "Diamond Shades",
+      "equipment.jacket.stage1.name": "Street Jacket",
+      "equipment.jacket.stage5.name": "Brand Jacket",
+      "equipment.jacket.stage10.name": "Luxury Suit",
+      "equipment.pants.stage1.name": "Basic Jeans",
+      "equipment.pants.stage5.name": "Streetwear Pants",
+      "equipment.pants.stage10.name": "Executive Pants",
+      "equipment.shoes.stage1.name": "Basic Sneakers",
+      "equipment.shoes.stage5.name": "Limited Sneakers",
+      "equipment.shoes.stage10.name": "Luxury Shoes",
+      "equipment.accessory.stage1.name": "Basic Watch",
+      "equipment.accessory.stage5.name": "Designer Watch",
+      "equipment.accessory.stage10.name": "Diamond Watch",
+      "styleSets.street_set.name": "Street Starter",
+      "styleSets.street_set.description": "Own all 6 equipment pieces at LV 1 or higher.",
+      "styleSets.brand_set.name": "Designer Streetwear",
+      "styleSets.brand_set.description": "Raise all 6 equipment pieces to LV 5.",
+      "styleSets.empire_set.name": "Empire Luxury",
+      "styleSets.empire_set.description": "Reach LV 10 with every equipment piece.",
+      "wardrobe.itemLevelName": "{slot} · LV {level}",
+      "wardrobe.styleSetFallback": "Style Set",
+      "wardrobe.styleSetDescriptionFallback": "Upgrade the required equipment to complete this set.",
       "wardrobe.character": "Character",
       "wardrobe.zeroIncome": "★ +0% Income",
       "wardrobe.zeroTapPower": "★ +0% Tap Power",
@@ -310,10 +338,10 @@
       "shop.outfitSkin": "Outfit / Skin",
       "shop.outfitSkinDesc": "Unlock new outfits",
       "shop.hustleBundle": "Hustle Bundle",
-      "shop.hustleBundleDesc": "Exceptional value!",
-      "shop.empirePass": "Empire Pass",
-      "shop.empirePassDesc": "Unlock your true potential",
-      "shop.perMonth": "{price} / month",
+      "shop.hustleBundleDesc": "Bonus Gems, case and accessory in one bundle.",
+      "shop.empirePass": "Имперский пропуск",
+      "shop.empirePassDesc": "Monthly premium rewards and progression bonuses",
+      "shop.perMonth": "{price} ★ / month",
       "offline.kicker": "OFFLINE EARNINGS",
       "offline.hicker": "OFFLINE EARNINGS",
       "offline.welcome": "Welcome back!",
@@ -328,6 +356,17 @@
       "modal.dailyChest": "Daily Chest",
       "modal.dailyChestText": "Come back when the timer reaches zero to claim your Daily Chest.",
       "modal.dailyChestRemaining": "Time remaining: {time}",
+      "modal.notifications": "Notifications",
+      "modal.notificationsText": "Rewards, completed missions, events and offline income appear here.",
+      "modal.settings": "Settings",
+      "modal.settingsText": "Audio, language, notifications and Telegram account settings.",
+      "modal.offline": "Offline Earnings",
+      "modal.offlineText": "Your businesses keep generating income while you are offline.",
+      "modal.levelUp": "Level Up",
+      "modal.levelUpText": "Complete missions to unlock the next level.",
+      "modal.setBonus": "Set Bonus",
+      "modal.setBonusText": "Complete equipment and card sets to unlock permanent bonuses.",
+      "modal.premiumPlaceholder": "Telegram Stars payment will open here when payments are enabled.",
       "daily.closeAria": "Close Daily Challenges",
       "daily.title": "Daily Challenges",
       "daily.eyebrow": "TYCOON DAILY",
@@ -733,6 +772,33 @@
       "wardrobeItems.royal_coat.name": "Королевское пальто",
       "wardrobeItems.diamond_watch.name": "Бриллиантовые часы",
       "wardrobeItems.imperial_shoes.name": "Императорская обувь",
+      "equipment.cap.stage1.name": "Хлопковая кепка",
+      "equipment.cap.stage5.name": "Дизайнерский снэпбэк",
+      "equipment.cap.stage10.name": "Корона Империи",
+      "equipment.glasses.stage1.name": "Простые очки",
+      "equipment.glasses.stage5.name": "Уличные очки",
+      "equipment.glasses.stage10.name": "Бриллиантовые очки",
+      "equipment.jacket.stage1.name": "Уличная куртка",
+      "equipment.jacket.stage5.name": "Брендовая куртка",
+      "equipment.jacket.stage10.name": "Люксовый костюм",
+      "equipment.pants.stage1.name": "Базовые джинсы",
+      "equipment.pants.stage5.name": "Стритвир-брюки",
+      "equipment.pants.stage10.name": "Брюки босса",
+      "equipment.shoes.stage1.name": "Базовые кроссовки",
+      "equipment.shoes.stage5.name": "Лимитированные кроссовки",
+      "equipment.shoes.stage10.name": "Люксовая обувь",
+      "equipment.accessory.stage1.name": "Простые часы",
+      "equipment.accessory.stage5.name": "Дизайнерские часы",
+      "equipment.accessory.stage10.name": "Бриллиантовые часы",
+      "styleSets.street_set.name": "Уличный старт",
+      "styleSets.street_set.description": "Все 6 предметов экипировки должны быть УР 1 или выше.",
+      "styleSets.brand_set.name": "Дизайнерский стиль",
+      "styleSets.brand_set.description": "Повысь все 6 предметов экипировки до УР 5.",
+      "styleSets.empire_set.name": "Имперская роскошь",
+      "styleSets.empire_set.description": "Повысь каждый предмет экипировки до УР 10.",
+      "wardrobe.itemLevelName": "{slot} · УР {level}",
+      "wardrobe.styleSetFallback": "Комплект",
+      "wardrobe.styleSetDescriptionFallback": "Улучши нужную экипировку, чтобы завершить комплект.",
       "wardrobe.character": "Персонаж",
       "wardrobe.zeroIncome": "★ +0% Доход",
       "wardrobe.zeroTapPower": "★ +0% Сила тапа",
@@ -772,11 +838,11 @@
       "shop.premiumCaseDesc": "Открыть премиум кейс",
       "shop.outfitSkin": "Образ / Скин",
       "shop.outfitSkinDesc": "Открыть новые образы",
-      "shop.hustleBundle": "Hustle набор",
-      "shop.hustleBundleDesc": "Максимальная выгода!",
+      "shop.hustleBundle": "Набор Hustle",
+      "shop.hustleBundleDesc": "Кристаллы, кейс и аксессуар в одном наборе.",
       "shop.empirePass": "Empire Pass",
-      "shop.empirePassDesc": "Раскрой потенциал империи",
-      "shop.perMonth": "{price} / месяц",
+      "shop.empirePassDesc": "Ежемесячные премиум-награды и бонусы прогрессии",
+      "shop.perMonth": "{price} ★ / месяц",
       "offline.kicker": "ДОХОД ОФЛАЙН",
       "offline.hicker": "ДОХОД ОФЛАЙН",
       "offline.welcome": "С возвращением!",
@@ -791,6 +857,17 @@
       "modal.dailyChest": "Ежедневный сундук",
       "modal.dailyChestText": "Вернись, когда таймер дойдёт до нуля, чтобы забрать ежедневный сундук.",
       "modal.dailyChestRemaining": "Осталось: {time}",
+      "modal.notifications": "Уведомления",
+      "modal.notificationsText": "Здесь появляются награды, выполненные миссии, события и офлайн-доход.",
+      "modal.settings": "Настройки",
+      "modal.settingsText": "Звук, язык, уведомления и настройки Telegram-аккаунта.",
+      "modal.offline": "Офлайн-доход",
+      "modal.offlineText": "Твои бизнесы продолжают приносить доход, пока ты офлайн.",
+      "modal.levelUp": "Новый уровень",
+      "modal.levelUpText": "Выполняй миссии, чтобы открыть следующий уровень.",
+      "modal.setBonus": "Бонус комплекта",
+      "modal.setBonusText": "Собирай комплекты экипировки и карт для постоянных бонусов.",
+      "modal.premiumPlaceholder": "Оплата через Telegram Stars откроется здесь после подключения платежей.",
       "daily.closeAria": "Закрыть ежедневные задания",
       "daily.title": "Ежедневные задания",
       "daily.eyebrow": "ЕЖЕДНЕВНЫЙ TYCOON",
@@ -1143,11 +1220,16 @@
     activeLanguage = nextLanguage;
     document.documentElement.lang = nextLanguage;
 
-    if (options.persist !== false) {
-      try {
+    try {
+      /*
+         Keep both the V18 i18n engine and the legacy script.js controller
+         on the exact same language.
+      */
+      if (options.persist !== false) {
         localStorage.setItem(STORAGE_KEY, nextLanguage);
-      } catch (_) {}
-    }
+      }
+      localStorage.setItem(LEGACY_STORAGE_KEY, nextLanguage);
+    } catch (_) {}
 
     applyTranslations(document);
     updateLanguageButton();
@@ -1218,10 +1300,39 @@
 
   window.i18n = i18nApi;
 
-  // Compatibility aliases: one canonical engine/dictionary.
+  function buildLegacyNestedLocale(flatLocale) {
+    const root = {};
+
+    Object.entries(flatLocale).forEach(([key, value]) => {
+      const parts = key.split(".");
+      let cursor = root;
+
+      parts.forEach((part, index) => {
+        if (index === parts.length - 1) {
+          cursor[part] = value;
+          return;
+        }
+
+        if (!cursor[part] || typeof cursor[part] !== "object") {
+          cursor[part] = {};
+        }
+
+        cursor = cursor[part];
+      });
+    });
+
+    return root;
+  }
+
+  const LEGACY_LOCALES = Object.freeze({
+    en: buildLegacyNestedLocale(TRANSLATIONS.en),
+    ru: buildLegacyNestedLocale(TRANSLATIONS.ru)
+  });
+
+  // Compatibility aliases: one canonical flat dictionary + nested legacy view.
   window.translations = TRANSLATIONS;
   window.TRANSLATIONS = TRANSLATIONS;
-  window.LOCALES = TRANSLATIONS;
+  window.LOCALES = LEGACY_LOCALES;
   window.I18N = i18nApi;
 
   const dictionaryAudit = audit();
@@ -1234,18 +1345,51 @@
     );
   }
 
+  let languageBeforeButtonClick = null;
+
   /*
-     Capture phase prevents any legacy language-click handler from toggling
-     the language a second time.
+     script.js may still own an old target-level click listener.
+     Capture only records the language; it does NOT block that listener.
   */
   document.addEventListener("click", (event) => {
-    const button = event.target?.closest?.("#language-switch");
-    if (!button) return;
-
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    switchLanguage();
+    if (!event.target?.closest?.("#language-switch")) return;
+    languageBeforeButtonClick = activeLanguage;
   }, true);
+
+  /*
+     Legacy script.js emits the same event. Sync the canonical flat engine
+     without emitting a second event.
+  */
+  window.addEventListener("hustle:languageChanged", (event) => {
+    const language = normalizeLanguage(event.detail?.language);
+
+    if (language !== activeLanguage) {
+      setLanguage(language, {
+        notify: false,
+        persist: true
+      });
+    } else {
+      applyTranslations(document);
+      updateLanguageButton();
+    }
+  });
+
+  /*
+     Standalone fallback: if legacy script.js is absent, no language-change
+     event occurred between capture and document bubble, so V18 toggles here.
+  */
+  document.addEventListener("click", (event) => {
+    if (!event.target?.closest?.("#language-switch")) return;
+
+    const before = languageBeforeButtonClick;
+    languageBeforeButtonClick = null;
+
+    queueMicrotask(() => {
+      if (before && activeLanguage === before) {
+        switchLanguage();
+      }
+    });
+  });
 
   setLanguage(activeLanguage, {
     persist: false,

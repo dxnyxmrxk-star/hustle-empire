@@ -1,23 +1,30 @@
-URBAN TYCOON V17.9 — EN/RU I18N AUDIT
+URBAN TYCOON V18.3 — FINAL WARDROBE / SHOP / TOGGLE I18N AUDIT
 
-Dictionary keys EN: 386
-Dictionary keys RU: 386
-Literal/static translation keys used: 333
-Dynamic tr() families checked: 3
-Missing EN keys: 0
-Missing RU keys: 0
-Placeholder mismatches EN/RU: 0
-Missing keys used by game.js/index.html: 0
-Italian quoted UI strings in game.js: 0
-Raw technical translation keys in visible HTML: 0
-node --check game.js: OK
+Dictionary keys EN: 499
+Dictionary keys RU: 499
+EN/RU parity: OK
+
+Wardrobe:
+- title/categories: dictionary-backed
+- 18 equipment stage names: EN/RU
+- 3 style-set names + descriptions: EN/RU
+- 12 accessory catalog names: existing dictionary-backed
+- upgradeByLevel: dictionary-backed
+- locked catalog '???': removed
+
+Shop:
+- all boost/product labels: dictionary-backed
+- Empire Pass: EN/RU
+- monthly price: localized with Telegram Stars symbol
+- modal.premiumPlaceholder: translated EN/RU for legacy script.js
+
+Toggle:
+- central flat TRANSLATIONS retained
+- nested LOCALES compatibility view generated for legacy script.js
+- both language storage keys synchronized
+- legacy languageChanged event synchronizes central engine
+- standalone toggle fallback present
+- game.js restores canonical window.i18n after legacy script.js overwrite
+
 node --check translations.js: OK
-All index cache/version references: 17.9
-
-Toggle flow:
-EN active -> button shows RU
-RU active -> button shows EN
-Static DOM updates immediately.
-Dynamic game views redraw on hustle:languageChanged.
-A MutationObserver translates newly inserted data-i18n nodes.
-Missing-key fallback never exposes raw technical keys.
+node --check game.js: OK
