@@ -121,7 +121,7 @@
     premium_legendary: "case-gold"
   };
 
-  const SPRITE_BUILD_VERSION = "14.3";
+  const SPRITE_BUILD_VERSION = "14.4";
 
   /*
      V14.0 asset manifest.
@@ -174,13 +174,18 @@
     wardrobe: ASSET_PATHS.spriteSheets.wardrobe
   });
 
+  /*
+     V14.4 — fallback paths are ALWAYS arrays.
+     Never build a fallback as "pathA pathB": WebKit will treat that as one
+     invalid URL. The loader advances to the next array item only on error.
+  */
   const SPRITE_ASSET_FALLBACKS = Object.freeze({
-    character: "assets/sprite_character_evolution.png",
-    cityMap: "assets/sprite_city_map.png",
-    businesses: "assets/sprite_businesses.png",
-    cases: "assets/sprite_cases.png",
-    workers: "assets/sprite_cards_workers.png",
-    wardrobe: "assets/sprite_wardrobe_items.png"
+    character: Object.freeze([]),
+    cityMap: Object.freeze(["assets/city-map.svg"]),
+    businesses: Object.freeze([]),
+    cases: Object.freeze([]),
+    workers: Object.freeze([]),
+    wardrobe: Object.freeze([])
   });
 
   /*
@@ -255,13 +260,53 @@
   function normalizeRelativeAssetPath(relativePath) {
     /*
        Never allow repository-local media to accidentally resolve from the
-       GitHub Pages domain root. A root-relative asset path would break project pages such as
-       username.github.io/repository/.
+       GitHub Pages domain root.
     */
     return String(relativePath || "")
       .trim()
       .replace(/^\/+/, "")
       .replace(/^\.\//, "");
+  }
+
+  /*
+     Converts any combination of strings / arrays into ONE clean array.
+
+     It also repairs legacy whitespace-concatenated fallback values by
+     splitting them into separate candidate paths before loading.
+
+     Each candidate is then attempted separately and sequentially.
+  */
+  function normalizeAssetCandidates(...sources) {
+    const candidates = [];
+
+    const pushSource = (source) => {
+      if (!source) return;
+
+      if (Array.isArray(source)) {
+        source.forEach(pushSource);
+        return;
+      }
+
+      if (typeof source !== "string") return;
+
+      /*
+         Asset filenames in this project contain no literal spaces.
+         Splitting here safely repairs any legacy concatenated fallback value.
+      */
+      source
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean)
+        .forEach((rawPath) => {
+          const cleanPath = normalizeRelativeAssetPath(rawPath);
+          if (cleanPath && !candidates.includes(cleanPath)) {
+            candidates.push(cleanPath);
+          }
+        });
+    };
+
+    sources.forEach(pushSource);
+    return candidates;
   }
 
   function resolveAssetUrl(relativePath) {
@@ -275,20 +320,26 @@
     return url.href;
   }
 
-  function loadSpriteImage(key, primaryPath) {
-    const candidates = [
-      normalizeRelativeAssetPath(primaryPath),
-      normalizeRelativeAssetPath(SPRITE_ASSET_FALLBACKS[key])
-    ].filter((value, index, list) => value && list.indexOf(value) === index);
+  /*
+     Generic sequential image loader:
+     candidate[0] -> onerror -> candidate[1] -> onerror -> ...
+     At no point are two paths assigned to image.src together.
+  */
+  function loadImageFromCandidates(candidateSources, options = {}) {
+    const candidates = normalizeAssetCandidates(candidateSources);
 
     return new Promise((resolve) => {
       let candidateIndex = 0;
 
       const tryNext = () => {
         if (candidateIndex >= candidates.length) {
-          console.error(`[Hustle Empire] Sprite failed to load: ${key}`, candidates);
-          document.documentElement.dataset.spriteError = key;
-          resolve({ key, ok: false, image: null, candidates });
+          options.onAllFailed?.(candidates);
+          resolve({
+            ok: false,
+            image: null,
+            path: "",
+            candidates
+          });
           return;
         }
 
@@ -298,21 +349,27 @@
 
         image.onload = async () => {
           try {
-            if (typeof image.decode === "function") await image.decode();
+            if (typeof image.decode === "function") {
+              await image.decode();
+            }
           } catch (_) {
-            /* WebKit may reject decode() even after a successful load. */
+            /* WebKit may reject decode() after a valid onload. */
           }
 
-          SPRITE_IMAGES[key] = image;
-          document.documentElement.dataset[
-            `sprite${key[0].toUpperCase()}${key.slice(1)}`
-          ] = "ready";
+          options.onSuccess?.(image, currentPath, candidates);
 
-          resolve({ key, ok: true, image, path: currentPath });
+          resolve({
+            ok: true,
+            image,
+            path: currentPath,
+            candidates
+          });
         };
 
         image.onerror = () => {
-          console.warn(`[Hustle Empire] Asset 404/load error, trying fallback: ${currentPath}`);
+          console.warn(
+            `[Hustle Empire] Image failed: ${currentPath}. Trying next fallback...`
+          );
           tryNext();
         };
 
@@ -323,9 +380,38 @@
     });
   }
 
+  function loadSpriteImage(key, primaryPath) {
+    const candidates = normalizeAssetCandidates(
+      primaryPath,
+      SPRITE_ASSET_FALLBACKS[key]
+    );
+
+    return loadImageFromCandidates(candidates, {
+      onSuccess(image, currentPath) {
+        SPRITE_IMAGES[key] = image;
+
+        document.documentElement.dataset[
+          `sprite${key[0].toUpperCase()}${key.slice(1)}`
+        ] = "ready";
+      },
+
+      onAllFailed(failedCandidates) {
+        console.error(
+          `[Hustle Empire] Sprite failed to load: ${key}`,
+          failedCandidates
+        );
+        document.documentElement.dataset.spriteError = key;
+      }
+    }).then((result) => ({
+      key,
+      ...result
+    }));
+  }
+
   async function preloadOfficialSpriteSheets() {
     const results = await Promise.all(
-      Object.entries(OFFICIAL_SPRITE_ASSETS).map(([key, src]) => loadSpriteImage(key, src))
+      Object.entries(OFFICIAL_SPRITE_ASSETS)
+        .map(([key, src]) => loadSpriteImage(key, src))
     );
 
     spriteAssetsReady = results.some((result) => result.ok);
@@ -333,62 +419,90 @@
     return results;
   }
 
-  function preloadDirectAsset(relativePath) {
-    return new Promise((resolve) => {
-      if (!relativePath) {
-        resolve(false);
-        return;
-      }
+  function preloadDirectAsset(primaryPath, fallbackPaths = []) {
+    const candidates = normalizeAssetCandidates(
+      primaryPath,
+      fallbackPaths
+    );
 
-      const image = new Image();
-      image.decoding = "async";
-      image.onload = async () => {
-        try {
-          if (typeof image.decode === "function") await image.decode();
-        } catch (_) {}
-        resolve(true);
-      };
-      image.onerror = () => resolve(false);
-      image.src = resolveAssetUrl(relativePath);
-    });
+    return loadImageFromCandidates(candidates)
+      .then((result) => result.ok);
   }
 
   async function preloadCriticalDirectAssets() {
     const stageOne = ASSET_PATHS.characters[1];
+
     return Promise.all([
-      preloadDirectAsset(ASSET_PATHS.avatar),
-      preloadDirectAsset(stageOne.primary),
-      preloadDirectAsset(stageOne.fallback),
-      preloadDirectAsset(ASSET_PATHS.cityMap)
+      preloadDirectAsset(
+        ASSET_PATHS.avatar,
+        [ASSET_PATHS.avatarFallback]
+      ),
+      preloadDirectAsset(
+        stageOne.primary,
+        [stageOne.fallback]
+      ),
+      preloadDirectAsset(
+        ASSET_PATHS.cityMap,
+        [ASSET_PATHS.cityMapFallback]
+      )
     ]);
   }
 
-  function setDirectImageAsset(imageElement, primaryPath, fallbackPath = "") {
+  /*
+     Direct <img> fallback loader.
+     Accepts strings OR arrays and switches src only after onerror.
+  */
+  function setDirectImageAsset(imageElement, primaryPath, fallbackPaths = []) {
     if (!(imageElement instanceof HTMLImageElement)) return false;
 
-    const primary = normalizeRelativeAssetPath(primaryPath);
-    const fallback = normalizeRelativeAssetPath(fallbackPath);
+    const candidates = normalizeAssetCandidates(
+      primaryPath,
+      fallbackPaths
+    );
 
-    imageElement.dataset.primarySrc = primary;
-    if (fallback) imageElement.dataset.fallbackSrc = fallback;
-    imageElement.dataset.assetFallbackUsed = "false";
+    if (!candidates.length) {
+      imageElement.classList.add("asset-load-error");
+      return false;
+    }
 
-    imageElement.onerror = () => {
-      if (
-        fallback &&
-        imageElement.dataset.assetFallbackUsed !== "true"
-      ) {
-        imageElement.dataset.assetFallbackUsed = "true";
-        imageElement.src = resolveAssetUrl(fallback);
+    imageElement.dataset.assetCandidates = JSON.stringify(candidates);
+    imageElement.dataset.assetCandidateIndex = "0";
+    imageElement.classList.remove("asset-load-error");
+
+    let candidateIndex = 0;
+
+    const tryCandidate = () => {
+      if (candidateIndex >= candidates.length) {
+        imageElement.onerror = null;
+        imageElement.classList.add("asset-load-error");
+        console.error(
+          "[Hustle Empire] Direct image failed. Candidates:",
+          candidates
+        );
         return;
       }
 
-      imageElement.classList.add("asset-load-error");
-      console.error("[Hustle Empire] Direct image failed:", primary, fallback);
+      const currentPath = candidates[candidateIndex++];
+
+      imageElement.dataset.assetCandidateIndex =
+        String(candidateIndex - 1);
+
+      /*
+         Critical: exactly ONE path is assigned here.
+         The next path is assigned only if this one fires onerror.
+      */
+      imageElement.src = resolveAssetUrl(currentPath);
     };
 
-    const nextSrc = resolveAssetUrl(primary);
-    if (imageElement.src !== nextSrc) imageElement.src = nextSrc;
+    imageElement.onload = () => {
+      imageElement.classList.remove("asset-load-error");
+    };
+
+    imageElement.onerror = () => {
+      tryCandidate();
+    };
+
+    tryCandidate();
     return true;
   }
 
@@ -398,12 +512,25 @@
       image.dataset.assetFallbackBound = "true";
 
       const primary =
-        image.dataset.primarySrc ||
-        image.getAttribute("src")?.split("?")[0] ||
+        image.dataset.primarySrc
+        ||
+        image.getAttribute("src")?.split("?")[0]
+        ||
         "";
-      const fallback = image.dataset.fallbackSrc || "";
 
-      setDirectImageAsset(image, primary, fallback);
+      /*
+         data-fallback-src may be either one path or a legacy whitespace
+         separated value. normalizeAssetCandidates() converts it to an array.
+      */
+      const fallbackCandidates = normalizeAssetCandidates(
+        image.dataset.fallbackSrc || ""
+      );
+
+      setDirectImageAsset(
+        image,
+        primary,
+        fallbackCandidates
+      );
     });
   }
 
