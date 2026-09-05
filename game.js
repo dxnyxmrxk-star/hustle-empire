@@ -46,13 +46,13 @@
   const RANDOM_EVENT_IDS = Object.keys(RANDOM_EVENT_DEFINITIONS);
 
   /* ==========================================================
-     V15.9 — OFFICIAL FLAT ASSET REGISTRY
+     V16.0 — OFFICIAL FLAT ASSET REGISTRY
      Every image lives directly in assets/ (NO asset subfolders).
      Cards use full rectangular art as a background layer with a
      CSS/UI frame overlay rendered above it.
   ========================================================== */
 
-  const SPRITE_BUILD_VERSION = "15.9";
+  const SPRITE_BUILD_VERSION = "16.0";
 
   const REAL_GAME_ASSET_PATHS = Object.freeze([
     "assets/acc_epic.png",
@@ -88,6 +88,10 @@
     "assets/hero_lvl2.png",
     "assets/hero_lvl3.png",
     "assets/hotel.png",
+    "assets/icon_energy.png",
+    "assets/icon_gems.png",
+    "assets/icon_money.png",
+    "assets/icon_xp.png",
     "assets/jacket.png",
     "assets/kiosk.png",
     "assets/laundry.png",
@@ -132,6 +136,13 @@
       pants: "assets/pants.png",
       shoes: "assets/shoes.png",
       watch: "assets/watch.png"
+    }),
+
+    hud: Object.freeze({
+      money: "assets/icon_money.png",
+      energy: "assets/icon_energy.png",
+      gems: "assets/icon_gems.png",
+      xp: "assets/icon_xp.png"
     }),
 
     businesses: Object.freeze({
@@ -4717,6 +4728,29 @@
     if (offlineValue && offlineIncome !== null) offlineValue.textContent = formatCompactMoney(offlineIncome);
   }
 
+  function syncHudIconAssets(root = document) {
+    const iconTargets = {
+      money: ASSET_PATHS.hud.money,
+      energy: ASSET_PATHS.hud.energy,
+      gems: ASSET_PATHS.hud.gems,
+      xp: ASSET_PATHS.hud.xp
+    };
+
+    root.querySelectorAll("[data-hud-icon]").forEach((icon) => {
+      const key = icon.dataset.hudIcon;
+      const path = iconTargets[key];
+      if (!path) return;
+
+      const versionedPath = `${path}?v=${SPRITE_BUILD_VERSION}`;
+      if (icon.getAttribute("src") !== versionedPath) {
+        icon.setAttribute("src", versionedPath);
+      }
+
+      icon.removeAttribute("onerror");
+      icon.classList.remove("image-placeholder", "asset-placeholder", "fallback-icon");
+    });
+  }
+
   function updatePlayerResources() {
     const money = document.querySelector(".money-card strong");
     const energy = document.querySelector(".energy-card strong");
@@ -5215,6 +5249,7 @@
        Bind <img> fallbacks before first paint. This is important on Telegram
        iOS where an SVG request can fail before the rest of the app is ready.
     */
+    syncHudIconAssets(document);
     installStaticImageFallbacks(document);
     normalizeSpriteFrames();
     logAssetAudit();

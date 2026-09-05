@@ -77,7 +77,7 @@ img{display:block;max-width:100%}
 .player-level-content{min-width:0;flex:1}
 .level-row{margin-bottom:4px}
 .level-row strong{font-size:10px}
-.xp-row{display:grid;grid-template-columns:minmax(55px,1fr) auto;align-items:center;gap:4px}
+.xp-row{display:grid;grid-template-columns:16px minmax(55px,1fr) auto;align-items:center;gap:4px}
 .xp-row>span{color:#bdd4e7;font-size:7px;white-space:nowrap}
 
 .progress-bar{
@@ -96,7 +96,6 @@ img{display:block;max-width:100%}
   border:1px solid #063b5a;border-radius:6px;background:#071824
 }
 .resource-card strong{font-size:9px;white-space:nowrap}
-.resource-symbol{font-size:13px;font-weight:900}
 .money-card{color:var(--green)}
 .energy-card{color:#ffd037}
 .gem-card{color:#48d9ff}
@@ -2819,28 +2818,32 @@ body {
   background: linear-gradient(180deg, #72ebff, #00b0ff);
 }
 
-.resource-symbol {
-  display: inline-grid;
-  place-items: center;
-  min-width: 20px;
-  text-shadow: 0 0 8px currentColor;
-  filter: drop-shadow(0 0 6px currentColor);
+/* ---------- V16 HUD PNG icons ---------- */
+.hud-icon {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  display: block;
+  object-fit: contain;
+  object-position: center;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.24));
 }
 
-.money-card .resource-symbol,
-.money-card strong {
-  color: #79ffbe !important;
+.resource-card .hud-icon {
+  margin-left: 1px;
 }
 
-.energy-card .resource-symbol,
-.energy-card strong {
-  color: #ffb14b !important;
-}
+.hud-icon-money { width: 21px; height: 21px; flex-basis: 21px; }
+.hud-icon-energy { width: 19px; height: 19px; flex-basis: 19px; }
+.hud-icon-gems { width: 20px; height: 20px; flex-basis: 20px; }
+.hud-icon-xp { width: 15px; height: 15px; flex-basis: 15px; }
 
-.gem-card .resource-symbol,
-.gem-card strong {
-  color: #7ee8ff !important;
-}
+.money-card strong { color: #79ffbe !important; }
+.energy-card strong { color: #ffb14b !important; }
+.gem-card strong { color: #7ee8ff !important; }
 
 /* ---------- Action buttons / badges ---------- */
 .top-action,
@@ -3479,7 +3482,7 @@ img[src*="sprite_cases"] {
   min-height: clamp(300px, 62vw, 390px) !important;
   background-image:
     linear-gradient(180deg, rgba(4,11,20,.02), rgba(4,11,20,.12)),
-    url("assets/city_map.png?v=15.9") !important;
+    url("assets/city_map.png?v=16.0") !important;
   background-size: cover !important;
   background-position: center center !important;
   background-repeat: no-repeat !important;
@@ -4839,7 +4842,7 @@ img[src*="assets/"] {
 
 
 /* ==========================================================
-   V15.9 — HOME VIEWPORT / CHARACTER / TAP / COLUMNS
+   V16.0 — HOME VIEWPORT / CHARACTER / TAP / COLUMNS
    Final layout override. Keep this block LAST in style.css.
 ========================================================== */
 
@@ -5214,7 +5217,7 @@ body .screen[data-screen="home"] .home-center > .home-character-stage {
 
 
 /* ==========================================================
-   V15.9 — DIRECT TRANSPARENT ASSETS + AVATAR FACE
+   V16.0 — DIRECT TRANSPARENT ASSETS + AVATAR FACE
    No business/card/case/wardrobe visual depends on a sprite sheet.
 ========================================================== */
 
@@ -5369,7 +5372,7 @@ body .screen[data-screen="home"] .home-center > .home-character-stage {
 
 
 /* ==========================================================
-   V15.9 — FULL CARD ART BACKGROUND + UI FRAME OVERLAY
+   V16.0 — FULL CARD ART BACKGROUND + UI FRAME OVERLAY
    The artwork is a rectangular background layer. The frame is CSS/UI,
    rendered above it, so the source PNG is never stretched into a frame.
 ========================================================== */
@@ -5480,5 +5483,32 @@ body .screen[data-screen="home"] .home-center > .home-character-stage {
 .city-map-wrapper.city-map-sprite-background {
   background-image:
     linear-gradient(180deg, rgba(4,11,20,.02), rgba(4,11,20,.12)),
-    url("assets/city_map.png?v=15.9") !important;
+    url("assets/city_map.png?v=16.0") !important;
+}
+
+
+/* ==========================================================
+   V16.0 — HUD ICON RESPONSIVE SAFEGUARDS
+========================================================== */
+.topbar-resources {
+  align-items: center;
+  min-width: 0;
+}
+.resource-card {
+  min-width: 0;
+  overflow: hidden;
+}
+.resource-card strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (max-width: 480px) {
+  .topbar-resources { gap: 3px; }
+  .resource-card { height: 30px; gap: 3px; padding: 0 5px; }
+  .hud-icon-money { width: 18px; height: 18px; flex-basis: 18px; }
+  .hud-icon-energy { width: 17px; height: 17px; flex-basis: 17px; }
+  .hud-icon-gems { width: 18px; height: 18px; flex-basis: 18px; }
+  .hud-icon-xp { width: 14px; height: 14px; flex-basis: 14px; }
+  .xp-row { grid-template-columns:14px minmax(42px,1fr) auto; gap:3px; }
 }

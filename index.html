@@ -1,23 +1,27 @@
 <!DOCTYPE html>
 
-<html lang="en" data-app-version="15.9">
+<html lang="en" data-app-version="16.0">
 <head>
 <meta charset="utf-8"/>
 <base href="./"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
 <meta content="#0b0f19" name="theme-color"/>
 <title>Hustle Empire</title>
-<link rel="preload" as="image" href="assets/avatar_face.png?v=15.9"/>
-<link rel="preload" as="image" href="assets/hero_lvl1.png?v=15.9"/>
-<link rel="preload" as="image" href="assets/city_map.png?v=15.9"/>
+<link rel="preload" as="image" href="assets/avatar_face.png?v=16.0"/>
+<link rel="preload" as="image" href="assets/hero_lvl1.png?v=16.0"/>
+<link rel="preload" as="image" href="assets/city_map.png?v=16.0"/>
+<link rel="preload" as="image" href="assets/icon_money.png?v=16.0"/>
+<link rel="preload" as="image" href="assets/icon_energy.png?v=16.0"/>
+<link rel="preload" as="image" href="assets/icon_gems.png?v=16.0"/>
+<link rel="preload" as="image" href="assets/icon_xp.png?v=16.0"/>
 <link rel="icon" href="data:,"/>
 <link rel="shortcut icon" href="data:,"/>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<link href="style.css?v=15.9" rel="stylesheet"/>
-<script defer="" src="locales.js?v=15.9"></script>
-<script defer="" src="config.js?v=15.9"></script>
-<script defer="" src="script.js?v=15.9"></script>
-<script defer="" src="game.js?v=15.9"></script>
+<link href="style.css?v=16.0" rel="stylesheet"/>
+<script defer="" src="locales.js?v=16.0"></script>
+<script defer="" src="config.js?v=16.0"></script>
+<script defer="" src="script.js?v=16.0"></script>
+<script defer="" src="game.js?v=16.0"></script>
 
 <style id="level-up-rewards-v14-1">
   #level-boost-indicator[hidden],
@@ -221,20 +225,21 @@
 <header class="topbar">
 <div class="player-level">
 <div class="player-avatar image-fallback header-avatar">
-<img aria-label="Player" alt="Player" class="player-avatar-image avatar-face-image direct-character-image" src="assets/avatar_face.png?v=15.9" draggable="false" decoding="async" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block;border-radius:50%;" />
+<img aria-label="Player" alt="Player" class="player-avatar-image avatar-face-image direct-character-image" src="assets/avatar_face.png?v=16.0" draggable="false" decoding="async" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block;border-radius:50%;" />
 </div>
 <div class="player-level-content">
 <div class="level-row"><strong>LV 1</strong></div>
 <div class="xp-row">
+<img class="hud-icon hud-icon-xp" data-hud-icon="xp" src="assets/icon_xp.png?v=16.0" alt="XP" draggable="false" decoding="async"/>
 <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
 <span>0 / 100 XP</span>
 </div>
 </div>
 </div>
 <div class="topbar-resources">
-<div class="resource-card money-card"><span class="resource-symbol">$</span><strong>$0</strong></div>
-<div class="resource-card energy-card"><span class="resource-symbol">⚡</span><strong>120/120</strong></div>
-<div class="resource-card gem-card"><span class="resource-symbol">♦</span><strong>0</strong></div>
+<div class="resource-card money-card"><img class="hud-icon hud-icon-money" data-hud-icon="money" src="assets/icon_money.png?v=16.0" alt="Money" draggable="false" decoding="async"/><strong>$0</strong></div>
+<div class="resource-card energy-card"><img class="hud-icon hud-icon-energy" data-hud-icon="energy" src="assets/icon_energy.png?v=16.0" alt="Energy" draggable="false" decoding="async"/><strong>120/120</strong></div>
+<div class="resource-card gem-card"><img class="hud-icon hud-icon-gems" data-hud-icon="gems" src="assets/icon_gems.png?v=16.0" alt="Gems" draggable="false" decoding="async"/><strong>0</strong></div>
 </div>
 <div class="topbar-actions">
 <button aria-label="Notifications" class="top-action notification-button" data-action="notifications" type="button">🔔<span class="badge">2</span></button>
@@ -291,7 +296,7 @@
 </aside>
 <div class="home-center image-fallback">
 <div class="home-character-stage">
-<img aria-label="Hustle Empire character" alt="Hustle Empire character" class="home-character home-character-sprite direct-character-image character-real-image" data-character-sprite="" data-character-stage="1" src="assets/hero_lvl1.png?v=15.9" draggable="false" decoding="async" style="object-fit:contain;display:block;" />
+<img aria-label="Hustle Empire character" alt="Hustle Empire character" class="home-character home-character-sprite direct-character-image character-real-image" data-character-sprite="" data-character-stage="1" src="assets/hero_lvl1.png?v=16.0" draggable="false" decoding="async" style="object-fit:contain;display:block;" />
 </div>
 <div class="home-tap-zone">
 <div aria-hidden="true" class="tap-float-layer" id="tap-float-layer"></div>
@@ -333,7 +338,7 @@
 <section class="screen" data-screen="city">
 <div class="city-screen page-layout">
 <div class="city-map-wrapper image-fallback city-map-sprite-background">
-<img class="city-map-image" src="assets/city_map.png?v=15.9">
+<img class="city-map-image" src="assets/city_map.png?v=16.0">
 <button class="city-node poor selected" data-district="poor_block" type="button"><strong>POOR BLOCK</strong><span>LV 1-10</span><small>Starter District</small><i>✓</i></button>
 <button class="city-node center locked" data-district="city_center" type="button"><strong>CITY CENTER</strong><span>LV 11-20</span><small>City Hustles</small><i>🔒</i></button>
 <button class="city-node business locked" data-district="business_district" type="button"><strong>BUSINESS DISTRICT</strong><span>LV 21-30</span><small>Big Business</small><i>🔒</i></button>
@@ -428,7 +433,7 @@
 </aside>
 <div class="wardrobe-character image-fallback">
 
-<img aria-label="Character" alt="Character" class="wardrobe-character-image wardrobe-character-sprite direct-character-image character-real-image" data-character-sprite="" data-character-stage="1" src="assets/hero_lvl1.png?v=15.9" draggable="false" decoding="async" style="object-fit:contain;display:block;" />
+<img aria-label="Character" alt="Character" class="wardrobe-character-image wardrobe-character-sprite direct-character-image character-real-image" data-character-sprite="" data-character-stage="1" src="assets/hero_lvl1.png?v=16.0" draggable="false" decoding="async" style="object-fit:contain;display:block;" />
 </div>
 <aside class="outfit-panel">
 <section><h3 data-i18n="wardrobe.outfitProgress">Outfit Progress</h3><strong>🔒</strong><div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div><small data-i18n="wardrobe.unlockSlot">Buy LV 1 to unlock</small></section>
@@ -461,9 +466,9 @@
 </div>
 </section>
 <aside class="premium-shop-column">
-<button class="premium-product" data-action="shop-premium-case"><div class="premium-product-image"><img class="asset-direct-image shop-sprite-icon" src="assets/acc_epic.png?v=15.9" alt="" aria-hidden="true" draggable="false" /></div><div><strong data-i18n="shop.premiumCase">Premium Case</strong><span data-i18n="shop.premiumCaseDesc">Open a premium case</span><small>♦ 250</small></div></button>
-<button class="premium-product" data-action="shop-outfit"><div class="premium-product-image"><img class="asset-direct-image shop-sprite-icon" src="assets/jacket.png?v=15.9" alt="" aria-hidden="true" draggable="false" /></div><div><strong data-i18n="shop.outfitSkin">Outfit / Skin</strong><span data-i18n="shop.outfitSkinDesc">Unlock new outfits</span><small>♦ 400</small></div></button>
-<button class="premium-product" data-action="shop-bundle"><div class="premium-product-image bundle-sprite-stack"><img class="asset-direct-image shop-sprite-icon bundle-case-sprite" src="assets/acc_legendary.png?v=15.9" alt="" aria-hidden="true" draggable="false" /><img class="asset-direct-image shop-sprite-icon bundle-item-sprite" src="assets/watch.png?v=15.9" alt="" aria-hidden="true" draggable="false" /></div><div><strong data-i18n="shop.hustleBundle">Hustle Bundle</strong><span data-i18n="shop.hustleBundleDesc">Exceptional value!</span><small>♦ 1,000</small></div></button>
+<button class="premium-product" data-action="shop-premium-case"><div class="premium-product-image"><img class="asset-direct-image shop-sprite-icon" src="assets/acc_epic.png?v=16.0" alt="" aria-hidden="true" draggable="false" /></div><div><strong data-i18n="shop.premiumCase">Premium Case</strong><span data-i18n="shop.premiumCaseDesc">Open a premium case</span><small>♦ 250</small></div></button>
+<button class="premium-product" data-action="shop-outfit"><div class="premium-product-image"><img class="asset-direct-image shop-sprite-icon" src="assets/jacket.png?v=16.0" alt="" aria-hidden="true" draggable="false" /></div><div><strong data-i18n="shop.outfitSkin">Outfit / Skin</strong><span data-i18n="shop.outfitSkinDesc">Unlock new outfits</span><small>♦ 400</small></div></button>
+<button class="premium-product" data-action="shop-bundle"><div class="premium-product-image bundle-sprite-stack"><img class="asset-direct-image shop-sprite-icon bundle-case-sprite" src="assets/acc_legendary.png?v=16.0" alt="" aria-hidden="true" draggable="false" /><img class="asset-direct-image shop-sprite-icon bundle-item-sprite" src="assets/watch.png?v=16.0" alt="" aria-hidden="true" draggable="false" /></div><div><strong data-i18n="shop.hustleBundle">Hustle Bundle</strong><span data-i18n="shop.hustleBundleDesc">Exceptional value!</span><small>♦ 1,000</small></div></button>
 <div class="empire-pass"><div class="empire-crown">♛</div><div><strong data-i18n="shop.empirePass">Empire Pass</strong><span data-i18n="shop.empirePassDesc">Unlock your true potential</span></div><button data-action="buy-empire-pass" data-config-price="HUSTLE_PASS_MONTHLY" type="button">250 ★</button></div>
 </aside>
 </div>
@@ -491,7 +496,7 @@
 </div>
 <div class="reward-card-preview common" id="case-reward-card">
 <div class="reward-card-image card-art-shell">
-<div class="card-art-background" id="case-reward-card-art" style="background-image:url('assets/card_kiosk.png?v=15.9')"></div>
+<div class="card-art-background" id="case-reward-card-art" style="background-image:url('assets/card_kiosk.png?v=16.0')"></div>
 <div class="card-ui-frame" aria-hidden="true"></div>
 </div>
 <span id="case-reward-rarity">COMMON</span>
@@ -508,7 +513,7 @@
 <span class="section-eyebrow" data-i18n="accessoryCases.newItem">New Item</span>
 <div class="accessory-reward-item" id="accessory-reward-item">
 <div class="accessory-reward-image">
-<img class="asset-direct-image accessory-reward-sprite" id="accessory-reward-sprite" src="assets/hat.png?v=15.9" alt="" aria-hidden="true" draggable="false" /></div>
+<img class="asset-direct-image accessory-reward-sprite" id="accessory-reward-sprite" src="assets/hat.png?v=16.0" alt="" aria-hidden="true" draggable="false" /></div>
 <span class="accessory-reward-rarity" id="accessory-reward-rarity">RARE</span>
 <h2 id="accessory-reward-name">ITEM</h2>
 <small id="accessory-reward-slot">ACCESSORY</small>
@@ -728,7 +733,7 @@
     <p class="level-up-modal-subtitle">Nuovo livello raggiunto. Le ricompense sono già nel tuo account.</p>
 
     <div class="level-up-case-wrap">
-      <img id="level-up-case-image" src="assets/case_daily.png?v=15.9" alt="Street Case" decoding="async" draggable="false"/>
+      <img id="level-up-case-image" src="assets/case_daily.png?v=16.0" alt="Street Case" decoding="async" draggable="false"/>
     </div>
     <strong id="level-up-case-name">Street Case</strong>
 
