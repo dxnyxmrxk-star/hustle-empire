@@ -52,7 +52,7 @@
      CSS/UI frame overlay rendered above it.
   ========================================================== */
 
-  const SPRITE_BUILD_VERSION = "17.9";
+  const SPRITE_BUILD_VERSION = "18.2";
 
   const REAL_GAME_ASSET_PATHS = Object.freeze([
     "assets/acc_epic.png",
@@ -1428,7 +1428,7 @@
 
   const CRITICAL_POPUP_TRANSLATIONS = Object.freeze({
     en: Object.freeze({
-      "offline.cappedAway": "Max accumulation: 3 hours",
+      "offline.cappedAway": "Maximum: 3 hours",
       "offline.claimAmount": "Claim ${amount}",
       "modal.dailyChest": "Daily Chest",
       "modal.dailyChestText": "Come back when the timer reaches zero to claim your Daily Chest.",
@@ -1436,7 +1436,7 @@
       "common.ok": "OK"
     }),
     ru: Object.freeze({
-      "offline.cappedAway": "Максимальное накопление: 3 часа",
+      "offline.cappedAway": "Максимум: 3 часа",
       "offline.claimAmount": "Забрать ${amount}",
       "modal.dailyChest": "Ежедневный сундук",
       "modal.dailyChestText": "Вернись, когда таймер дойдёт до нуля, чтобы забрать ежедневный сундук.",
@@ -1491,69 +1491,166 @@
   function getLocalizedValue(value, fallbackKey = "") {
     const lang = currentLanguage();
 
+    const resolveKnownKey = (candidate) => {
+      const key = String(candidate || "").trim();
+      if (!key) return "";
+
+      /*
+         Important: i18n.t() intentionally returns a safe phrase for a
+         missing key. We therefore check i18n.has() FIRST, otherwise an old
+         config key such as "business.cafe.name" could become
+         "Text unavailable" / "Текст недоступен" instead of using fallbackKey.
+      */
+      if (window.i18n?.has?.(key, lang)) {
+        return window.i18n.t(key);
+      }
+
+      return "";
+    };
+
     if (typeof value === "string") {
       const direct = value.trim();
 
-      // Old config builds sometimes stored translation keys as plain strings.
       if (direct) {
-        const translated = window.i18n?.t?.(direct);
-        if (translated && translated !== direct) return translated;
+        const translated = resolveKnownKey(direct);
+        if (translated) return translated;
 
-        if (!looksLikeTechnicalTranslationValue(direct)) return direct;
+        if (!looksLikeTechnicalTranslationValue(direct)) {
+          return direct;
+        }
       }
 
-      if (fallbackKey) {
-        const fallback = tr(fallbackKey);
-        if (fallback && fallback !== fallbackKey) return fallback;
+      if (fallbackKey && window.i18n?.has?.(fallbackKey, lang)) {
+        return tr(fallbackKey);
       }
 
-      if (looksLikeTechnicalTranslationValue(direct)) {
-        return fallbackKey
-          ? tr(fallbackKey)
-          : tr("common.textUnavailable");
-      }
-
-      return direct;
+      return looksLikeTechnicalTranslationValue(direct)
+        ? tr("common.textUnavailable")
+        : direct;
     }
 
-    const localized = value?.[lang] || value?.en || value?.ru || "";
+    const localized =
+      value?.[lang]
+      || value?.en
+      || value?.ru
+      || "";
 
-    if (typeof localized === "string") {
-      const translated = window.i18n?.t?.(localized);
-      if (translated && translated !== localized) return translated;
+    if (typeof localized === "string" && localized) {
+      const translated = resolveKnownKey(localized);
+      if (translated) return translated;
 
-      if (localized && !looksLikeTechnicalTranslationValue(localized)) {
+      if (!looksLikeTechnicalTranslationValue(localized)) {
+        /*
+           A localized object value is already language-specific, so a
+           normal sentence/name can be displayed directly.
+        */
         return localized;
       }
     }
 
-    if (fallbackKey) {
-      const fallback = tr(fallbackKey);
-      if (fallback && fallback !== fallbackKey) return fallback;
+    if (fallbackKey && window.i18n?.has?.(fallbackKey, lang)) {
+      return tr(fallbackKey);
     }
 
-    if (
-      typeof localized === "string"
-      && looksLikeTechnicalTranslationValue(localized)
-    ) {
-      return fallbackKey
-        ? tr(fallbackKey)
-        : tr("common.textUnavailable");
+    return localized && !looksLikeTechnicalTranslationValue(localized)
+      ? localized
+      : tr("common.textUnavailable");
+  }
+
+  function getBusinessDisplayName(
+    businessId,
+    cfg = BUSINESS_CONFIGS[businessId]
+  ) {
+    const key = `businesses.${businessId}.name`;
+
+    if (window.i18n?.has?.(key, currentLanguage())) {
+      return tr(key);
     }
 
-    return localized || (fallbackKey ? tr(fallbackKey) : "");
+    return getLocalizedValue(cfg?.name, key);
+  }
+
+  function getDistrictDisplayName(
+    districtId,
+    cfg = DISTRICT_CONFIGS[districtId]
+  ) {
+    const key = `districts.${districtId}.name`;
+
+    if (window.i18n?.has?.(key, currentLanguage())) {
+      return tr(key);
+    }
+
+    return getLocalizedValue(cfg?.name, key);
+  }
+
+  function getDistrictTagline(
+    districtId,
+    cfg = DISTRICT_CONFIGS[districtId]
+  ) {
+    const key = `districts.${districtId}.tagline`;
+
+    if (window.i18n?.has?.(key, currentLanguage())) {
+      return tr(key);
+    }
+
+    return getLocalizedValue(cfg?.tagline, key);
+  }
+
+  function getDistrictRangeLabel(districtId, cfg = DISTRICT_CONFIGS[districtId]) {
+    const key = `districts.${districtId}.range`;
+
+    if (window.i18n?.has?.(key, currentLanguage())) {
+      return tr(key);
+    }
+
+    return getLocalizedValue(cfg?.range, key);
   }
 
   function getTimedCaseDisplayName(caseId, cfg) {
-    return getLocalizedValue(cfg?.name, `caseNames.${caseId}`);
+    const canonicalKey = `caseNames.${caseId}`;
+    const legacyKey = `cases.${caseId}`;
+
+    if (window.i18n?.has?.(canonicalKey, currentLanguage())) {
+      return tr(canonicalKey);
+    }
+
+    if (window.i18n?.has?.(legacyKey, currentLanguage())) {
+      return tr(legacyKey);
+    }
+
+    return getLocalizedValue(cfg?.name, canonicalKey);
   }
 
   function getAccessoryCaseDisplayName(caseId, cfg) {
-    return getLocalizedValue(cfg?.name, `accessoryCaseNames.${caseId}`);
+    const canonicalKey = `accessoryCaseNames.${caseId}`;
+    const legacyKey = `accessoryCases.${caseId}`;
+
+    if (window.i18n?.has?.(canonicalKey, currentLanguage())) {
+      return tr(canonicalKey);
+    }
+
+    if (window.i18n?.has?.(legacyKey, currentLanguage())) {
+      return tr(legacyKey);
+    }
+
+    return getLocalizedValue(cfg?.name, canonicalKey);
   }
 
   function getCardDisplayName(cardId, cfg = CARD_CONFIGS[cardId]) {
     return getLocalizedValue(cfg?.name, `cards.${cardId}.name`);
+  }
+
+  function getExclusiveCardDescription(
+    cardId,
+    cfg = EXCLUSIVE_CARD_CONFIGS[cardId]
+  ) {
+    const key = `cards.${cardId}.description`;
+
+    if (window.i18n?.has?.(key, currentLanguage())) {
+      return tr(key);
+    }
+
+    return getLocalizedValue(cfg?.description, key);
   }
 
   function getWardrobeCatalogDisplayName(
@@ -1570,8 +1667,16 @@
     EXCLUSIVE_CARD_IDS.forEach((id) => keys.add(`cards.${id}.name`));
     TIMED_CASE_IDS.forEach((id) => keys.add(`caseNames.${id}`));
     ACCESSORY_CASE_IDS.forEach((id) => keys.add(`accessoryCaseNames.${id}`));
+    ACCESSORY_CASE_IDS.forEach((id) => keys.add(`accessoryCases.${id}`));
+    TIMED_CASE_IDS.forEach((id) => keys.add(`cases.${id}`));
     WARDROBE_CATALOG_IDS.forEach((id) => keys.add(`wardrobeItems.${id}.name`));
     EQUIPMENT_IDS.forEach((id) => keys.add(`wardrobeSlots.${id}`));
+    BUSINESS_IDS.forEach((id) => keys.add(`businesses.${id}.name`));
+    DISTRICT_IDS.forEach((id) => {
+      keys.add(`districts.${id}.name`);
+      keys.add(`districts.${id}.tagline`);
+      keys.add(`districts.${id}.range`);
+    });
 
     Object.values(WARDROBE_CATALOG_CONFIGS).forEach((cfg) => {
       if (cfg?.slot) keys.add(`wardrobeSlots.${cfg.slot}`);
@@ -1594,6 +1699,70 @@
     ["street", "boss", "tycoon"].forEach((key) => {
       keys.add(`levelUp.case.${key}`);
     });
+
+    [
+      "offline.hicker",
+      "offline.kicker",
+      "offline.welcome",
+      "offline.accumulated",
+      "offline.maxCap",
+      "offline.claimAmount",
+      "home.missions",
+      "home.nextLevel",
+      "home.quickJobs",
+      "home.quickActivity",
+      "missions.taps",
+      "missions.jobs",
+      "missions.earn",
+      "missions.upgrades",
+      "missions.bonuses",
+      "missions.events",
+      "hustles.jobFallback",
+      "hustles.completed",
+      "hustles.notEnoughEnergy",
+      "hustles.run",
+      "home.activeBusinesses",
+      "home.totalIncome",
+      "home.noActiveBusinesses",
+      "business.available",
+      "business.owned",
+      "business.locked",
+      "business.active",
+      "business.incomePerSecond",
+      "business.incomePerHour",
+      "business.unlockAtLevel",
+      "city.districtActivity",
+      "city.unlocked",
+      "cases.title",
+      "cases.helper",
+      "cases.open",
+      "cases.ready",
+      "cases.waiting",
+      "cases.caseUnlockNow",
+      "cases.fragments",
+      "cases.durationHours",
+      "accessoryCases",
+      "accessory.uses.true",
+      "accessory.uses.false",
+      "accessoryCases.title",
+      "accessoryCases.openFree",
+      "accessoryCases.ready",
+      "accessoryCases.waiting",
+      "accessoryCases.collectionComplete",
+      "collection.book",
+      "collection.levelUp",
+      "collection.unlock",
+      "collection.summaryCount",
+      "collection.fragmentsProgress",
+      "collection.bonus",
+      "cards.bonus.businessIncomePercent",
+      "cards.bonus.tapPowerFlat",
+      "cards.bonus.criticalRatePercent",
+      "cards.bonus.criticalDamagePercent",
+      "cards.bonus.energyMaxFlat",
+      "cards.bonus.energyRegenSpeedPercent"
+    ].forEach((key) => keys.add(key));
+
 
     /*
        Detect technical translation keys inside older config.js revisions.
@@ -3177,37 +3346,18 @@
   }
 
   function missionTitle(mission) {
-    const lang = currentLanguage();
-    const target = mission.target;
+    const key = `missions.${mission.type}`;
 
-    const titles = {
-      taps: {
-        en: `Make ${formatNumber(target)} taps`,
-        ru: `Сделать ${formatNumber(target)} тапов`
-      },
-      jobs: {
-        en: `Complete ${formatNumber(target)} ${target === 1 ? "job" : "jobs"}`,
-        ru: `Выполнить подработки: ${formatNumber(target)}`
-      },
-      earn: {
-        en: `Earn ${formatCompactMoney(target)} total`,
-        ru: `Заработать ${formatCompactMoney(target)}`
-      },
-      upgrades: {
-        en: `Buy ${formatNumber(target)} ${target === 1 ? "upgrade" : "upgrades"}`,
-        ru: `Улучшить бизнес: ${formatNumber(target)}`
-      },
-      bonuses: {
-        en: `Collect ${formatNumber(target)} ${target === 1 ? "bonus" : "bonuses"}`,
-        ru: `Собрать бонусов: ${formatNumber(target)}`
-      },
-      events: {
-        en: `Join ${formatNumber(target)} ${target === 1 ? "event" : "events"}`,
-        ru: `Участвовать в событиях: ${formatNumber(target)}`
-      }
-    };
+    const target =
+      mission.type === "earn"
+        ? formatCompactMoney(mission.target)
+        : formatNumber(mission.target);
 
-    return titles[mission.type]?.[lang] || titles[mission.type]?.en || mission.id;
+    const translated = tr(key, { target });
+
+    return translated === key
+      ? tr("home.missions")
+      : translated;
   }
 
   function missionProgressText(mission, progress) {
@@ -3509,6 +3659,46 @@
     return true;
   }
 
+  function getHustleDisplayName(hustleId, cfg) {
+    const value = cfg?.name;
+    const lang = currentLanguage();
+
+    if (value && typeof value === "object") {
+      const localized = getLocalizedValue(value);
+      if (localized) return localized;
+    }
+
+    if (typeof value === "string") {
+      const direct = value.trim();
+
+      if (direct) {
+        const translated = window.i18n?.t?.(direct);
+
+        if (translated && translated !== direct) {
+          return translated;
+        }
+
+        /*
+           A plain English config label is safe in EN, but under RU it would
+           create a mixed-language Home. Use a clean generic RU fallback
+           until that specific hustle gets its own dictionary key.
+        */
+        if (lang === "en" && !looksLikeTechnicalTranslationValue(direct)) {
+          return direct;
+        }
+      }
+    }
+
+    const specificKey = `hustles.${hustleId}.name`;
+    const specific = window.i18n?.t?.(specificKey);
+
+    if (specific && specific !== specificKey && !/Text unavailable|Текст недоступен/.test(specific)) {
+      return specific;
+    }
+
+    return tr("hustles.jobFallback");
+  }
+
   function renderQuickJobs() {
     const container = document.getElementById("quick-jobs-list");
     if (!container) return;
@@ -3526,7 +3716,7 @@
         <article class="quick-job-card ${unlocked ? "" : "locked"}">
           <div class="quick-job-icon">${cfg.icon}</div>
           <div class="quick-job-content">
-            <strong>${getLocalizedValue(cfg.name)}</strong>
+            <strong>${getHustleDisplayName(hustleId, cfg)}</strong>
             <div class="quick-job-rewards">
               <span class="quick-job-energy">⚡ ${cfg.energyCost}</span>
               <span class="quick-job-money">+$${formatNumber(cfg.rewardMoney)}</span>
@@ -3980,7 +4170,13 @@
     if (!container) return;
     const owned = BUSINESS_IDS.filter((id) => state.businesses[id]?.owned);
 
-    container.innerHTML = owned.map((businessId) => {
+    if (!owned.length) {
+      container.innerHTML = `
+        <div class="home-business-empty">
+          ${tr("home.noActiveBusinesses")}
+        </div>`;
+    } else {
+      container.innerHTML = owned.map((businessId) => {
       const cfg = BUSINESS_CONFIGS[businessId];
       const bs = state.businesses[businessId];
       const cost = getBusinessUpgradeCost(businessId);
@@ -3989,14 +4185,15 @@
         <article class="business-live-card" data-business-card="${businessId}">
           <div class="business-live-image image-fallback">${spriteMarkup("sprite-business", spriteClass)}</div>
           <div class="business-live-content">
-            <div class="business-live-top"><strong>${getLocalizedValue(cfg.name)}</strong><span class="business-level-badge">${tr("common.levelShort")} ${bs.level}</span></div>
+            <div class="business-live-top"><strong>${getBusinessDisplayName(businessId, cfg)}</strong><span class="business-level-badge">${tr("common.levelShort")} ${bs.level}</span></div>
             <span class="business-income-second">${formatIncomePerSecond(getBusinessRevenuePerSecond(businessId))}</span>
-            <span class="business-income-label">${tr("home.passiveIncome")}</span>
+            <span class="business-income-label">${tr("business.incomePerSecond")}</span>
             <div class="business-income-progress"><span></span></div>
             <button class="business-upgrade-button" type="button" data-business-upgrade="${businessId}" ${state.money >= cost ? "" : "disabled"}>${tr("common.upgrade")} · ${formatCompactMoney(cost)}</button>
           </div>
         </article>`;
-    }).join("");
+      }).join("");
+    }
 
     const total = document.getElementById("home-total-income");
     if (total) total.textContent = formatIncomePerSecond(getTotalPassiveIncomePerSecond());
@@ -4018,9 +4215,9 @@
       const range = node.querySelector("span");
       const small = node.querySelector("small");
       const icon = node.querySelector("i");
-      if (strong) strong.textContent = getLocalizedValue(cfg.name);
-      if (range) range.textContent = cfg.range;
-      if (small) small.textContent = getLocalizedValue(cfg.tagline);
+      if (strong) strong.textContent = getDistrictDisplayName(id, cfg);
+      if (range) range.textContent = getDistrictRangeLabel(id, cfg);
+      if (small) small.textContent = getDistrictTagline(id, cfg);
       if (icon) icon.textContent = unlocked ? "✓" : "🔒";
     });
 
@@ -4032,7 +4229,7 @@
     const container = document.getElementById("district-business-list");
     const districtUnlocked = isDistrictUnlocked(selectedDistrictId);
 
-    if (title) title.textContent = getLocalizedValue(district.name);
+    if (title) title.textContent = getDistrictDisplayName(selectedDistrictId, district);
     if (status) {
       status.textContent = districtUnlocked
         ? tr("city.unlocked")
@@ -4047,8 +4244,8 @@
       const available = isBusinessLevelUnlocked(businessId);
 
       let stateClass = "locked";
-      let statusText = tr("common.requiresLevel", { level: cfg.unlockLevel });
-      let button = `<button class="city-business-button" type="button" disabled>🔒 ${tr("common.levelShort")} ${cfg.unlockLevel}</button>`;
+      let statusText = tr("business.unlockAtLevel", { level: cfg.unlockLevel });
+      let button = `<button class="city-business-button" type="button" disabled>🔒 ${tr("business.unlockAtLevel", { level: cfg.unlockLevel })}</button>`;
 
       if (bs.owned) {
         stateClass = "owned";
@@ -4070,9 +4267,10 @@
         <article class="district-business-card ${stateClass}">
           <div class="district-business-image">${spriteMarkup("sprite-business", spriteClass)}</div>
           <div class="district-business-content">
-            <strong>${getLocalizedValue(cfg.name)}</strong>
+            <strong>${getBusinessDisplayName(businessId, cfg)}</strong>
             <span class="business-status ${stateClass}">${statusText}</span>
             <span class="district-business-income">${formatIncomePerSecond(previewIncome)}</span>
+            <small class="district-business-income-label">${tr("business.incomePerSecond")}</small>
             ${button}
           </div>
         </article>`;
@@ -4173,14 +4371,45 @@
     const level = cs?.unlocked ? Math.max(1, cs.level) : 1;
     const e = cfg.effect || {};
 
+    const percentValue =
+      (Number(e.percentPerLevel) || 0) * level;
+
+    const flatValue =
+      (Number(e.valuePerLevel) || 0) * level;
+
     switch (e.type) {
-      case "businessIncomePercent": return `+${(e.percentPerLevel || 0) * level}% ${tr("stats.income")}`;
-      case "tapPowerFlat": return `+${(e.valuePerLevel || 0) * level} ${tr("stats.tapPower")}`;
-      case "criticalRatePercent": return `+${(e.percentPerLevel || 0) * level}% ${tr("stats.criticalRate")}`;
-      case "criticalDamagePercent": return `+${(e.percentPerLevel || 0) * level}% ${tr("stats.criticalDamage")}`;
-      case "energyMaxFlat": return `+${(e.valuePerLevel || 0) * level} ${tr("stats.maxEnergy")}`;
-      case "energyRegenSpeedPercent": return `+${(e.percentPerLevel || 0) * level}% ${tr("stats.energyRegen")}`;
-      default: return "";
+      case "businessIncomePercent":
+        return tr("cards.bonus.businessIncomePercent", {
+          value: percentValue
+        });
+
+      case "tapPowerFlat":
+        return tr("cards.bonus.tapPowerFlat", {
+          value: flatValue
+        });
+
+      case "criticalRatePercent":
+        return tr("cards.bonus.criticalRatePercent", {
+          value: percentValue
+        });
+
+      case "criticalDamagePercent":
+        return tr("cards.bonus.criticalDamagePercent", {
+          value: percentValue
+        });
+
+      case "energyMaxFlat":
+        return tr("cards.bonus.energyMaxFlat", {
+          value: flatValue
+        });
+
+      case "energyRegenSpeedPercent":
+        return tr("cards.bonus.energyRegenSpeedPercent", {
+          value: percentValue
+        });
+
+      default:
+        return tr("collection.bonus");
     }
   }
 
@@ -4221,7 +4450,7 @@
           <small class="compact-card-bonus">${getCardBonusLabel(cardId)}</small>
           <div class="compact-fragment-row">
             <div class="compact-fragment-bar"><span style="width:${progress}%"></span></div>
-            <span class="compact-fragment-count">${maxed ? tr("common.max") : `${card.fragments}/${required}`}</span>
+            <span class="compact-fragment-count">${maxed ? tr("common.max") : tr("collection.fragmentsProgress", { current: card.fragments, required })}</span>
           </div>
           <button class="compact-card-button" type="button" data-card-upgrade="${cardId}" ${canUpgrade && !maxed ? "" : "disabled"}>${actionLabel}</button>
         </article>`;
@@ -4235,11 +4464,11 @@
     const ring = document.querySelector(".collection-ring strong");
     const sub = document.querySelector(".collection-ring small");
     if (ring) ring.textContent = `${summary.completionPercent}%`;
-    if (sub) sub.textContent = `${summary.unlocked} / ${summary.total}`;
+    if (sub) sub.textContent = tr("collection.summaryCount", { unlocked: summary.unlocked, total: summary.total });
 
     const compactCount = document.getElementById("collection-summary-count");
     const compactPercent = document.getElementById("collection-summary-percent");
-    if (compactCount) compactCount.textContent = `${summary.unlocked} / ${summary.total}`;
+    if (compactCount) compactCount.textContent = tr("collection.summaryCount", { unlocked: summary.unlocked, total: summary.total });
     if (compactPercent) compactPercent.textContent = `${summary.completionPercent}%`;
 
     const order = ["common", "rare", "epic", "legendary", "mythic"];
@@ -4260,7 +4489,7 @@
         <article class="exclusive-card">
           <div class="exclusive-card-image card-art-shell">${cardArtMarkup(artPath)}</div>
           <strong>${getCardDisplayName(cardId, card)}</strong>
-          <small>${getLocalizedValue(card.description)}</small>
+          <small>${getExclusiveCardDescription(cardId, card)}</small>
           <button type="button" data-exclusive-card-buy="${cardId}">${tr("collection.specialPurchase")}</button>
         </article>`;
     }).join("");
@@ -4401,7 +4630,7 @@
     const card = reward.cardReward;
     lastCaseRewardOverlayPayload = reward;
 
-    overlay.querySelector("#case-reward-title").textContent = getLocalizedValue(cfg.name);
+    overlay.querySelector("#case-reward-title").textContent = getTimedCaseDisplayName(reward.caseId, cfg);
     overlay.querySelector("#case-reward-money").textContent = `+${formatCompactMoney(reward.money)}`;
     overlay.querySelector("#case-reward-gems").textContent = `+${reward.gems}`;
 
@@ -4563,7 +4792,7 @@
       <article class="free-accessory-card">
         <div class="free-accessory-icon">${spriteMarkup("sprite-case", caseClass)}</div>
         <div class="free-accessory-content">
-          <strong>${getLocalizedValue(cfg.name)}</strong>
+          <strong>${getAccessoryCaseDisplayName("free_accessory", cfg)}</strong>
           <span class="free-accessory-timer">${ready ? tr("accessoryCases.ready") : formatCaseCountdown(remaining)}</span>
           <button class="free-accessory-button" type="button" data-free-accessory-open ${ready ? "" : "disabled"}>
             ${ready ? tr("accessoryCases.openFree") : tr("accessoryCases.waiting")}
@@ -4648,7 +4877,7 @@
         case "premium_rare": return tr("accessorySources.rare");
         case "premium_epic": return tr("accessorySources.epic");
         case "premium_legendary": return tr("accessorySources.legendary");
-        default: return sourceId;
+        default: return tr("accessorySources.unknown");
       }
     }).join(" · ");
   }
@@ -7657,3 +7886,9 @@
 /* V17.8: Cases/Cards/Wardrobe raw translation-key compatibility + centralized names. */
 
 /* V17.9: Hardened centralized EN/RU translation engine + runtime coverage audit. */
+
+/* V18.0: Step 1 — Home/Missions/Quick Jobs + Offline popup EN/RU localization fix. */
+
+/* V18.1: Step 2 — City Map / Business names, unlock labels and Active Businesses EN/RU fix. */
+
+/* V18.2: Step 3 — Cases + Collection/Cards EN/RU localization fix. */
