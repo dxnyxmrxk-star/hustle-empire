@@ -52,7 +52,7 @@
      CSS/UI frame overlay rendered above it.
   ========================================================== */
 
-  const SPRITE_BUILD_VERSION = "17.3";
+  const SPRITE_BUILD_VERSION = "17.6";
 
   const REAL_GAME_ASSET_PATHS = Object.freeze([
     "assets/acc_epic.png",
@@ -1404,7 +1404,7 @@
     Object.freeze({ day: 4, money: 5000, gems: 0, label: "$5K" }),
     Object.freeze({ day: 5, money: 0, gems: 25, label: "♦ 25" }),
     Object.freeze({ day: 6, money: 10000, gems: 50, label: "$10K + ♦50" }),
-    Object.freeze({ day: 7, money: 0, gems: 500, caseType: "boss", label: "♦ 500 + Rare Case" })
+    Object.freeze({ day: 7, money: 0, gems: 500, caseType: "boss", label: Object.freeze({ en: "♦ 500 + Rare Case", ru: "♦ 500 + Редкий кейс" }) })
   ]);
 
   const MORSE_DIGITS = Object.freeze({
@@ -1442,7 +1442,8 @@
   }
 
   function formatNumber(value) {
-    return Math.floor(Number(value) || 0).toLocaleString("en-US");
+    const locale = currentLanguage() === "ru" ? "ru-RU" : "en-US";
+    return Math.floor(Number(value) || 0).toLocaleString(locale);
   }
 
   function formatCompactCount(value) {
@@ -2625,8 +2626,8 @@
     comboProgress.textContent = `${completedCount}/3`;
 
     comboReward.textContent = combo.rewardGranted
-      ? `✓ Premio riscattato: ${combo.rewardText}`
-      : `Maxi-premio: ${combo.rewardText}`;
+      ? tr("daily.comboRewardClaimed", { reward: combo.rewardText })
+      : tr("daily.comboMaxReward", { reward: combo.rewardText });
   }
 
   function renderDailyMorseUI(status = "") {
@@ -2645,26 +2646,26 @@
       input.value = morse.digit;
       input.disabled = true;
       button.disabled = true;
-      button.textContent = "Risolto ✓";
+      button.textContent = tr("daily.solved");
       statusNode.textContent =
-        `Premio: ${morse.rewardText}`;
+        tr("daily.reward", { reward: morse.rewardText });
       statusNode.className = "daily-retention-status success";
       return;
     }
 
     input.disabled = false;
     button.disabled = false;
-    button.textContent = "Decifra";
+    button.textContent = tr("daily.decipherCode");
 
     if (status === "morseWrong") {
-      statusNode.textContent = "Codice errato. Riprova.";
+      statusNode.textContent = tr("daily.wrong");
       statusNode.className = "daily-retention-status error";
     } else if (status === "morseSuccess") {
-      statusNode.textContent = "Corretto! Premio accreditato.";
+      statusNode.textContent = tr("daily.success");
       statusNode.className = "daily-retention-status success";
     } else {
       statusNode.textContent =
-        "Converti il Morse nella cifra corretta (0-9).";
+        tr("daily.cipherDefault");
       statusNode.className = "daily-retention-status";
     }
   }
@@ -2688,29 +2689,29 @@
 
       return `
         <div class="daily-checkin-day ${isCurrent ? "current" : ""} ${isClaimed ? "claimed" : ""}">
-          <small>DAY ${reward.day}</small>
-          <strong>${reward.label}</strong>
+          <small>${tr("daily.day", { day: reward.day })}</small>
+          <strong>${getLocalizedValue(reward.label)}</strong>
           <span>${isClaimed ? "✓" : ""}</span>
         </div>
       `;
     }).join("");
 
-    streakNode.textContent = `${checkIn.streakDays} giorni`;
+    streakNode.textContent = tr("daily.days", { count: checkIn.streakDays });
 
     button.disabled = claimedToday;
     button.textContent = claimedToday
-      ? "Riscattato oggi ✓"
-      : `Riscatta Giorno ${rewardDay}`;
+      ? tr("daily.claimedToday")
+      : tr("daily.claimDay", { day: rewardDay });
 
     if (status === "checkInSuccess") {
-      statusNode.textContent = "Check-in riscattato!";
+      statusNode.textContent = tr("daily.checkinSuccess");
       statusNode.className = "daily-retention-status success";
     } else if (status === "checkInAlreadyClaimed") {
-      statusNode.textContent = "Hai già riscattato il premio di oggi.";
+      statusNode.textContent = tr("daily.alreadyClaimed");
       statusNode.className = "daily-retention-status";
     } else {
       statusNode.textContent =
-        "Salta un giorno e la streak riparte da 1.";
+        tr("daily.streakResetHint");
       statusNode.className = "daily-retention-status";
     }
   }
@@ -2738,8 +2739,8 @@
     if (status) {
       status.textContent =
         completed >= 3
-          ? "Completate ✓"
-          : `${completed}/3 completate`;
+          ? tr("home.dailyChallengesComplete")
+          : tr("home.dailyChallengesProgress", { completed });
     }
     if (timer) timer.textContent = timerValue;
   }
@@ -3514,21 +3515,21 @@
     const safeSeconds = Math.max(0, Math.floor(Number(elapsedSeconds) || 0));
 
     if (wasCapped || safeSeconds > OFFLINE_EARNINGS_CAP_SECONDS) {
-      return "Sei stato assente per più di 3 ore (Limite raggiunto!)";
+      return tr("offline.cappedAway");
     }
 
     const hours = Math.floor(safeSeconds / 3600);
     const minutes = Math.floor((safeSeconds % 3600) / 60);
 
     if (hours > 0) {
-      return `Sei stato assente per: ${hours} ${hours === 1 ? "ora" : "ore"} e ${minutes} ${minutes === 1 ? "minuto" : "minuti"}`;
+      return tr("offline.awayHoursMinutes", { hours, minutes });
     }
 
     if (minutes > 0) {
-      return `Sei stato assente per: ${minutes} ${minutes === 1 ? "minuto" : "minuti"}`;
+      return tr("offline.awayMinutes", { minutes });
     }
 
-    return "Sei stato assente per meno di un minuto";
+    return tr("offline.awayLessMinute");
   }
 
   /*
@@ -3635,7 +3636,7 @@
           ? amount.toFixed(2).replace(/\.00$/, "").replace(/(\.\d)0$/, "$1")
           : formatNumber(amount);
 
-      claimButton.textContent = `Riscatta ${claimAmountLabel}$`;
+      claimButton.textContent = tr("offline.claimAmount", { amount: claimAmountLabel });
     }
 
     modal.hidden = false;
@@ -4178,7 +4179,7 @@
         <article class="real-case-card ${ready ? "ready" : ""} ${caseId === "case_24h" ? "case-24h" : ""}">
           <div class="real-case-art">${spriteMarkup("sprite-case", caseClass)}</div>
           <strong class="real-case-name">${getLocalizedValue(cfg.name)}</strong>
-          <span class="real-case-duration">${hours}${currentLanguage() === "ru" ? "ч" : "h"}</span>
+          <span class="real-case-duration">${tr("cases.durationHours", { hours })}</span>
           <div class="case-live-timer">${ready ? tr("cases.ready") : formatCaseCountdown(remaining)}</div>
           <div class="real-case-reward-preview"><span>💵 ${tr("common.levelShort")} × ${cfg.moneyMultiplier}</span><span>♦ ${cfg.gemReward}</span><span>🃏 ${cfg.fragments.min}-${cfg.fragments.max}</span></div>
           <div class="real-case-actions">
@@ -4189,11 +4190,14 @@
     }).join("");
   }
 
+  let lastCaseRewardOverlayPayload = null;
+
   function showCaseRewardOverlay(reward) {
     const overlay = document.getElementById("case-reward-overlay");
     if (!overlay || !reward.cardReward) return;
     const cfg = TIMED_CASE_CONFIGS[reward.caseId];
     const card = reward.cardReward;
+    lastCaseRewardOverlayPayload = reward;
 
     overlay.querySelector("#case-reward-title").textContent = getLocalizedValue(cfg.name);
     overlay.querySelector("#case-reward-money").textContent = `+${formatCompactMoney(reward.money)}`;
@@ -4401,10 +4405,13 @@
     renderPremiumAccessoryCases();
   }
 
+  let lastAccessoryRewardItemId = null;
+
   function showAccessoryReward(itemId) {
     const overlay = document.getElementById("accessory-reward-overlay");
     const cfg = WARDROBE_CATALOG_CONFIGS[itemId];
     if (!overlay || !cfg) return;
+    lastAccessoryRewardItemId = itemId;
 
     const item = overlay.querySelector("#accessory-reward-item");
     if (item) item.className = `accessory-reward-item ${cfg.rarity}`;
@@ -4738,15 +4745,7 @@
   function getEquipmentLocalizedName(equipmentId) {
     const es = state.equipment[equipmentId];
     if (!es?.unlocked) {
-      const slotNames = {
-        cap: { en: "Headwear", ru: "Головной убор" },
-        glasses: { en: "Glasses", ru: "Очки" },
-        jacket: { en: "Jacket", ru: "Куртка" },
-        pants: { en: "Pants", ru: "Брюки" },
-        shoes: { en: "Shoes", ru: "Обувь" },
-        accessory: { en: "Accessory", ru: "Аксессуар" }
-      };
-      return getLocalizedValue(slotNames[equipmentId]);
+      return tr(`wardrobeSlots.${equipmentId}`);
     }
     return getLocalizedValue(getEquipmentStage(equipmentId, es.level)?.name) || equipmentId;
   }
@@ -5019,7 +5018,10 @@
 
     indicator.hidden = false;
     indicator.setAttribute("aria-hidden", "false");
-    label.textContent = `⚡ Boost ${formatBoostMultiplier(multiplier)}: ${formatBoostTimer(remaining)}`;
+    label.textContent = tr("hud.boost", {
+      multiplier: formatBoostMultiplier(multiplier),
+      time: formatBoostTimer(remaining)
+    });
   }
 
   function showLevelUpCelebration(reward) {
@@ -5035,20 +5037,27 @@
     const boost = document.getElementById("level-up-boost-badge");
     const inventory = document.getElementById("level-up-inventory-count");
 
-    if (title) title.textContent = `LEVEL UP! LEVEL ${reward.level}`;
-    if (caseName) caseName.textContent = reward.caseLabel;
-    if (gems) gems.textContent = `♦ +${formatNumber(reward.gems)} Gemme`;
+    if (title) title.textContent = tr("levelUp.title", { level: reward.level });
+    const localizedCaseName = tr(`levelUp.case.${reward.caseKey}`);
+    if (caseName) caseName.textContent = localizedCaseName;
+    if (gems) gems.textContent = tr("levelUp.gems", { amount: formatNumber(reward.gems) });
     if (boost) {
       boost.textContent =
-        `⚡ ${formatBoostMultiplier(reward.boostMultiplier)} guadagni · ${formatBoostTimer(reward.boostDurationSeconds * 1000)}`;
+        tr("levelUp.earningsBoost", {
+          multiplier: formatBoostMultiplier(reward.boostMultiplier),
+          time: formatBoostTimer(reward.boostDurationSeconds * 1000)
+        });
     }
     if (inventory) {
-      inventory.textContent = `Inventario: ${reward.caseLabel} ×${formatNumber(reward.caseInventoryCount)}`;
+      inventory.textContent = tr("levelUp.inventory", {
+        caseName: localizedCaseName,
+        count: formatNumber(reward.caseInventoryCount)
+      });
     }
 
     if (image) {
       image.src = resolveAssetUrl(reward.caseAsset);
-      image.alt = reward.caseLabel;
+      image.alt = localizedCaseName;
     }
 
     modal.hidden = false;
@@ -5333,15 +5342,15 @@
   function getLeaderboardRewardTier(rank) {
     const safeRank = Math.max(1, Math.floor(Number(rank) || 999999));
     if (safeRank === 1) {
-      return { key: "top1", label: "#1 · Premio massimo" };
+      return { key: "top1", label: tr("leaderboard.rewardMax") };
     }
     if (safeRank <= 3) {
-      return { key: "top3", label: `Top 3 · #${safeRank}` };
+      return { key: "top3", label: tr("leaderboard.rewardTop3", { rank: safeRank }) };
     }
     if (safeRank <= 10) {
-      return { key: "top10", label: `Top 10 · #${safeRank}` };
+      return { key: "top10", label: tr("leaderboard.rewardTop10", { rank: safeRank }) };
     }
-    return { key: "none", label: `#${safeRank} · Fuori Top 10` };
+    return { key: "none", label: tr("leaderboard.rewardOutside", { rank: safeRank }) };
   }
 
   function getLeaderboardGapToNextPlayer(snapshot) {
@@ -5351,7 +5360,7 @@
       return {
         targetRank: 1,
         gap: 0,
-        label: "Sei già al #1: difendi il primo posto."
+        label: tr("leaderboard.defendFirst")
       };
     }
 
@@ -5368,8 +5377,14 @@
       targetRank: next.rank,
       gap,
       label: snapshot.mode === "prestige"
-        ? `Ti mancano ${formatCompactCount(Math.ceil(gap))} prestigio per il #${next.rank}.`
-        : `Ti mancano ${formatIncomePerSecond(gap)} per il #${next.rank}.`
+        ? tr("leaderboard.gapPrestige", {
+            gap: formatCompactCount(Math.ceil(gap)),
+            rank: next.rank
+          })
+        : tr("leaderboard.gapIncome", {
+            gap: formatIncomePerSecond(gap),
+            rank: next.rank
+          })
     };
   }
 
@@ -5418,8 +5433,8 @@
         ? formatLeaderboardClock(boost.endsAt - now)
         : formatLeaderboardClock(offerRemaining);
       offerTimer.title = boost.active
-        ? "Tempo boost rimanente"
-        : "Tempo offerta rimanente";
+        ? tr("leaderboard.boostTimeRemaining")
+        : tr("leaderboard.offerTimeRemaining");
     }
 
     if (offerGap && gap) {
@@ -5430,29 +5445,34 @@
 
     if (boost.active) {
       offerButton.disabled = true;
-      offerButton.innerHTML = `${gemImg}<span>x${boost.multiplier}</span><strong>BOOST ATTIVO</strong>`;
+      offerButton.innerHTML = `${gemImg}<span>x${boost.multiplier}</span><strong>${tr("leaderboard.boostActiveButton")}</strong>`;
       if (offerStatus) {
-        offerStatus.textContent = `Income x${boost.multiplier} attivo · termina tra ${formatLeaderboardClock(boost.endsAt - now)}`;
+        offerStatus.textContent = tr("leaderboard.boostActiveStatus", {
+          multiplier: boost.multiplier,
+          time: formatLeaderboardClock(boost.endsAt - now)
+        });
       }
       return;
     }
 
     if (!available) {
       offerButton.disabled = true;
-      offerButton.innerHTML = `${gemImg}<span>—</span><strong>SCADUTA</strong>`;
+      offerButton.innerHTML = `${gemImg}<span>—</span><strong>${tr("leaderboard.expiredButton")}</strong>`;
       if (offerStatus) {
-        offerStatus.textContent = "Offerta terminata per questa stagione.";
+        offerStatus.textContent = tr("leaderboard.offerExpiredStatus");
       }
       return;
     }
 
     offerButton.disabled = false;
-    offerButton.innerHTML = `${gemImg}<span>${LEADERBOARD_FLASH_OFFER.gemCost}</span><strong>ATTIVA x2</strong>`;
+    offerButton.innerHTML = `${gemImg}<span>${LEADERBOARD_FLASH_OFFER.gemCost}</span><strong>${tr("leaderboard.activateButton")}</strong>`;
 
     if (offerStatus) {
       offerStatus.textContent = state.gems >= LEADERBOARD_FLASH_OFFER.gemCost
-        ? "x2 Income per 30 minuti · non aumenta i premi offline."
-        : `Servono ${LEADERBOARD_FLASH_OFFER.gemCost} Gemme · tocca per aprire lo Shop.`;
+        ? tr("leaderboard.offerAffordableStatus")
+        : tr("leaderboard.offerNeedGemsStatus", {
+            gems: LEADERBOARD_FLASH_OFFER.gemCost
+          });
     }
   }
 
@@ -5523,7 +5543,7 @@
     const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
     if (!user) {
       return {
-        username: "Tu",
+        username: tr("leaderboard.you"),
         avatarUrl: ASSET_PATHS.avatar
       };
     }
@@ -5534,7 +5554,7 @@
         : [user.first_name, user.last_name].filter(Boolean).join(" ").trim();
 
     return {
-      username: displayName || "Tu",
+      username: displayName || tr("leaderboard.you"),
       avatarUrl: user.photo_url || ASSET_PATHS.avatar
     };
   }
@@ -5677,7 +5697,7 @@
     const hours = Math.floor((totalMinutes % 1440) / 60);
     const minutes = totalMinutes % 60;
 
-    return `${String(days).padStart(2, "0")}g ${String(hours).padStart(2, "0")}h ${String(minutes).padStart(2, "0")}m`;
+    return `${String(days).padStart(2, "0")}${tr("time.dayShort")} ${String(hours).padStart(2, "0")}${tr("time.hourShort")} ${String(minutes).padStart(2, "0")}${tr("time.minuteShort")}`;
   }
 
   function updateLeaderboardSeasonCountdown() {
@@ -5762,7 +5782,7 @@
     }
 
     const level = document.createElement("small");
-    level.textContent = `LV ${Math.max(1, Math.floor(Number(player.level) || 1))}`;
+    level.textContent = `${tr("common.levelShort")} ${Math.max(1, Math.floor(Number(player.level) || 1))}`;
 
     copy.append(name, level);
     playerWrap.appendChild(copy);
@@ -5841,8 +5861,8 @@
       if (currentStatLabel) {
         currentStatLabel.textContent =
           snapshot.mode === "prestige"
-            ? "Prestigio"
-            : "Income / s";
+            ? tr("leaderboard.prestige")
+            : tr("leaderboard.incomePerSecond");
       }
 
       if (currentStatValue) {
@@ -5856,8 +5876,8 @@
     if (metricHeader) {
       metricHeader.textContent =
         snapshot.mode === "prestige"
-          ? "Prestigio"
-          : "Income / s";
+          ? tr("leaderboard.prestige")
+          : tr("leaderboard.incomePerSecond");
     }
 
     renderLeaderboardRewardsAndOffer(snapshot);
@@ -5965,7 +5985,7 @@
 
   function openSocialTaskInviteShare() {
     const inviteUrl = window.location.href.split("#")[0];
-    const shareText = "Gioca con me a Urban Tycoon!";
+    const shareText = tr("social.shareText");
     const shareUrl =
       `https://t.me/share/url?url=${encodeURIComponent(inviteUrl)}&text=${encodeURIComponent(shareText)}`;
 
@@ -5986,34 +6006,37 @@
     const cfg = SOCIAL_TASK_CONFIGS[taskId];
 
     if (taskState.status === SOCIAL_TASK_STATUS.CLAIMED) {
-      return "Ricompensa riscattata";
+      return tr("social.claimed");
     }
 
     if (taskState.status === SOCIAL_TASK_STATUS.CLAIMABLE) {
-      return "Ricompensa pronta da riscattare";
+      return tr("social.claimReady");
     }
 
     if (taskState.status === SOCIAL_TASK_STATUS.VERIFYING) {
-      return "Verifica in corso...";
+      return tr("social.verifying");
     }
 
     if (cfg.kind === "invite") {
-      return `${taskState.progress} / ${cfg.target} amici invitati`;
+      return tr("social.inviteProgress", {
+        progress: taskState.progress,
+        target: cfg.target
+      });
     }
 
     if (taskId === "telegram_channel") {
-      return "Urban Tycoon Official";
+      return tr("social.officialChannel");
     }
 
     if (taskId === "x_follow") {
-      return "Segui il profilo ufficiale";
+      return tr("social.followOfficialProfile");
     }
 
     if (taskId === "open_community") {
-      return "Apri la community ufficiale";
+      return tr("social.openOfficialCommunity");
     }
 
-    return "Completa il task";
+    return tr("social.completeTask");
   }
 
   function renderSocialTasksUI() {
@@ -6064,19 +6087,19 @@
 
         if (taskState.status === SOCIAL_TASK_STATUS.CLAIMED) {
           status.textContent = "✓";
-          status.setAttribute("aria-label", "Completato");
+          status.setAttribute("aria-label", tr("social.statusCompleted"));
           status.classList.add("social-task-status-complete");
         } else if (taskState.status === SOCIAL_TASK_STATUS.CLAIMABLE) {
-          status.textContent = "CLAIM";
-          status.setAttribute("aria-label", "Ricompensa disponibile");
+          status.textContent = tr("common.claim").toUpperCase();
+          status.setAttribute("aria-label", tr("social.statusRewardAvailable"));
           status.classList.add("social-task-status-claim");
         } else if (taskState.status === SOCIAL_TASK_STATUS.VERIFYING) {
           status.textContent = "…";
-          status.setAttribute("aria-label", "Verifica in corso");
+          status.setAttribute("aria-label", tr("social.statusVerifying"));
           status.classList.add("social-task-status-verifying");
         } else {
           status.textContent = "›";
-          status.setAttribute("aria-label", "Da completare");
+          status.setAttribute("aria-label", tr("social.statusPending"));
         }
       }
 
@@ -6112,7 +6135,10 @@
       const seconds = getSecondsUntilDailyReset();
       const hours = Math.floor(seconds / 3600);
       const minutes = Math.floor((seconds % 3600) / 60);
-      reset.textContent = `Reset ${hours}h ${String(minutes).padStart(2, "0")}m`;
+      reset.textContent = tr("social.resetCountdown", {
+        hours,
+        minutes: String(minutes).padStart(2, "0")
+      });
     }
 
     const launcherBadge = document.querySelector(".social-tasks-launcher-badge");
@@ -6120,7 +6146,11 @@
       launcherBadge.classList.toggle("has-claim", claimable > 0);
       launcherBadge.textContent = claimable > 0
         ? String(claimable)
-        : (claimed === SOCIAL_TASK_IDS.length ? "DONE" : "NEW");
+        : (
+            claimed === SOCIAL_TASK_IDS.length
+              ? tr("common.done").toUpperCase()
+              : tr("common.new").toUpperCase()
+          );
     }
 
     return {
@@ -6362,8 +6392,10 @@
       items.push({
         icon: "🎯",
         tone: "green",
-        title: "Sfide giornaliere",
-        message: `${dailyCompleted}/3 completate · completa le attività prima del reset.`
+        title: tr("notifications.dailyTitle"),
+        message: tr("notifications.dailyMessage", {
+          completed: dailyCompleted
+        })
       });
     }
 
@@ -6377,8 +6409,11 @@
       items.push({
         icon: "⬆",
         tone: "gold",
-        title: "Next Level pronto",
-        message: `Hai completato tutte le ${missionDefinitions.length} missioni del livello ${state.level}.`
+        title: tr("notifications.nextLevelTitle"),
+        message: tr("notifications.nextLevelMessage", {
+          count: missionDefinitions.length,
+          level: state.level
+        })
       });
     }
 
@@ -6388,8 +6423,11 @@
       items.push({
         icon: "⚡",
         tone: "blue",
-        title: "Boost guadagni attivo",
-        message: `${formatBoostMultiplier(boostMultiplier)} ancora per ${formatBoostTimer(boostRemaining)}.`
+        title: tr("notifications.boostTitle"),
+        message: tr("notifications.boostMessage", {
+          multiplier: formatBoostMultiplier(boostMultiplier),
+          time: formatBoostTimer(boostRemaining)
+        })
       });
     }
 
@@ -6410,7 +6448,9 @@
     if (button) {
       const modal = document.getElementById("notifications-modal");
       button.setAttribute("aria-expanded", modal && !modal.hidden ? "true" : "false");
-      button.title = count ? `${count} notifiche` : "Nessuna nuova notifica";
+      button.title = count
+        ? tr("notifications.count", { count })
+        : tr("notifications.none");
     }
   }
 
@@ -6423,8 +6463,8 @@
       list.innerHTML = `
         <div class="notification-empty-state">
           <span aria-hidden="true">✓</span>
-          <strong>Tutto sotto controllo</strong>
-          <small>Non ci sono notifiche urgenti in questo momento.</small>
+          <strong>${tr("notifications.allClear")}</strong>
+          <small>${tr("notifications.noUrgent")}</small>
         </div>`;
       return;
     }
@@ -6950,6 +6990,39 @@
     window.addEventListener("hustle:languageChanged", () => {
       renderAllDynamic();
       updateUI();
+
+      const offlineModal = document.getElementById("offline-earnings-modal");
+      if (offlineModal && !offlineModal.hidden) {
+        showOfflineEarningsModal(getPendingOfflineEarnings());
+      }
+
+      const notificationsModal = document.getElementById("notifications-modal");
+      if (notificationsModal && !notificationsModal.hidden) {
+        renderNotificationsModalContent();
+      }
+
+      renderSocialTasksUI();
+      renderDailyRetentionUI();
+      renderLeaderboard({ force: true });
+
+      const caseRewardOverlay = document.getElementById("case-reward-overlay");
+      if (
+        caseRewardOverlay
+        && !caseRewardOverlay.hidden
+        && lastCaseRewardOverlayPayload
+      ) {
+        showCaseRewardOverlay(lastCaseRewardOverlayPayload);
+      }
+
+      const accessoryRewardOverlay = document.getElementById("accessory-reward-overlay");
+      if (
+        accessoryRewardOverlay
+        && !accessoryRewardOverlay.hidden
+        && lastAccessoryRewardItemId
+      ) {
+        showAccessoryReward(lastAccessoryRewardItemId);
+      }
+
       scheduleSpriteRender(document);
     });
 
@@ -7182,3 +7255,9 @@
 /* V17.0: Leaderboard season rewards + limited Gem-based x2 income boost offer. */
 
 /* V17.3: Interactive Social Tasks modal, verification states, claims and live HUD rewards. */
+
+/* V17.4: Central EN/RU i18n via translations.js; no Italian UI copy in localized flows. */
+
+/* V17.5: Home/HUD/main navigation EN-RU language polish. */
+
+/* V17.6: Final EN/RU secondary-screen translation audit. */
