@@ -938,6 +938,27 @@
     window.addEventListener("orientationchange", () => setTimeout(() => scheduleSpriteRender(document), 80), { passive: true });
   }
 
+  window.HustleCharacterDiagnostics = () =>
+    Array.from(
+      document.querySelectorAll(
+        ".home-character-sprite, .wardrobe-character-sprite"
+      )
+    ).map((element) => ({
+      tag: element.tagName,
+      className: element.className,
+      src: element instanceof HTMLImageElement ? element.currentSrc || element.src : "",
+      expectedAsset: element.dataset.characterAsset || "",
+      loaded: element instanceof HTMLImageElement
+        ? Boolean(element.complete && element.naturalWidth > 0)
+        : false,
+      naturalWidth: element instanceof HTMLImageElement
+        ? element.naturalWidth
+        : 0,
+      naturalHeight: element instanceof HTMLImageElement
+        ? element.naturalHeight
+        : 0
+    }));
+
   window.HustleSpriteDiagnostics = () => ({
     version: SPRITE_BUILD_VERSION,
     assets: Object.fromEntries(Object.entries(OFFICIAL_SPRITE_ASSETS).map(([key, src]) => [key, {
@@ -958,31 +979,132 @@
     return 4;
   }
 
+  function getRealCharacterAsset(stage = 1) {
+    return (
+      ASSET_PATHS.characters[stage]
+      ||
+      ASSET_PATHS.characters[1]
+      ||
+      { primary: "assets/character_novice.png", fallback: "" }
+    );
+  }
+
+  function forceDirectCharacterImage(element, stage = 1) {
+    if (!(element instanceof HTMLImageElement)) return false;
+
+    const asset = getRealCharacterAsset(stage);
+    const cleanPath = normalizeRelativeAssetPath(asset.primary);
+
+    /*
+       The Home and Wardrobe character are NOT sprite nodes.
+       Remove every sprite class / dataset that can make old CSS or the
+       canvas renderer paint a placeholder/silhouette over the real PNG.
+    */
+    element.classList.remove(
+      "sprite-icon",
+      "sprite-frame",
+      "sprite-character",
+      "char-level-1",
+      "char-level-2",
+      "char-level-3",
+      "char-level-4",
+      "asset-load-error",
+      "asset-placeholder"
+    );
+
+    element.classList.add(
+      "direct-character-image",
+      "character-real-image"
+    );
+
+    delete element.dataset.spriteSheet;
+    delete element.dataset.spriteCell;
+    delete element.dataset.spriteRendered;
+
+    element.dataset.characterStage = String(stage);
+    element.dataset.characterAsset = cleanPath;
+
+    /*
+       Neutralize legacy sprite-sheet CSS with !important inline properties.
+       This is necessary because older style.css builds contain
+       .sprite-character { background-image: ... !important; }.
+    */
+    element.style.setProperty("background-image", "none", "important");
+    element.style.setProperty("background", "transparent", "important");
+    element.style.setProperty("background-size", "auto", "important");
+    element.style.setProperty("background-position", "center", "important");
+    element.style.setProperty("display", "block", "important");
+    element.style.setProperty("visibility", "visible", "important");
+    element.style.setProperty("opacity", "1", "important");
+    element.style.setProperty("object-fit", "contain", "important");
+    element.style.setProperty("object-position", "center bottom", "important");
+
+    element.hidden = false;
+    element.removeAttribute("aria-hidden");
+
+    const expectedSrc = resolveAssetUrl(cleanPath);
+
+    element.onload = () => {
+      element.classList.remove(
+        "asset-load-error",
+        "asset-placeholder"
+      );
+      element.dataset.characterLoaded = "true";
+    };
+
+    element.onerror = () => {
+      /*
+         Real PNG is part of the audited assets bundle. If the request still
+         fails, keep the page alive with the transparent placeholder rather
+         than falling back to the old green silhouette SVG.
+      */
+      element.onerror = null;
+      element.dataset.characterLoaded = "false";
+      element.classList.add("asset-placeholder");
+      element.src = TRANSPARENT_ASSET_PLACEHOLDER;
+    };
+
+    /*
+       FORCE the exact relative asset URL used by the real assets package.
+       Assign one URL only — no character-01.svg / character-main.svg.
+    */
+    if (element.src !== expectedSrc) {
+      element.src = expectedSrc;
+    }
+
+    return true;
+  }
+
   function applyCharacterSpriteStage(element, level = state?.level || 1) {
     if (!element) return;
 
     const stage = getCharacterStage(level);
-    const cellClass = `char-level-${stage}`;
 
-    element.classList.remove("char-level-1", "char-level-2", "char-level-3", "char-level-4");
-    element.classList.add(cellClass);
-    element.dataset.characterStage = String(stage);
-
-    /*
-       V14: Home/Wardrobe character images are normal <img> elements.
-       This avoids a blank canvas when Telegram iOS/WebKit restores the page
-       before a sprite sheet has decoded.
-    */
     if (element instanceof HTMLImageElement) {
-      const asset = ASSET_PATHS.characters[stage] || ASSET_PATHS.characters[1];
-      setDirectImageAsset(element, asset.primary, asset.fallback);
+      forceDirectCharacterImage(element, stage);
       return;
     }
 
-    /* Legacy/canvas sprite fallback for any remaining sprite-character node. */
+    /*
+       Legacy support only for true canvas/sprite nodes elsewhere.
+       Home and Wardrobe never enter this branch anymore.
+    */
+    const cellClass = `char-level-${stage}`;
+
+    element.classList.remove(
+      "char-level-1",
+      "char-level-2",
+      "char-level-3",
+      "char-level-4"
+    );
+    element.classList.add(cellClass);
+    element.dataset.characterStage = String(stage);
     element.dataset.spriteSheet = "character";
     element.dataset.spriteCell = cellClass;
-    if (spriteAssetsReady) scheduleSpriteRender(element);
+
+    if (spriteAssetsReady) {
+      scheduleSpriteRender(element);
+    }
   }
 
   const COLLECTION_CONFIG = CONFIG.COLLECTION || {};
@@ -4433,7 +4555,9 @@
   ========================================================== */
 
   function updateHomeCharacter() {
-    document.querySelectorAll("[data-character-sprite]").forEach((element) => {
+    document.querySelectorAll(
+      ".home-character-sprite[data-character-sprite], .wardrobe-character-sprite[data-character-sprite]"
+    ).forEach((element) => {
       applyCharacterSpriteStage(element, state.level);
     });
   }
