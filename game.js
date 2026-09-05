@@ -84,7 +84,7 @@
      CSS/UI frame overlay rendered above it.
   ========================================================== */
 
-  const SPRITE_BUILD_VERSION = "19.3";
+  const SPRITE_BUILD_VERSION = "19.4";
 
   const REAL_GAME_ASSET_PATHS = Object.freeze([
     "assets/acc_epic.png",
@@ -7863,22 +7863,49 @@
     }
   }
 
+  let leaderboardReturnScreen = "home";
+  let leaderboardPreviouslyFocusedElement = null;
+
+  function isLeaderboardOpen() {
+    return Boolean(
+      document
+        .getElementById("leaderboard-screen")
+        ?.classList.contains("active")
+    );
+  }
+
   function syncLeaderboardHudButtonState() {
     const button = document.querySelector(".leaderboard-hud-button");
-    const screen = document.getElementById("leaderboard-screen");
-    if (!button || !screen) return false;
+    const isOpen = isLeaderboardOpen();
 
-    const isOpen = screen.classList.contains("active");
-
-    button.classList.toggle("is-active", isOpen);
-    button.setAttribute("aria-pressed", isOpen ? "true" : "false");
+    if (button) {
+      button.classList.toggle("is-active", isOpen);
+      button.setAttribute("aria-pressed", isOpen ? "true" : "false");
+    }
 
     return isOpen;
   }
 
+  function getLeaderboardReturnScreen() {
+    const navigationScreen =
+      window.HustleTabs?.getActiveTab?.();
+
+    if (navigationScreen && navigationScreen !== "leaderboard") {
+      return navigationScreen;
+    }
+
+    const activeBaseScreen = document.querySelector(
+      '.screens > .screen.active[data-screen]:not(#leaderboard-screen)'
+    );
+
+    return activeBaseScreen?.dataset?.screen || "home";
+  }
+
   function openLeaderboardScreen(options = {}) {
     const screen = document.getElementById("leaderboard-screen");
-    const button = document.querySelector(".leaderboard-hud-button");
+    const closeButton = screen?.querySelector(
+      '[data-action="close-leaderboard"]'
+    );
 
     if (!screen) {
       console.error(
@@ -7887,54 +7914,131 @@
       return false;
     }
 
-    /*
-       The old HUD trophy used only data-nav="leaderboard".
-       Legacy navigation handles the six .nav-item buttons and therefore did
-       not reliably activate this seventh HUD-only screen.
-       Activate the screen explicitly here.
-    */
-    document.querySelectorAll(".screens > .screen").forEach((candidate) => {
-      candidate.classList.toggle("active", candidate === screen);
-    });
+    if (isLeaderboardOpen()) {
+      closeButton?.focus?.({ preventScroll: true });
+      return true;
+    }
+
+    leaderboardReturnScreen = getLeaderboardReturnScreen();
+    leaderboardPreviouslyFocusedElement =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
 
     /*
-       Leaderboard has no bottom-navigation tab, so none of those six tabs
-       should remain visually selected while this screen is open.
+       Remove every underlying game screen from the active visual stack.
+       The Leaderboard is now a dedicated modal surface, not a seventh page
+       sharing the main screen canvas.
     */
     document
-      .querySelectorAll(".bottom-navigation .nav-item.active")
-      .forEach((navItem) => navItem.classList.remove("active"));
+      .querySelectorAll(".screens > .screen")
+      .forEach((candidate) => {
+        if (candidate === screen) {
+          candidate.classList.add("active");
+          candidate.setAttribute("aria-hidden", "false");
+        } else {
+          candidate.classList.remove("active");
+          candidate.setAttribute("aria-hidden", "true");
+        }
+      });
 
-    if (button) {
-      button.classList.add("is-active");
-      button.setAttribute("aria-pressed", "true");
-    }
+    document.body.classList.add("leaderboard-modal-open");
+
+    syncLeaderboardHudButtonState();
 
     leaderboardLastRenderSignature = "";
     renderLeaderboard({ force: true });
     updateLeaderboardSeasonCountdown();
 
-    requestAnimationFrame(() => {
-      /*
-         Keep the newly opened page at its top without moving the fixed HUD.
-      */
-      const screens = document.querySelector(".screens");
-      if (screens && typeof screens.scrollTo === "function") {
-        screens.scrollTo({ top: 0, left: 0, behavior: "auto" });
-      }
+    /*
+       The modal owns its own scrolling; the underlying .screens scroller is
+       intentionally left untouched so closing returns exactly where the user
+       was before opening the trophy.
+    */
+    screen.scrollTop = 0;
 
-      if (options.focus === true) {
-        const heading = screen.querySelector("h1");
-        if (heading) {
-          heading.setAttribute("tabindex", "-1");
-          heading.focus({ preventScroll: true });
-        }
-      }
+    requestAnimationFrame(() => {
+      closeButton?.focus?.({ preventScroll: true });
     });
 
     emitGameEvent("screenChanged", {
       screen: "leaderboard",
-      source: options.source || "hud-trophy"
+      source: options.source || "hud-trophy",
+      modal: true
+    });
+
+    return true;
+  }
+
+  function closeLeaderboardScreen(options = {}) {
+    const screen = document.getElementById("leaderboard-screen");
+
+    if (!screen || !isLeaderboardOpen()) {
+      return false;
+    }
+
+    screen.classList.remove("active");
+    screen.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("leaderboard-modal-open");
+
+    /*
+       script.js still owns the six primary tabs. Force the previous tab back
+       into the visual shell without resetting its saved scroll position.
+    */
+    if (window.HustleTabs?.setActiveTab) {
+      window.HustleTabs.setActiveTab(
+        leaderboardReturnScreen || "home",
+        {
+          scroll: false,
+          force: true,
+          source: options.source || "leaderboard-close"
+        }
+      );
+    } else {
+      const fallback =
+        document.querySelector(
+          `.screens > .screen[data-screen="${leaderboardReturnScreen}"]`
+        )
+        || document.querySelector(
+          '.screens > .screen[data-screen="home"]'
+        );
+
+      fallback?.classList.add("active");
+      fallback?.setAttribute("aria-hidden", "false");
+
+      document
+        .querySelectorAll(".bottom-navigation .nav-item[data-nav]")
+        .forEach((button) => {
+          button.classList.toggle(
+            "active",
+            button.dataset.nav === (fallback?.dataset?.screen || "home")
+          );
+        });
+    }
+
+    syncLeaderboardHudButtonState();
+
+    requestAnimationFrame(() => {
+      if (
+        leaderboardPreviouslyFocusedElement
+        && document.contains(leaderboardPreviouslyFocusedElement)
+      ) {
+        leaderboardPreviouslyFocusedElement.focus?.({
+          preventScroll: true
+        });
+      } else {
+        document
+          .querySelector(".leaderboard-hud-button")
+          ?.focus?.({ preventScroll: true });
+      }
+
+      leaderboardPreviouslyFocusedElement = null;
+    });
+
+    emitGameEvent("screenChanged", {
+      screen: leaderboardReturnScreen || "home",
+      source: options.source || "leaderboard-close",
+      modal: false
     });
 
     return true;
@@ -7942,39 +8046,50 @@
 
   function bindLeaderboardHudButton() {
     const button = document.querySelector(".leaderboard-hud-button");
-    if (!button || button.dataset.leaderboardBound === "true") {
+    const screen = document.getElementById("leaderboard-screen");
+
+    if (
+      !button
+      || !screen
+      || button.dataset.leaderboardBound === "true"
+    ) {
       syncLeaderboardHudButtonState();
       return;
     }
 
     button.dataset.leaderboardBound = "true";
 
-    /*
-       Bind directly to the real <button>. This runs before document-level
-       legacy handlers and makes the visual button exactly the click target.
-       Keyboard Enter/Space works automatically because it is a native button.
-    */
     button.addEventListener("click", (event) => {
       event.preventDefault();
       event.stopPropagation();
 
       openLeaderboardScreen({
-        source: "hud-trophy",
-        focus: false
+        source: "hud-trophy"
       });
     });
 
-    /*
-       When the user leaves the leaderboard through one of the six bottom
-       tabs, let the legacy router switch pages first and then mirror the
-       resulting state on the trophy button.
-    */
-    document.addEventListener("click", (event) => {
-      if (!event.target?.closest?.(".bottom-navigation .nav-item[data-nav]")) {
-        return;
-      }
+    screen
+      .querySelector('[data-action="close-leaderboard"]')
+      ?.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
 
-      requestAnimationFrame(syncLeaderboardHudButtonState);
+        closeLeaderboardScreen({
+          source: "close-button"
+        });
+      });
+
+    document.addEventListener("keydown", (event) => {
+      if (
+        event.key === "Escape"
+        && isLeaderboardOpen()
+      ) {
+        event.preventDefault();
+
+        closeLeaderboardScreen({
+          source: "escape"
+        });
+      }
     });
 
     syncLeaderboardHudButtonState();
@@ -8914,9 +9029,8 @@
       }),
       purchaseFlashOffer: purchaseLeaderboardFlashOffer,
       open: (options = {}) => openLeaderboardScreen(options),
-      isOpen: () => Boolean(
-        document.getElementById("leaderboard-screen")?.classList.contains("active")
-      ),
+      close: (options = {}) => closeLeaderboardScreen(options),
+      isOpen: isLeaderboardOpen,
       render: (options = {}) => renderLeaderboard({ force: true, ...options })
     },
 
@@ -8982,3 +9096,5 @@
 /* V19.1: real-time local persistence + backup + Telegram CloudStorage mirror. */
 
 /* V19.2: City business cards split into dedicated media/copy/stats/actions regions. */
+
+/* V19.4: Leaderboard is an isolated fullscreen modal with explicit close/restore flow. */

@@ -1,0 +1,31 @@
+URBAN TYCOON V19.4 — LEADERBOARD FULLSCREEN MODAL STATIC AUDIT
+
+Problem fixed:
+- Leaderboard previously behaved like a seventh .screen inside the same canvas.
+- Its layout could visually share/stack with the normal game shell and it had
+  no dedicated close control.
+
+V19.4:
+- #leaderboard-screen is now role="dialog" + aria-modal="true".
+- Dedicated full-screen fixed surface: position:fixed; inset:0; z-index:4000.
+- Opaque background: no Home/City/Cases/Cards/Wardrobe/Shop can show through.
+- While open, top HUD + bottom navigation are hidden and non-interactive.
+- All non-Leaderboard screens are explicitly display:none while modal is open.
+- Clear close button added to a dedicated modal toolbar.
+- Escape key closes the modal.
+- Previous primary tab is remembered and restored on close.
+- Underlying .screens scroll position is not reset when opening Leaderboard.
+- Focus moves to Close and returns to the prior control when closing.
+- Public API:
+  HustleGame.leaderboard.open()
+  HustleGame.leaderboard.close()
+  HustleGame.leaderboard.isOpen()
+
+Validation:
+- node --check script.js: OK
+- node --check game.js: OK
+- node --check translations.js: OK
+- CSS brace balance: OK
+- V19.4 version/cache refs: OK
+
+No live browser/Telegram visual runtime test was performed.

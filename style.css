@@ -13289,3 +13289,276 @@ body.ui-scale-responsive
   }
 }
 
+
+/* ==========================================================
+   V19.4 — LEADERBOARD FULLSCREEN / ISOLATED MODAL
+   Only the ranking surface is visible while open.
+   Keep this block LAST.
+========================================================== */
+
+body.leaderboard-modal-open {
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+}
+
+/*
+  The main HUD/nav are not merely covered — they are removed from the active
+  interaction/visual layer while the dedicated ranking view is open.
+*/
+body.leaderboard-modal-open .topbar,
+body.leaderboard-modal-open .bottom-navigation {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+body.leaderboard-modal-open
+.screens.screen-content {
+  overflow: hidden !important;
+  padding: 0 !important;
+}
+
+/*
+  Underlying Home/City/Cases/Cards/Wardrobe/Shop screens are explicitly
+  hidden, preventing translucency or accidental stacking behind Leaderboard.
+*/
+body.leaderboard-modal-open
+.screens > .screen:not(#leaderboard-screen) {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* ---------- Full viewport modal surface ---------- */
+
+#leaderboard-screen.leaderboard-modal-screen {
+  display: none !important;
+  box-sizing: border-box !important;
+}
+
+#leaderboard-screen.leaderboard-modal-screen.active {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 4000 !important;
+
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) !important;
+
+  width: 100vw !important;
+  height: 100dvh !important;
+  min-width: 100vw !important;
+  min-height: 100dvh !important;
+  max-width: none !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  overflow: hidden !important;
+
+  background:
+    radial-gradient(
+      circle at 50% -10%,
+      rgba(0, 176, 255, .11),
+      transparent 34rem
+    ),
+    #07101a !important;
+
+  isolation: isolate !important;
+  animation: leaderboardModalEnter 110ms ease-out both !important;
+}
+
+@keyframes leaderboardModalEnter {
+  from {
+    opacity: .985;
+    transform: translate3d(0, .15rem, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* ---------- Dedicated modal toolbar ---------- */
+
+.leaderboard-modal-toolbar {
+  box-sizing: border-box !important;
+  position: relative !important;
+  z-index: 3 !important;
+
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: clamp(.7rem, 1.8vw, 1rem) !important;
+
+  width: 100% !important;
+  min-width: 0 !important;
+
+  padding:
+    max(.65rem, env(safe-area-inset-top, 0px))
+    max(.8rem, env(safe-area-inset-right, 0px))
+    .62rem
+    max(.8rem, env(safe-area-inset-left, 0px))
+    !important;
+
+  border-bottom: 1px solid rgba(0, 176, 255, .18) !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(7, 22, 34, .99),
+      rgba(5, 16, 26, .99)
+    ) !important;
+
+  box-shadow: 0 .45rem 1.2rem rgba(0, 0, 0, .26) !important;
+}
+
+.leaderboard-modal-toolbar-copy {
+  min-width: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: .12rem !important;
+}
+
+.leaderboard-modal-toolbar-copy > strong {
+  color: #f5fbff !important;
+  font-size: clamp(.92rem, .78rem + .46vw, 1.2rem) !important;
+  font-weight: 950 !important;
+  line-height: 1.04 !important;
+}
+
+.leaderboard-modal-close {
+  box-sizing: border-box !important;
+
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: .38rem !important;
+
+  min-width: clamp(5.1rem, 13vw, 6.2rem) !important;
+  min-height: clamp(2.35rem, 5.2vw, 2.7rem) !important;
+
+  margin: 0 !important;
+  padding: .45rem .75rem !important;
+
+  border: 1px solid rgba(111, 209, 255, .28) !important;
+  border-radius: .68rem !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(17, 50, 70, .94),
+      rgba(8, 27, 42, .98)
+    ) !important;
+
+  color: #edfaff !important;
+
+  font-size: clamp(.62rem, .56rem + .20vw, .74rem) !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+
+  cursor: pointer !important;
+  touch-action: manipulation !important;
+
+  transition:
+    transform 80ms ease,
+    border-color 100ms ease,
+    background-color 100ms ease !important;
+}
+
+.leaderboard-modal-close > span:first-child {
+  font-size: 1.05em !important;
+  line-height: 1 !important;
+}
+
+.leaderboard-modal-close:hover,
+.leaderboard-modal-close:focus-visible {
+  border-color: rgba(125, 220, 255, .52) !important;
+  outline: 2px solid rgba(0, 176, 255, .34) !important;
+  outline-offset: 2px !important;
+}
+
+.leaderboard-modal-close:active {
+  transform: scale(.975) !important;
+}
+
+/* ---------- Modal-owned Leaderboard content ---------- */
+
+#leaderboard-screen.leaderboard-modal-screen
+> .leaderboard-screen {
+  box-sizing: border-box !important;
+
+  width: min(100%, 64rem) !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-width: 64rem !important;
+
+  margin: 0 auto !important;
+  padding:
+    clamp(.65rem, 1.7vw, 1rem)
+    max(clamp(.65rem, 1.8vw, 1.1rem), env(safe-area-inset-right, 0px))
+    max(clamp(.7rem, 1.8vw, 1rem), env(safe-area-inset-bottom, 0px))
+    max(clamp(.65rem, 1.8vw, 1.1rem), env(safe-area-inset-left, 0px))
+    !important;
+
+  overflow: hidden !important;
+
+  grid-template-rows:
+    auto
+    auto
+    minmax(0, 1fr)
+    auto !important;
+}
+
+/*
+  The ranking list remains the only internal scroller. The modal itself never
+  leaks scrolling to Home/City/etc.
+*/
+#leaderboard-screen.leaderboard-modal-screen
+.leaderboard-list {
+  min-height: 0 !important;
+  overscroll-behavior: contain !important;
+}
+
+/* No underlying screen animation can visually bleed through the modal. */
+body.leaderboard-modal-open
+.screens > .screen.active:not(#leaderboard-screen) {
+  animation: none !important;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 620px) {
+  .leaderboard-modal-toolbar {
+    padding-inline:
+      max(.58rem, env(safe-area-inset-left, 0px))
+      max(.58rem, env(safe-area-inset-right, 0px))
+      !important;
+  }
+
+  .leaderboard-modal-close {
+    min-width: 2.7rem !important;
+    padding-inline: .58rem !important;
+  }
+
+  .leaderboard-modal-close > span:last-child {
+    display: none !important;
+  }
+
+  #leaderboard-screen.leaderboard-modal-screen
+  > .leaderboard-screen {
+    padding:
+      .55rem
+      max(.5rem, env(safe-area-inset-right, 0px))
+      max(.6rem, env(safe-area-inset-bottom, 0px))
+      max(.5rem, env(safe-area-inset-left, 0px))
+      !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #leaderboard-screen.leaderboard-modal-screen.active {
+    animation: none !important;
+  }
+}
+
