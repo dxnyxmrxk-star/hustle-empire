@@ -52,7 +52,7 @@
      CSS/UI frame overlay rendered above it.
   ========================================================== */
 
-  const SPRITE_BUILD_VERSION = "16.0";
+  const SPRITE_BUILD_VERSION = "16.6";
 
   const REAL_GAME_ASSET_PATHS = Object.freeze([
     "assets/acc_epic.png",
@@ -4595,9 +4595,13 @@
       row.className = `equipment-row${selectedWardrobeSlot === equipmentId ? " selected" : ""}`;
       row.dataset.wardrobeSlot = equipmentId;
       const spriteClass = EQUIPMENT_SPRITE_CLASS[equipmentId] || "wardrobe-watch";
+      const displayLevel = es.unlocked ? es.level : 0;
       row.innerHTML = `
         <div class="wardrobe-item-icon">${spriteMarkup("sprite-wardrobe", spriteClass)}</div>
-        <span><strong>${getEquipmentLocalizedName(equipmentId)}</strong><small>${es.unlocked ? `${tr("common.levelShort")} ${es.level} · ${getEquipmentEffectLabel(equipmentId)}` : `${tr("common.locked")} · ${formatCompactMoney(getEquipmentUpgradeCost(equipmentId))}`}</small></span>`;
+        <span class="equipment-row-copy">
+          <strong>${getEquipmentLocalizedName(equipmentId)}</strong>
+          <small>${tr("common.levelShort")} ${displayLevel}</small>
+        </span>`;
       row.classList.toggle("locked", !es.unlocked);
       container.appendChild(row);
     });
@@ -5696,3 +5700,6 @@
     initGame();
   }
 })();
+
+
+/* V16.6: Wardrobe avatar scale + fixed accessory rows + simplified row copy. */

@@ -6734,3 +6734,1090 @@ body.notifications-modal-open {
   }
 }
 
+
+
+/* ==========================================================
+   V16.4 — HOME HUD COMPACTION + SIDEBAR OVERLAP FIX
+   Keep this block LAST in style.css.
+========================================================== */
+
+:root {
+  --topbar-height: 46px;
+}
+
+/* ---------------- Compact top HUD ---------------- */
+.topbar {
+  min-height: var(--topbar-height) !important;
+  grid-template-columns: minmax(88px, 1fr) minmax(0, auto) auto !important;
+  align-items: center !important;
+  column-gap: 4px !important;
+  row-gap: 0 !important;
+  padding:
+    max(4px, env(safe-area-inset-top))
+    6px
+    4px !important;
+}
+
+.player-level {
+  min-width: 0 !important;
+  gap: 5px !important;
+}
+
+.player-avatar,
+.header-avatar {
+  flex: 0 0 30px !important;
+  width: 30px !important;
+  height: 30px !important;
+}
+
+.player-level-content {
+  min-width: 0 !important;
+}
+
+.level-row {
+  margin-bottom: 2px !important;
+  line-height: 1 !important;
+}
+
+.level-row strong {
+  font-size: 8px !important;
+  line-height: 1 !important;
+}
+
+.xp-row {
+  grid-template-columns: 11px minmax(34px, 1fr) auto !important;
+  gap: 2px !important;
+}
+
+.xp-row .progress-bar {
+  height: 4px !important;
+}
+
+.xp-row > span {
+  max-width: 54px !important;
+  font-size: 5.8px !important;
+  line-height: 1 !important;
+}
+
+.hud-icon-xp {
+  width: 11px !important;
+  height: 11px !important;
+  flex-basis: 11px !important;
+}
+
+.topbar-resources {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, auto)) !important;
+  align-items: center !important;
+  gap: 3px !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+.resource-card {
+  width: auto !important;
+  min-width: 39px !important;
+  max-width: 76px !important;
+  height: 26px !important;
+  gap: 3px !important;
+  padding: 0 5px !important;
+  border-radius: 7px !important;
+}
+
+.resource-card strong {
+  min-width: 0 !important;
+  max-width: 49px !important;
+  font-size: clamp(6.4px, 1.45vw, 8px) !important;
+  line-height: 1 !important;
+  letter-spacing: -.02em !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.resource-card .hud-icon {
+  width: 15px !important;
+  height: 15px !important;
+  flex: 0 0 15px !important;
+  object-fit: contain !important;
+  margin: 0 !important;
+}
+
+.topbar-actions {
+  gap: 0 !important;
+  min-width: 0 !important;
+}
+
+.top-action,
+.language-button {
+  width: 23px !important;
+  height: 24px !important;
+  min-width: 23px !important;
+  padding: 0 !important;
+  font-size: 12px !important;
+  line-height: 1 !important;
+}
+
+.language-button {
+  width: 25px !important;
+  min-width: 25px !important;
+  font-size: 7px !important;
+}
+
+.notification-button .badge,
+.topbar .badge {
+  top: -1px !important;
+  right: -1px !important;
+  min-width: 13px !important;
+  height: 13px !important;
+  padding: 0 3px !important;
+  line-height: 13px !important;
+  font-size: 6px !important;
+  box-shadow: 0 0 6px rgba(255,51,78,.34) !important;
+}
+
+/* ---------------- Home left widgets: no text/badge overlap ---------------- */
+.screen[data-screen="home"] .home-left {
+  gap: 6px !important;
+  padding: 7px !important;
+  overflow-x: hidden !important;
+}
+
+.screen[data-screen="home"] .home-logo {
+  min-width: 0 !important;
+  padding: 5px 2px 6px !important;
+}
+
+.screen[data-screen="home"] .mini-feature {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: 27px minmax(0, 1fr) !important;
+  align-items: center !important;
+  column-gap: 6px !important;
+  row-gap: 0 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 52px !important;
+  padding: 6px !important;
+  overflow: hidden !important;
+  text-align: left !important;
+}
+
+.screen[data-screen="home"] .mini-feature-icon {
+  width: 27px !important;
+  height: 27px !important;
+  min-width: 27px !important;
+  border-radius: 7px !important;
+  font-size: 15px !important;
+  align-self: center !important;
+}
+
+.screen[data-screen="home"] .mini-feature-copy {
+  min-width: 0 !important;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  justify-content: center !important;
+  gap: 2px !important;
+  overflow: hidden !important;
+}
+
+.screen[data-screen="home"] .mini-feature-heading {
+  min-width: 0 !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: start !important;
+  gap: 4px !important;
+}
+
+.screen[data-screen="home"] .mini-feature strong {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  font-size: 6.7px !important;
+  line-height: 1.16 !important;
+  overflow-wrap: anywhere !important;
+  word-break: normal !important;
+  hyphens: auto !important;
+}
+
+.screen[data-screen="home"] .mini-feature span,
+.screen[data-screen="home"] .mini-feature small {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  margin-left: 0 !important;
+}
+
+.screen[data-screen="home"] .mini-feature-value,
+.screen[data-screen="home"] .countdown,
+.screen[data-screen="home"] .feature-value,
+.screen[data-screen="home"] .offline-value,
+.screen[data-screen="home"] .daily-challenges-launch-timer {
+  display: block !important;
+  width: fit-content !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-variant-numeric: tabular-nums !important;
+  line-height: 1.1 !important;
+}
+
+.screen[data-screen="home"] .mini-feature-meta-row {
+  min-width: 0 !important;
+  display: flex !important;
+  align-items: baseline !important;
+  justify-content: flex-start !important;
+  flex-wrap: wrap !important;
+  gap: 2px 4px !important;
+}
+
+.screen[data-screen="home"] .mini-feature-meta-row small {
+  white-space: nowrap !important;
+}
+
+/* Daily Challenges badge is now part of the heading flow, never absolute. */
+.screen[data-screen="home"] .daily-challenges-launch {
+  grid-template-columns: 27px minmax(0, 1fr) !important;
+  min-height: 62px !important;
+}
+
+.screen[data-screen="home"] .daily-challenges-launch-copy {
+  gap: 2px !important;
+}
+
+.screen[data-screen="home"] .daily-challenges-launch-badge {
+  position: static !important;
+  inset: auto !important;
+  justify-self: end !important;
+  align-self: start !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  min-width: 24px !important;
+  width: auto !important;
+  height: 16px !important;
+  padding: 0 5px !important;
+  border-radius: 999px !important;
+  font-size: 7px !important;
+  line-height: 16px !important;
+  white-space: nowrap !important;
+}
+
+.screen[data-screen="home"] .daily-challenges-launch-timer {
+  margin-top: 0 !important;
+  font-size: 8px !important;
+}
+
+.screen[data-screen="home"] .daily-challenges-launch-copy small {
+  margin-top: 0 !important;
+  font-size: 6.3px !important;
+  line-height: 1.15 !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+}
+
+/* Generic clipping safety for every left-side panel label/value. */
+.screen[data-screen="home"] .home-left,
+.screen[data-screen="home"] .home-left * {
+  box-sizing: border-box !important;
+}
+
+.screen[data-screen="home"] .home-left button,
+.screen[data-screen="home"] .home-left div,
+.screen[data-screen="home"] .home-left strong,
+.screen[data-screen="home"] .home-left span,
+.screen[data-screen="home"] .home-left small {
+  max-width: 100%;
+}
+
+@media (max-width: 480px) {
+  :root {
+    --topbar-height: 44px;
+  }
+
+  .topbar {
+    grid-template-columns: minmax(72px, 1fr) minmax(0, auto) auto !important;
+    gap: 2px !important;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+    padding-bottom: 3px !important;
+  }
+
+  .player-avatar,
+  .header-avatar {
+    flex-basis: 28px !important;
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  .resource-card {
+    min-width: 34px !important;
+    max-width: 45px !important;
+    height: 24px !important;
+    padding: 0 3px !important;
+    gap: 2px !important;
+  }
+
+  .resource-card strong {
+    max-width: 25px !important;
+    font-size: 6px !important;
+  }
+
+  .resource-card .hud-icon {
+    width: 13px !important;
+    height: 13px !important;
+    flex-basis: 13px !important;
+  }
+
+  .top-action,
+  .language-button {
+    width: 21px !important;
+    min-width: 21px !important;
+    height: 22px !important;
+    font-size: 11px !important;
+  }
+
+  .language-button {
+    width: 23px !important;
+    min-width: 23px !important;
+    font-size: 6.5px !important;
+  }
+
+  .screen[data-screen="home"] .home-left {
+    gap: 5px !important;
+    padding: 6px !important;
+  }
+
+  .screen[data-screen="home"] .mini-feature {
+    grid-template-columns: 24px minmax(0, 1fr) !important;
+    min-height: 49px !important;
+    padding: 5px !important;
+    gap: 5px !important;
+  }
+
+  .screen[data-screen="home"] .mini-feature-icon {
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px !important;
+    font-size: 13px !important;
+  }
+
+  .screen[data-screen="home"] .mini-feature strong {
+    font-size: 6.25px !important;
+  }
+
+  .screen[data-screen="home"] .daily-challenges-launch {
+    min-height: 58px !important;
+  }
+}
+
+@media (max-width: 350px) {
+  .topbar {
+    grid-template-columns: minmax(66px, 1fr) minmax(0, auto) auto !important;
+  }
+
+  .topbar-resources {
+    gap: 1px !important;
+  }
+
+  .resource-card {
+    min-width: 31px !important;
+    max-width: 40px !important;
+    padding: 0 2px !important;
+  }
+
+  .resource-card strong {
+    max-width: 22px !important;
+    font-size: 5.7px !important;
+  }
+
+  .resource-card .hud-icon {
+    width: 12px !important;
+    height: 12px !important;
+    flex-basis: 12px !important;
+  }
+
+  .screen[data-screen="home"] .mini-feature strong {
+    font-size: 5.9px !important;
+  }
+}
+
+
+/* ==========================================================
+   V16.5 — CARDS READABILITY + CASES UNIFORM RESPONSIVE GRID
+   Final override. Keep this block LAST in style.css.
+========================================================== */
+
+/* ==========================================================
+   CARDS / COLLECTION
+========================================================== */
+.screen[data-screen="collection"] {
+  padding-top: 2px !important;
+  align-items: stretch !important;
+  justify-content: flex-start !important;
+}
+
+.screen[data-screen="collection"] .collection-screen.compact-collection {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  align-items: stretch !important;
+  gap: 7px !important;
+  width: 100% !important;
+  min-height: 0 !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding-top: 0 !important;
+}
+
+/* Collection Book remains compact and immediately above the cards. */
+.screen[data-screen="collection"] .compact-summary {
+  flex: 0 0 auto !important;
+  margin: 0 !important;
+  border-radius: 10px !important;
+}
+
+.screen[data-screen="collection"] .compact-summary > summary {
+  min-height: 40px !important;
+  padding: 6px 9px !important;
+  gap: 7px !important;
+}
+
+.screen[data-screen="collection"] .compact-summary > summary > div:first-child > strong {
+  margin-top: 1px !important;
+  font-size: 10px !important;
+}
+
+.screen[data-screen="collection"] .collection-summary-percent strong {
+  font-size: 10px !important;
+}
+
+/* Main card grid: balanced 2-column layout on Telegram/mobile widths. */
+.screen[data-screen="collection"] .compact-card-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  align-items: stretch !important;
+  align-content: start !important;
+  gap: 9px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.screen[data-screen="collection"] .compact-card-grid .collection-card-item {
+  display: flex !important;
+  flex-direction: column !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  height: auto !important;
+  padding: 8px !important;
+  border-radius: 11px !important;
+  overflow: hidden !important;
+}
+
+/* Keep the portrait art large without stretching it. */
+.screen[data-screen="collection"] .compact-card-image.card-art-shell {
+  width: 100% !important;
+  height: auto !important;
+  aspect-ratio: 3 / 4 !important;
+  min-height: 0 !important;
+  border-radius: 9px !important;
+  overflow: hidden !important;
+  flex: 0 0 auto !important;
+}
+
+.screen[data-screen="collection"] .card-art-background {
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+}
+
+/* Metadata is a clean compact header row. */
+.screen[data-screen="collection"] .compact-card-meta {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 6px !important;
+  margin-top: 7px !important;
+  min-width: 0 !important;
+}
+
+.screen[data-screen="collection"] .compact-card-stars {
+  font-size: 8px !important;
+  line-height: 1 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.screen[data-screen="collection"] .compact-card-type {
+  max-width: 82px !important;
+  padding: 2px 4px !important;
+  border-radius: 4px !important;
+  font-size: 7px !important;
+  line-height: 1.15 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Card name becomes the primary readable text element. */
+.screen[data-screen="collection"] .compact-card-name {
+  display: block !important;
+  min-height: 0 !important;
+  margin-top: 6px !important;
+  font-size: 11px !important;
+  line-height: 1.18 !important;
+  font-weight: 950 !important;
+  letter-spacing: -.01em !important;
+  text-align: left !important;
+  overflow: visible !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  -webkit-line-clamp: unset !important;
+}
+
+/* Stats stacked vertically with enough line height to remain readable. */
+.screen[data-screen="collection"] .compact-card-level {
+  display: block !important;
+  margin-top: 5px !important;
+  color: #b9cbd6 !important;
+  font-size: 8px !important;
+  line-height: 1.25 !important;
+  font-weight: 800 !important;
+}
+
+.screen[data-screen="collection"] .compact-card-bonus {
+  display: block !important;
+  min-height: 0 !important;
+  margin-top: 3px !important;
+  color: #64ffc1 !important;
+  font-size: 8px !important;
+  line-height: 1.28 !important;
+  font-weight: 850 !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+}
+
+.screen[data-screen="collection"] .compact-fragment-row {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 6px !important;
+  margin-top: auto !important;
+  padding-top: 7px !important;
+}
+
+.screen[data-screen="collection"] .compact-fragment-bar {
+  height: 6px !important;
+}
+
+.screen[data-screen="collection"] .compact-fragment-count {
+  font-size: 7px !important;
+  line-height: 1 !important;
+  font-weight: 850 !important;
+  white-space: nowrap !important;
+}
+
+.screen[data-screen="collection"] .compact-card-button {
+  min-height: 34px !important;
+  margin-top: 7px !important;
+  padding: 7px 8px !important;
+  border-radius: 7px !important;
+  font-size: 8.5px !important;
+  line-height: 1.15 !important;
+  white-space: normal !important;
+}
+
+/* Exclusive cards follow the same proportions/readability. */
+.screen[data-screen="collection"] .exclusive-cards-panel {
+  margin-top: 1px !important;
+}
+
+.screen[data-screen="collection"] .exclusive-cards-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 9px !important;
+}
+
+.screen[data-screen="collection"] .exclusive-card {
+  padding: 8px !important;
+  border-radius: 10px !important;
+}
+
+.screen[data-screen="collection"] .exclusive-card-image.card-art-shell {
+  aspect-ratio: 3 / 4 !important;
+  border-radius: 8px !important;
+}
+
+.screen[data-screen="collection"] .exclusive-card > strong {
+  margin-top: 6px !important;
+  font-size: 10px !important;
+  line-height: 1.2 !important;
+}
+
+.screen[data-screen="collection"] .exclusive-card > small {
+  margin-top: 3px !important;
+  font-size: 7.5px !important;
+  line-height: 1.25 !important;
+}
+
+/* ==========================================================
+   CASES
+========================================================== */
+.screen[data-screen="cases"] {
+  min-height: 0 !important;
+  padding-top: 3px !important;
+}
+
+.screen[data-screen="cases"] .cases-screen {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  width: 100% !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+}
+
+.screen[data-screen="cases"] .cases-page-header {
+  flex: 0 0 auto !important;
+  align-items: flex-start !important;
+  gap: 8px !important;
+  margin: 0 !important;
+  padding: 2px 1px 3px !important;
+}
+
+/* Symmetric 2-column grid on normal TMA widths. */
+.screen[data-screen="cases"] .real-cases-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  grid-auto-rows: 1fr !important;
+  align-items: stretch !important;
+  gap: 9px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.screen[data-screen="cases"] .real-case-card {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  min-width: 0 !important;
+  min-height: 300px !important;
+  height: 100% !important;
+  padding: 9px !important;
+  border-radius: 11px !important;
+  overflow: hidden !important;
+}
+
+/* Fixed visual zone keeps every chest fully visible and equally sized. */
+.screen[data-screen="cases"] .real-case-art {
+  display: grid !important;
+  place-items: center !important;
+  flex: 0 0 auto !important;
+  width: 100% !important;
+  height: clamp(118px, 28vw, 154px) !important;
+  min-height: 118px !important;
+  margin: 0 auto !important;
+  padding: 3px !important;
+  overflow: hidden !important;
+}
+
+.screen[data-screen="cases"] .real-case-art .asset-direct-image {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  object-position: center center !important;
+  transform: none !important;
+}
+
+.screen[data-screen="cases"] .real-case-name {
+  min-height: 26px !important;
+  margin-top: 4px !important;
+  font-size: 10px !important;
+  line-height: 1.2 !important;
+  text-align: center !important;
+  overflow-wrap: anywhere !important;
+}
+
+.screen[data-screen="cases"] .real-case-duration {
+  margin-top: 2px !important;
+  font-size: 7.5px !important;
+}
+
+.screen[data-screen="cases"] .case-live-timer {
+  flex: 0 0 auto !important;
+  min-height: 34px !important;
+  margin: 7px 0 6px !important;
+  padding: 5px 4px !important;
+  font-size: 9px !important;
+  line-height: 1.1 !important;
+  white-space: nowrap !important;
+}
+
+.screen[data-screen="cases"] .real-case-reward-preview {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  align-items: center !important;
+  gap: 3px !important;
+  min-height: 24px !important;
+  margin: 0 0 7px !important;
+  font-size: 6.5px !important;
+  line-height: 1.15 !important;
+  text-align: center !important;
+}
+
+.screen[data-screen="cases"] .real-case-reward-preview > span {
+  min-width: 0 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.screen[data-screen="cases"] .real-case-actions {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  margin-top: auto !important;
+}
+
+.screen[data-screen="cases"] .case-open-real-button,
+.screen[data-screen="cases"] .case-skip-button {
+  width: 100% !important;
+  flex: 0 0 auto !important;
+  white-space: normal !important;
+  line-height: 1.15 !important;
+}
+
+.screen[data-screen="cases"] .case-open-real-button {
+  min-height: 35px !important;
+  padding: 7px 6px !important;
+  font-size: 8px !important;
+}
+
+.screen[data-screen="cases"] .case-skip-button {
+  min-height: 32px !important;
+  padding: 6px !important;
+  font-size: 7px !important;
+}
+
+/* Accessory cases use the same 2-column rhythm. */
+.screen[data-screen="cases"] .accessory-cases-panel {
+  width: 100% !important;
+  min-width: 0 !important;
+  padding: 9px !important;
+  overflow: hidden !important;
+}
+
+.screen[data-screen="cases"] .free-accessory-card {
+  grid-template-columns: 92px minmax(0, 1fr) !important;
+  gap: 9px !important;
+  min-height: 110px !important;
+}
+
+.screen[data-screen="cases"] .free-accessory-icon {
+  width: 92px !important;
+  height: 92px !important;
+  overflow: hidden !important;
+}
+
+.screen[data-screen="cases"] .premium-accessory-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  grid-auto-rows: 1fr !important;
+  align-items: stretch !important;
+  gap: 8px !important;
+}
+
+.screen[data-screen="cases"] .premium-accessory-case {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  min-width: 0 !important;
+  min-height: 210px !important;
+  height: 100% !important;
+  padding: 8px !important;
+  overflow: hidden !important;
+}
+
+.screen[data-screen="cases"] .premium-accessory-case-icon {
+  width: 100% !important;
+  height: 108px !important;
+  min-height: 108px !important;
+  display: grid !important;
+  place-items: center !important;
+  overflow: hidden !important;
+}
+
+.screen[data-screen="cases"] .premium-accessory-case-icon .asset-direct-image,
+.screen[data-screen="cases"] .free-accessory-icon .asset-direct-image {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  object-position: center center !important;
+  transform: none !important;
+}
+
+.screen[data-screen="cases"] .premium-accessory-case > strong {
+  margin-top: 5px !important;
+  min-height: 25px !important;
+  font-size: 9px !important;
+  line-height: 1.2 !important;
+  text-align: center !important;
+  overflow-wrap: anywhere !important;
+}
+
+.screen[data-screen="cases"] .premium-accessory-case > small {
+  font-size: 7px !important;
+  text-align: center !important;
+}
+
+.screen[data-screen="cases"] .buy-accessory-case {
+  width: 100% !important;
+  min-height: 34px !important;
+  margin-top: auto !important;
+  padding: 6px !important;
+  font-size: 7.5px !important;
+  white-space: normal !important;
+}
+
+/* Screen-content owns vertical scrolling. No case card clips itself. */
+.screens.screen-content {
+  overflow-y: auto !important;
+  overscroll-behavior-y: contain !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+/* ==========================================================
+   RESPONSIVE TUNING
+========================================================== */
+@media (min-width: 820px) {
+  .screen[data-screen="collection"] .compact-card-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .screen[data-screen="cases"] .real-cases-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 430px) {
+  .screen[data-screen="collection"] .compact-card-grid {
+    gap: 7px !important;
+  }
+
+  .screen[data-screen="collection"] .compact-card-grid .collection-card-item {
+    padding: 7px !important;
+  }
+
+  .screen[data-screen="collection"] .compact-card-name {
+    font-size: 10px !important;
+  }
+
+  .screen[data-screen="collection"] .compact-card-level,
+  .screen[data-screen="collection"] .compact-card-bonus {
+    font-size: 7.5px !important;
+  }
+
+  .screen[data-screen="cases"] .real-cases-grid {
+    gap: 7px !important;
+  }
+
+  .screen[data-screen="cases"] .real-case-card {
+    min-height: 280px !important;
+    padding: 7px !important;
+  }
+
+  .screen[data-screen="cases"] .real-case-art {
+    height: clamp(105px, 30vw, 132px) !important;
+    min-height: 105px !important;
+  }
+
+  .screen[data-screen="cases"] .case-live-timer {
+    font-size: 8px !important;
+  }
+
+  .screen[data-screen="cases"] .premium-accessory-case-icon {
+    height: 98px !important;
+    min-height: 98px !important;
+  }
+}
+
+/* Ultra-narrow fallback: one column is safer than clipping content. */
+@media (max-width: 320px) {
+  .screen[data-screen="collection"] .compact-card-grid,
+  .screen[data-screen="collection"] .exclusive-cards-grid,
+  .screen[data-screen="cases"] .real-cases-grid,
+  .screen[data-screen="cases"] .premium-accessory-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .screen[data-screen="cases"] .real-case-art {
+    height: 150px !important;
+  }
+}
+
+/* ==========================================================
+   V16.6 — WARDROBE FINAL CLEANUP
+   - Avatar slightly larger and vertically centered.
+   - Accessory rows have rigid dimensions so upgrades cannot move the grid.
+   - Accessory copy is reduced to item name + LVL only.
+   Keep this block LAST.
+========================================================== */
+
+.screen[data-screen="wardrobe"] .wardrobe-character {
+  min-height: min(61svh, 550px) !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 6px 4px 10px !important;
+  overflow: hidden !important;
+}
+
+.screen[data-screen="wardrobe"] .wardrobe-character-sprite.character-real-image {
+  position: relative !important;
+  inset: auto !important;
+  width: auto !important;
+  height: min(59svh, 525px) !important;
+  max-width: 116% !important;
+  max-height: calc(100% - 4px) !important;
+  margin: auto !important;
+  object-fit: contain !important;
+  object-position: center center !important;
+  transform: none !important;
+}
+
+/* The list scrolls, but each accessory cell itself never grows/shrinks. */
+.screen[data-screen="wardrobe"] .wardrobe-dynamic-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 5px !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  align-items: stretch !important;
+}
+
+.screen[data-screen="wardrobe"] .equipment-row {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  height: 62px !important;
+  min-height: 62px !important;
+  max-height: 62px !important;
+  flex: 0 0 62px !important;
+  grid-template-columns: 42px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 7px !important;
+  margin: 0 !important;
+  padding: 6px !important;
+  overflow: hidden !important;
+}
+
+.screen[data-screen="wardrobe"] .wardrobe-item-icon {
+  width: 42px !important;
+  height: 48px !important;
+  min-width: 42px !important;
+  min-height: 48px !important;
+  max-width: 42px !important;
+  max-height: 48px !important;
+  display: grid !important;
+  place-items: center !important;
+  overflow: hidden !important;
+}
+
+.screen[data-screen="wardrobe"] .wardrobe-item-icon > img,
+.screen[data-screen="wardrobe"] .wardrobe-item-icon .asset-direct-image {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  transform: none !important;
+}
+
+.screen[data-screen="wardrobe"] .equipment-row-copy {
+  min-width: 0 !important;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  overflow: hidden !important;
+}
+
+.screen[data-screen="wardrobe"] .equipment-row-copy strong {
+  display: block !important;
+  width: 100% !important;
+  margin: 0 !important;
+  font-size: 7.5px !important;
+  line-height: 1.15 !important;
+  font-weight: 900 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.screen[data-screen="wardrobe"] .equipment-row-copy small {
+  display: block !important;
+  margin: 0 !important;
+  color: #51ffb4 !important;
+  font-size: 6.5px !important;
+  line-height: 1 !important;
+  font-weight: 900 !important;
+  letter-spacing: .02em !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.screen[data-screen="wardrobe"] .equipment-row.locked .equipment-row-copy small {
+  color: #7d98aa !important;
+}
+
+@media (max-width: 430px) {
+  .screen[data-screen="wardrobe"] .wardrobe-screen {
+    grid-template-rows: minmax(345px, 55svh) auto !important;
+  }
+
+  .screen[data-screen="wardrobe"] .wardrobe-character {
+    min-height: 345px !important;
+    padding: 4px 2px 8px !important;
+  }
+
+  .screen[data-screen="wardrobe"] .wardrobe-character-sprite.character-real-image {
+    height: min(53svh, 455px) !important;
+    max-width: 122% !important;
+  }
+
+  .screen[data-screen="wardrobe"] .equipment-row {
+    height: 60px !important;
+    min-height: 60px !important;
+    max-height: 60px !important;
+    flex-basis: 60px !important;
+    grid-template-columns: 40px minmax(0, 1fr) !important;
+    gap: 6px !important;
+    padding: 5px !important;
+  }
+
+  .screen[data-screen="wardrobe"] .wardrobe-item-icon {
+    width: 40px !important;
+    height: 46px !important;
+    min-width: 40px !important;
+    min-height: 46px !important;
+    max-width: 40px !important;
+    max-height: 46px !important;
+  }
+}
+
+@media (max-width: 350px) {
+  .screen[data-screen="wardrobe"] .wardrobe-screen {
+    grid-template-rows: 355px auto auto !important;
+  }
+
+  .screen[data-screen="wardrobe"] .wardrobe-character-sprite.character-real-image {
+    height: 338px !important;
+    max-width: 114% !important;
+  }
+}
+
