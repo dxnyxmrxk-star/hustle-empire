@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-app-version="12.4">
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
 <meta content="#0b0f19" name="theme-color"/>
 <title>Hustle Empire</title>
-
-<link href="./style.css" rel="stylesheet"/>
-<script defer="" src="./locales.js"></script>
-<script defer="" src="./config.js"></script>
-<script defer="" src="./script.js"></script>
-<script defer="" src="./game.js"></script>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link href="./style.css?v=12.4" rel="stylesheet"/>
+<script defer="" src="./locales.js?v=12.4"></script>
+<script defer="" src="./config.js?v=12.4"></script>
+<script defer="" src="./script.js?v=12.4"></script>
+<script defer="" src="./game.js?v=12.4"></script>
 </head>
 <body>
 <div class="app-shell">
 <header class="topbar">
 <div class="player-level">
 <div class="player-avatar image-fallback header-avatar">
-<div aria-label="Player" class="player-avatar-image player-avatar-sprite sprite-icon sprite-character char-level-1" data-character-sprite="" role="img"></div>
+<div aria-label="Player" class="player-avatar-image player-avatar-sprite sprite-icon sprite-frame sprite-character char-level-1" data-character-sprite="" data-sprite-sheet="character" data-sprite-cell="char-level-1" role="img"></div>
 </div>
 <div class="player-level-content">
 <div class="level-row"><strong>LV 1</strong></div>
@@ -63,7 +63,8 @@
 </button>
 </aside>
 <div class="home-center image-fallback">
-<div aria-label="Hustle Empire character" class="home-character home-character-sprite sprite-icon sprite-character char-level-1" data-character-sprite="" role="img"></div>
+
+<div aria-label="Hustle Empire character" class="home-character home-character-sprite sprite-icon sprite-frame sprite-character char-level-1" data-character-sprite="" data-sprite-sheet="character" data-sprite-cell="char-level-1" role="img"></div>
 <div class="home-tap-zone">
 <div aria-hidden="true" class="tap-float-layer" id="tap-float-layer"></div>
 <button class="tap-button home-main-tap" type="button">
@@ -111,6 +112,7 @@
 <section class="screen" data-screen="city">
 <div class="city-screen page-layout">
 <div class="city-map-wrapper image-fallback city-map-sprite-background">
+<img class="city-map-image" src="./assets/sprite_city_map_v124.png" alt="" aria-hidden="true" decoding="async" fetchpriority="high"/>
 <button class="city-node poor selected" data-district="poor_block" type="button"><strong>POOR BLOCK</strong><span>LV 1-10</span><small>Starter District</small><i>✓</i></button>
 <button class="city-node center locked" data-district="city_center" type="button"><strong>CITY CENTER</strong><span>LV 11-20</span><small>City Hustles</small><i>🔒</i></button>
 <button class="city-node business locked" data-district="business_district" type="button"><strong>BUSINESS DISTRICT</strong><span>LV 21-30</span><small>Big Business</small><i>🔒</i></button>
@@ -204,7 +206,8 @@
 <div class="wardrobe-dynamic-list" id="wardrobe-dynamic-list"></div>
 </aside>
 <div class="wardrobe-character image-fallback">
-<div aria-label="Character" class="wardrobe-character-image wardrobe-character-sprite sprite-icon sprite-character char-level-1" data-character-sprite="" role="img"></div>
+
+<div aria-label="Character" class="wardrobe-character-image wardrobe-character-sprite sprite-icon sprite-frame sprite-character char-level-1" data-character-sprite="" data-sprite-sheet="character" data-sprite-cell="char-level-1" role="img"></div>
 </div>
 <aside class="outfit-panel">
 <section><h3 data-i18n="wardrobe.outfitProgress">Outfit Progress</h3><strong>🔒</strong><div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div><small data-i18n="wardrobe.unlockSlot">Buy LV 1 to unlock</small></section>
@@ -237,9 +240,9 @@
 </div>
 </section>
 <aside class="premium-shop-column">
-<button class="premium-product" data-action="shop-premium-case"><div class="premium-product-image"><div class="sprite-icon sprite-case case-purple shop-sprite-icon"></div></div><div><strong data-i18n="shop.premiumCase">Premium Case</strong><span data-i18n="shop.premiumCaseDesc">Open a premium case</span><small>♦ 250</small></div></button>
-<button class="premium-product" data-action="shop-outfit"><div class="premium-product-image"><div class="sprite-icon sprite-wardrobe wardrobe-full-suit shop-sprite-icon"></div></div><div><strong data-i18n="shop.outfitSkin">Outfit / Skin</strong><span data-i18n="shop.outfitSkinDesc">Unlock new outfits</span><small>♦ 400</small></div></button>
-<button class="premium-product" data-action="shop-bundle"><div class="premium-product-image bundle-sprite-stack"><div class="sprite-icon sprite-case case-gold shop-sprite-icon bundle-case-sprite"></div><div class="sprite-icon sprite-wardrobe wardrobe-gold-watch shop-sprite-icon bundle-item-sprite"></div></div><div><strong data-i18n="shop.hustleBundle">Hustle Bundle</strong><span data-i18n="shop.hustleBundleDesc">Exceptional value!</span><small>♦ 1,000</small></div></button>
+<button class="premium-product" data-action="shop-premium-case"><div class="premium-product-image"><div class="sprite-icon sprite-frame sprite-case case-purple shop-sprite-icon"></div></div><div><strong data-i18n="shop.premiumCase">Premium Case</strong><span data-i18n="shop.premiumCaseDesc">Open a premium case</span><small>♦ 250</small></div></button>
+<button class="premium-product" data-action="shop-outfit"><div class="premium-product-image"><div class="sprite-icon sprite-frame sprite-wardrobe wardrobe-full-suit shop-sprite-icon"></div></div><div><strong data-i18n="shop.outfitSkin">Outfit / Skin</strong><span data-i18n="shop.outfitSkinDesc">Unlock new outfits</span><small>♦ 400</small></div></button>
+<button class="premium-product" data-action="shop-bundle"><div class="premium-product-image bundle-sprite-stack"><div class="sprite-icon sprite-frame sprite-case case-gold shop-sprite-icon bundle-case-sprite"></div><div class="sprite-icon sprite-frame sprite-wardrobe wardrobe-gold-watch shop-sprite-icon bundle-item-sprite"></div></div><div><strong data-i18n="shop.hustleBundle">Hustle Bundle</strong><span data-i18n="shop.hustleBundleDesc">Exceptional value!</span><small>♦ 1,000</small></div></button>
 <div class="empire-pass"><div class="empire-crown">♛</div><div><strong data-i18n="shop.empirePass">Empire Pass</strong><span data-i18n="shop.empirePassDesc">Unlock your true potential</span></div><button data-action="buy-empire-pass" data-config-price="HUSTLE_PASS_MONTHLY" type="button">250 ★</button></div>
 </aside>
 </div>
@@ -266,7 +269,7 @@
 <div class="reward-resource"><span>♦</span><small data-i18n="cases.gems">Gems</small><strong id="case-reward-gems">+0</strong></div>
 </div>
 <div class="reward-card-preview common" id="case-reward-card">
-<div class="reward-card-image"><div class="sprite-icon sprite-worker worker-rider reward-card-sprite" id="case-reward-card-sprite"></div></div>
+<div class="reward-card-image"><div class="sprite-icon sprite-frame sprite-worker worker-rider reward-card-sprite" id="case-reward-card-sprite"></div></div>
 <span id="case-reward-rarity">COMMON</span>
 <strong id="case-reward-card-name">CARD</strong>
 <small id="case-reward-fragments">+0 FRAGMENTS</small>
@@ -281,7 +284,7 @@
 <span class="section-eyebrow" data-i18n="accessoryCases.newItem">New Item</span>
 <div class="accessory-reward-item" id="accessory-reward-item">
 <div class="accessory-reward-image">
-<div class="sprite-icon sprite-wardrobe wardrobe-rookie-cap accessory-reward-sprite" id="accessory-reward-sprite"></div></div>
+<div class="sprite-icon sprite-frame sprite-wardrobe wardrobe-rookie-cap accessory-reward-sprite" id="accessory-reward-sprite"></div></div>
 <span class="accessory-reward-rarity" id="accessory-reward-rarity">RARE</span>
 <h2 id="accessory-reward-name">ITEM</h2>
 <small id="accessory-reward-slot">ACCESSORY</small>
@@ -321,5 +324,6 @@
 <button class="modal-confirm" data-modal-close="" type="button">OK</button>
 </div>
 </div>
+<!-- HUSTLE_EMPIRE_INDEX_COMPLETE_V12_3 -->
 </body>
 </html>

@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 
-<html lang="en" data-app-version="12.3">
+<html lang="en" data-app-version="12.4">
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
 <meta content="#0b0f19" name="theme-color"/>
 <title>Hustle Empire</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<link href="./style.css?v=12.3" rel="stylesheet"/>
-<script defer="" src="./locales.js?v=12.3"></script>
-<script defer="" src="./config.js?v=12.3"></script>
-<script defer="" src="./script.js?v=12.3"></script>
-<script defer="" src="./game.js?v=12.3"></script>
+<link href="./style.css?v=12.4" rel="stylesheet"/>
+<script defer="" src="./locales.js?v=12.4"></script>
+<script defer="" src="./config.js?v=12.4"></script>
+<script defer="" src="./script.js?v=12.4"></script>
+<script defer="" src="./game.js?v=12.4"></script>
 </head>
 <body>
 <div class="app-shell">
 <header class="topbar">
 <div class="player-level">
 <div class="player-avatar image-fallback header-avatar">
-<div aria-label="Player" class="player-avatar-image player-avatar-sprite sprite-icon sprite-frame sprite-character char-level-1" data-character-sprite="" role="img"></div>
+<div aria-label="Player" class="player-avatar-image player-avatar-sprite sprite-icon sprite-frame sprite-character char-level-1" data-character-sprite="" data-sprite-sheet="character" data-sprite-cell="char-level-1" role="img"></div>
 </div>
 <div class="player-level-content">
 <div class="level-row"><strong>LV 1</strong></div>
@@ -64,7 +64,7 @@
 </aside>
 <div class="home-center image-fallback">
 
-<div aria-label="Hustle Empire character" class="home-character home-character-sprite sprite-icon sprite-frame sprite-character char-level-1" data-character-sprite="" role="img"></div>
+<div aria-label="Hustle Empire character" class="home-character home-character-sprite sprite-icon sprite-frame sprite-character char-level-1" data-character-sprite="" data-sprite-sheet="character" data-sprite-cell="char-level-1" role="img"></div>
 <div class="home-tap-zone">
 <div aria-hidden="true" class="tap-float-layer" id="tap-float-layer"></div>
 <button class="tap-button home-main-tap" type="button">
@@ -112,6 +112,7 @@
 <section class="screen" data-screen="city">
 <div class="city-screen page-layout">
 <div class="city-map-wrapper image-fallback city-map-sprite-background">
+<img class="city-map-image" src="./assets/sprite_city_map_v124.png" alt="" aria-hidden="true" decoding="async" fetchpriority="high"/>
 <button class="city-node poor selected" data-district="poor_block" type="button"><strong>POOR BLOCK</strong><span>LV 1-10</span><small>Starter District</small><i>✓</i></button>
 <button class="city-node center locked" data-district="city_center" type="button"><strong>CITY CENTER</strong><span>LV 11-20</span><small>City Hustles</small><i>🔒</i></button>
 <button class="city-node business locked" data-district="business_district" type="button"><strong>BUSINESS DISTRICT</strong><span>LV 21-30</span><small>Big Business</small><i>🔒</i></button>
@@ -206,7 +207,7 @@
 </aside>
 <div class="wardrobe-character image-fallback">
 
-<div aria-label="Character" class="wardrobe-character-image wardrobe-character-sprite sprite-icon sprite-frame sprite-character char-level-1" data-character-sprite="" role="img"></div>
+<div aria-label="Character" class="wardrobe-character-image wardrobe-character-sprite sprite-icon sprite-frame sprite-character char-level-1" data-character-sprite="" data-sprite-sheet="character" data-sprite-cell="char-level-1" role="img"></div>
 </div>
 <aside class="outfit-panel">
 <section><h3 data-i18n="wardrobe.outfitProgress">Outfit Progress</h3><strong>🔒</strong><div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div><small data-i18n="wardrobe.unlockSlot">Buy LV 1 to unlock</small></section>

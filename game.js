@@ -121,49 +121,330 @@
     premium_legendary: "case-gold"
   };
 
+  const SPRITE_BUILD_VERSION = "12.4";
+
   const OFFICIAL_SPRITE_ASSETS = Object.freeze({
-    character: "./assets/sprite_character_evolution.png?v=12.3",
-    cityMap: "./assets/sprite_city_map.png?v=12.3",
-    businesses: "./assets/sprite_businesses.png?v=12.3",
-    cases: "./assets/sprite_cases.png?v=12.3",
-    workers: "./assets/sprite_cards_workers.png?v=12.3",
-    wardrobe: "./assets/sprite_wardrobe_items.png?v=12.3"
+    character: "./assets/sprite_character_evolution_v124.png",
+    cityMap: "./assets/sprite_city_map_v124.png",
+    businesses: "./assets/sprite_businesses_v124.png",
+    cases: "./assets/sprite_cases_v124.png",
+    workers: "./assets/sprite_cards_workers_v124.png",
+    wardrobe: "./assets/sprite_wardrobe_items_v124.png"
   });
 
-  function preloadOfficialSpriteSheets() {
-    Object.entries(OFFICIAL_SPRITE_ASSETS).forEach(([key, src]) => {
+  /*
+     V12.4: the sprite sheets remain the canonical six source assets, but
+     individual cells are painted into tiny DPR-aware canvases. This removes
+     the WebKit-sensitive dependency on huge CSS background-position crops.
+  */
+  const SPRITE_CELLS = Object.freeze({
+    "char-level-1": { sheet: "character", cols: 2, rows: 2, col: 0, row: 0 },
+    "char-level-2": { sheet: "character", cols: 2, rows: 2, col: 1, row: 0 },
+    "char-level-3": { sheet: "character", cols: 2, rows: 2, col: 0, row: 1 },
+    "char-level-4": { sheet: "character", cols: 2, rows: 2, col: 1, row: 1 },
+
+    "business-hotdog":     { sheet: "businesses", cols: 3, rows: 3, col: 0, row: 0 },
+    "business-laundry":    { sheet: "businesses", cols: 3, rows: 3, col: 1, row: 0 },
+    "business-gym":        { sheet: "businesses", cols: 3, rows: 3, col: 2, row: 0 },
+    "business-barber":     { sheet: "businesses", cols: 3, rows: 3, col: 0, row: 1 },
+    "business-bar":        { sheet: "businesses", cols: 3, rows: 3, col: 1, row: 1 },
+    "business-dealership": { sheet: "businesses", cols: 3, rows: 3, col: 2, row: 1 },
+    "business-nightclub":  { sheet: "businesses", cols: 3, rows: 3, col: 0, row: 2 },
+    "business-crypto":     { sheet: "businesses", cols: 3, rows: 3, col: 1, row: 2 },
+    "business-empire":     { sheet: "businesses", cols: 3, rows: 3, col: 2, row: 2 },
+
+    "worker-rider":      { sheet: "workers", cols: 3, rows: 3, col: 0, row: 0 },
+    "worker-pizza":      { sheet: "workers", cols: 3, rows: 3, col: 1, row: 0 },
+    "worker-trainer":    { sheet: "workers", cols: 3, rows: 3, col: 2, row: 0 },
+    "worker-barber":     { sheet: "workers", cols: 3, rows: 3, col: 0, row: 1 },
+    "worker-bartender":  { sheet: "workers", cols: 3, rows: 3, col: 1, row: 1 },
+    "worker-mechanic":   { sheet: "workers", cols: 3, rows: 3, col: 2, row: 1 },
+    "worker-realtor":    { sheet: "workers", cols: 3, rows: 3, col: 0, row: 2 },
+    "worker-influencer": { sheet: "workers", cols: 3, rows: 3, col: 1, row: 2 },
+    "worker-cfo":        { sheet: "workers", cols: 3, rows: 3, col: 2, row: 2 },
+
+    "wardrobe-rookie-cap":        { sheet: "wardrobe", cols: 4, rows: 4, col: 0, row: 0 },
+    "wardrobe-designer-cap":      { sheet: "wardrobe", cols: 4, rows: 4, col: 1, row: 0 },
+    "wardrobe-urban-sunglasses":  { sheet: "wardrobe", cols: 4, rows: 4, col: 2, row: 0 },
+    "wardrobe-visor":             { sheet: "wardrobe", cols: 4, rows: 4, col: 3, row: 0 },
+    "wardrobe-hoodie":            { sheet: "wardrobe", cols: 4, rows: 4, col: 0, row: 1 },
+    "wardrobe-leather-jacket":    { sheet: "wardrobe", cols: 4, rows: 4, col: 1, row: 1 },
+    "wardrobe-white-suit-jacket": { sheet: "wardrobe", cols: 4, rows: 4, col: 2, row: 1 },
+    "wardrobe-full-suit":         { sheet: "wardrobe", cols: 4, rows: 4, col: 3, row: 1 },
+    "wardrobe-ripped-jeans":      { sheet: "wardrobe", cols: 4, rows: 4, col: 0, row: 2 },
+    "wardrobe-tech-pants":        { sheet: "wardrobe", cols: 4, rows: 4, col: 1, row: 2 },
+    "wardrobe-red-sneakers":      { sheet: "wardrobe", cols: 4, rows: 4, col: 2, row: 2 },
+    "wardrobe-luxury-sneakers":   { sheet: "wardrobe", cols: 4, rows: 4, col: 3, row: 2 },
+    "wardrobe-gold-watch":        { sheet: "wardrobe", cols: 4, rows: 4, col: 0, row: 3 },
+    "wardrobe-gold-chain":        { sheet: "wardrobe", cols: 4, rows: 4, col: 1, row: 3 },
+    "wardrobe-bracelet":          { sheet: "wardrobe", cols: 4, rows: 4, col: 2, row: 3 },
+    "wardrobe-ring":              { sheet: "wardrobe", cols: 4, rows: 4, col: 3, row: 3 },
+
+    "case-wood":    { sheet: "cases", cols: 2, rows: 3, col: 0, row: 0 },
+    "case-leather": { sheet: "cases", cols: 2, rows: 3, col: 1, row: 0 },
+    "case-steel":   { sheet: "cases", cols: 2, rows: 3, col: 0, row: 1 },
+    "case-cyan":    { sheet: "cases", cols: 2, rows: 3, col: 1, row: 1 },
+    "case-purple":  { sheet: "cases", cols: 2, rows: 3, col: 0, row: 2 },
+    "case-gold":    { sheet: "cases", cols: 2, rows: 3, col: 1, row: 2 }
+  });
+
+  const SPRITE_SHEET_CLASS_TO_KEY = Object.freeze({
+    "sprite-character": "character",
+    "sprite-business": "businesses",
+    "sprite-worker": "workers",
+    "sprite-wardrobe": "wardrobe",
+    "sprite-case": "cases"
+  });
+
+  const SPRITE_IMAGES = Object.create(null);
+  let spriteAssetsReady = false;
+  let spriteMutationObserver = null;
+  let spriteResizeObserver = null;
+
+  function resolveAssetUrl(relativePath) {
+    const url = new URL(relativePath, document.baseURI);
+    /* Query cache-busting is safe on HTTP(S), but not on every file:// preview. */
+    if (url.protocol === "http:" || url.protocol === "https:") {
+      url.searchParams.set("v", SPRITE_BUILD_VERSION);
+    }
+    return url.href;
+  }
+
+  function loadSpriteImage(key, relativePath) {
+    return new Promise((resolve) => {
       const image = new Image();
       image.decoding = "async";
-      image.onload = () => {
+      image.onload = async () => {
+        try {
+          if (typeof image.decode === "function") await image.decode();
+        } catch (_) {
+          /* Safari can reject decode() after load; the bitmap is still usable. */
+        }
+        SPRITE_IMAGES[key] = image;
         document.documentElement.dataset[`sprite${key[0].toUpperCase()}${key.slice(1)}`] = "ready";
+        resolve({ key, ok: true, image });
       };
       image.onerror = () => {
-        console.error(`[Hustle Empire] Missing sprite asset: ${key} -> ${src}`);
+        console.error(`[Hustle Empire] Sprite failed to load: ${key} -> ${relativePath}`);
         document.documentElement.dataset.spriteError = key;
+        resolve({ key, ok: false, image: null });
       };
-      image.src = src;
+      image.src = resolveAssetUrl(relativePath);
     });
   }
 
+  async function preloadOfficialSpriteSheets() {
+    const results = await Promise.all(
+      Object.entries(OFFICIAL_SPRITE_ASSETS).map(([key, src]) => loadSpriteImage(key, src))
+    );
+    spriteAssetsReady = results.some((result) => result.ok);
+    document.documentElement.classList.toggle("sprites-ready", spriteAssetsReady);
+    return results;
+  }
+
   window.HustleSpriteAssets = OFFICIAL_SPRITE_ASSETS;
+
+  function findSpriteCellClass(node) {
+    if (!node?.classList) return null;
+    for (const className of node.classList) {
+      if (SPRITE_CELLS[className]) return className;
+    }
+    return node.dataset?.spriteCell || null;
+  }
+
+  function findSpriteSheetKey(node, cellClass = findSpriteCellClass(node)) {
+    if (node?.dataset?.spriteSheet) return node.dataset.spriteSheet;
+    if (cellClass && SPRITE_CELLS[cellClass]) return SPRITE_CELLS[cellClass].sheet;
+    if (node?.classList) {
+      for (const [sheetClass, key] of Object.entries(SPRITE_SHEET_CLASS_TO_KEY)) {
+        if (node.classList.contains(sheetClass)) return key;
+      }
+    }
+    return null;
+  }
 
   function spriteMarkup(sheetClass, cellClass, extraClass = "") {
     const classes = ["sprite-icon", "sprite-frame", sheetClass, cellClass, extraClass]
       .filter(Boolean)
       .join(" ");
-    return `<div class="${classes}" data-sprite-cell="${cellClass}" aria-hidden="true"></div>`;
+    const layout = SPRITE_CELLS[cellClass];
+    const sheetKey = layout?.sheet || SPRITE_SHEET_CLASS_TO_KEY[sheetClass] || "";
+    return `<div class="${classes}" data-sprite-sheet="${sheetKey}" data-sprite-cell="${cellClass}" aria-hidden="true"></div>`;
+  }
+
+  function ensureSpriteCanvas(node) {
+    let canvas = null;
+    for (const child of Array.from(node.children || [])) {
+      if (child.tagName === "CANVAS" && child.classList.contains("sprite-canvas")) {
+        canvas = child;
+        break;
+      }
+    }
+    if (!canvas) {
+      canvas = document.createElement("canvas");
+      canvas.className = "sprite-canvas";
+      canvas.setAttribute("aria-hidden", "true");
+      while (node.firstChild) node.removeChild(node.firstChild);
+      node.appendChild(canvas);
+    }
+    return canvas;
+  }
+
+  function getAvatarFaceCrop(cellClass, sx, sy, sw, sh) {
+    const tune = {
+      "char-level-1": { x: .26, y: .01, w: .48, h: .48 },
+      "char-level-2": { x: .24, y: .01, w: .50, h: .50 },
+      "char-level-3": { x: .25, y: .01, w: .49, h: .49 },
+      "char-level-4": { x: .23, y: 0,   w: .52, h: .52 }
+    }[cellClass] || { x: .24, y: 0, w: .52, h: .52 };
+
+    return {
+      sx: sx + sw * tune.x,
+      sy: sy + sh * tune.y,
+      sw: sw * tune.w,
+      sh: sh * tune.h
+    };
+  }
+
+  function drawSpriteNode(node) {
+    if (!node || !node.isConnected) return false;
+
+    const cellClass = findSpriteCellClass(node);
+    const layout = SPRITE_CELLS[cellClass];
+    const sheetKey = findSpriteSheetKey(node, cellClass);
+    const image = SPRITE_IMAGES[sheetKey];
+    if (!layout || !image || !image.naturalWidth || !image.naturalHeight) return false;
+
+    const rect = node.getBoundingClientRect();
+    const cssWidth = Math.max(1, Math.round(node.clientWidth || rect.width || 64));
+    const cssHeight = Math.max(1, Math.round(node.clientHeight || rect.height || 64));
+    const dpr = Math.min(2, Math.max(1, Number(window.devicePixelRatio) || 1));
+
+    const canvas = ensureSpriteCanvas(node);
+    const pixelWidth = Math.max(1, Math.round(cssWidth * dpr));
+    const pixelHeight = Math.max(1, Math.round(cssHeight * dpr));
+    if (canvas.width !== pixelWidth) canvas.width = pixelWidth;
+    if (canvas.height !== pixelHeight) canvas.height = pixelHeight;
+    canvas.style.width = `${cssWidth}px`;
+    canvas.style.height = `${cssHeight}px`;
+
+    const ctx = canvas.getContext("2d", { alpha: true });
+    if (!ctx) return false;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, cssWidth, cssHeight);
+    ctx.imageSmoothingEnabled = true;
+    if ("imageSmoothingQuality" in ctx) ctx.imageSmoothingQuality = "high";
+
+    const cellWidth = image.naturalWidth / layout.cols;
+    const cellHeight = image.naturalHeight / layout.rows;
+    let sx = cellWidth * layout.col;
+    let sy = cellHeight * layout.row;
+    let sw = cellWidth;
+    let sh = cellHeight;
+
+    const isAvatar = node.classList.contains("player-avatar-sprite");
+    if (isAvatar && sheetKey === "character") {
+      ({ sx, sy, sw, sh } = getAvatarFaceCrop(cellClass, sx, sy, sw, sh));
+    }
+
+    const srcAspect = sw / sh;
+    const dstAspect = cssWidth / cssHeight;
+    let dx = 0;
+    let dy = 0;
+    let dw = cssWidth;
+    let dh = cssHeight;
+
+    if (isAvatar) {
+      /* Cover crop for a circular portrait. */
+      if (srcAspect > dstAspect) {
+        const wantedSw = sh * dstAspect;
+        sx += (sw - wantedSw) / 2;
+        sw = wantedSw;
+      } else if (srcAspect < dstAspect) {
+        const wantedSh = sw / dstAspect;
+        sy += (sh - wantedSh) / 2;
+        sh = wantedSh;
+      }
+    } else if (srcAspect > dstAspect) {
+      dh = cssWidth / srcAspect;
+      dy = (cssHeight - dh) / 2;
+    } else {
+      dw = cssHeight * srcAspect;
+      dx = (cssWidth - dw) / 2;
+    }
+
+    ctx.drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh);
+    node.dataset.spriteRendered = "true";
+    return true;
+  }
+
+  function renderSpriteTree(root = document) {
+    if (!spriteAssetsReady) return;
+    const nodes = [];
+    if (root?.matches?.(".sprite-icon")) nodes.push(root);
+    root?.querySelectorAll?.(".sprite-icon").forEach((node) => nodes.push(node));
+    nodes.forEach((node) => drawSpriteNode(node));
+  }
+
+  function scheduleSpriteRender(root = document) {
+    requestAnimationFrame(() => renderSpriteTree(root));
   }
 
   function normalizeSpriteFrames() {
     document.querySelectorAll(".sprite-icon").forEach((node) => {
       node.classList.add("sprite-frame");
+      const cellClass = findSpriteCellClass(node);
+      const sheetKey = findSpriteSheetKey(node, cellClass);
+      if (cellClass) node.dataset.spriteCell = cellClass;
+      if (sheetKey) node.dataset.spriteSheet = sheetKey;
     });
 
     document.querySelectorAll('img[src*="sprite_"]').forEach((image) => {
-      image.hidden = true;
-      image.setAttribute("aria-hidden", "true");
+      if (!image.classList.contains("city-map-image")) {
+        image.hidden = true;
+        image.setAttribute("aria-hidden", "true");
+      }
     });
   }
+
+  function installSpriteRendererObservers() {
+    if (typeof ResizeObserver === "function") {
+      spriteResizeObserver = new ResizeObserver((entries) => {
+        entries.forEach((entry) => drawSpriteNode(entry.target));
+      });
+      document.querySelectorAll(".sprite-icon").forEach((node) => spriteResizeObserver.observe(node));
+    }
+
+    spriteMutationObserver = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        mutation.addedNodes.forEach((added) => {
+          if (!(added instanceof Element)) return;
+          normalizeSpriteFrames();
+          if (spriteResizeObserver) {
+            if (added.matches(".sprite-icon")) spriteResizeObserver.observe(added);
+            added.querySelectorAll?.(".sprite-icon").forEach((node) => spriteResizeObserver.observe(node));
+          }
+          scheduleSpriteRender(added);
+        });
+      }
+    });
+    spriteMutationObserver.observe(document.body, { childList: true, subtree: true });
+
+    window.addEventListener("resize", () => scheduleSpriteRender(document), { passive: true });
+    window.addEventListener("orientationchange", () => setTimeout(() => scheduleSpriteRender(document), 80), { passive: true });
+  }
+
+  window.HustleSpriteDiagnostics = () => ({
+    version: SPRITE_BUILD_VERSION,
+    assets: Object.fromEntries(Object.entries(OFFICIAL_SPRITE_ASSETS).map(([key, src]) => [key, {
+      src: resolveAssetUrl(src),
+      loaded: Boolean(SPRITE_IMAGES[key]?.naturalWidth),
+      width: SPRITE_IMAGES[key]?.naturalWidth || 0,
+      height: SPRITE_IMAGES[key]?.naturalHeight || 0
+    }])),
+    renderedNodes: document.querySelectorAll('[data-sprite-rendered="true"]').length,
+    totalNodes: document.querySelectorAll(".sprite-icon").length
+  });
 
   function getCharacterStage(level = state?.level || 1) {
     const safeLevel = Math.max(1, Math.floor(Number(level) || 1));
@@ -176,9 +457,13 @@
   function applyCharacterSpriteStage(element, level = state?.level || 1) {
     if (!element) return;
     const stage = getCharacterStage(level);
+    const cellClass = `char-level-${stage}`;
     element.classList.remove("char-level-1", "char-level-2", "char-level-3", "char-level-4");
-    element.classList.add(`char-level-${stage}`);
+    element.classList.add(cellClass);
     element.dataset.characterStage = String(stage);
+    element.dataset.spriteSheet = "character";
+    element.dataset.spriteCell = cellClass;
+    if (spriteAssetsReady) scheduleSpriteRender(element);
   }
 
   const COLLECTION_CONFIG = CONFIG.COLLECTION || {};
@@ -1254,7 +1539,7 @@
       roll -= Number(weight || 0);
       if (roll <= 0) return rarity;
     }
-    return entries.at(-1)?.[0] || "common";
+    return (entries.length ? entries[entries.length - 1][0] : "common");
   }
 
   function randomInt(min, max) {
@@ -2204,8 +2489,40 @@
      EVENTS / LOOP / ADMIN
   ========================================================== */
 
+  function bindTapControl() {
+    const button = document.querySelector(".tap-button");
+    if (!button) return;
+
+    let lastActivationAt = 0;
+    let touchFallbackAt = 0;
+
+    const activate = (event) => {
+      if (event.type === "pointerdown" && event.pointerType === "mouse" && event.button !== 0) return;
+      if (event.cancelable) event.preventDefault();
+
+      const now = performance.now();
+      if (now - lastActivationAt < 70) return;
+      lastActivationAt = now;
+      tap();
+    };
+
+    if ("PointerEvent" in window) {
+      button.addEventListener("pointerdown", activate, { passive: false });
+    } else {
+      button.addEventListener("touchstart", (event) => {
+        touchFallbackAt = Date.now();
+        activate(event);
+      }, { passive: false });
+
+      button.addEventListener("click", (event) => {
+        if (Date.now() - touchFallbackAt < 650) return;
+        activate(event);
+      });
+    }
+  }
+
   function bindUIEvents() {
-    document.querySelector(".tap-button")?.addEventListener("click", tap);
+    bindTapControl();
 
     document.addEventListener("click", (event) => {
       const hustleButton = event.target.closest("[data-hustle-run]");
@@ -2364,9 +2681,11 @@
     renderRandomEvent();
   }
 
-  function initGame() {
-    preloadOfficialSpriteSheets();
+  async function initGame() {
+    document.documentElement.classList.add("sprites-loading");
     normalizeSpriteFrames();
+    const spritePreloadPromise = preloadOfficialSpriteSheets();
+
     recomputeDerivedState();
     regenerateEnergy();
     const offlineIncome = processOfflineIncome();
@@ -2379,6 +2698,16 @@
     renderAllDynamic();
     updateUI();
     updateHomeMetaUI(offlineIncome);
+
+    /*
+       Do not paint any CSS sprite sheet before its bitmap is decoded.
+       This is especially important in Telegram's WKWebView on iOS.
+    */
+    await spritePreloadPromise;
+    normalizeSpriteFrames();
+    installSpriteRendererObservers();
+    renderSpriteTree(document);
+    document.documentElement.classList.remove("sprites-loading");
 
     setInterval(gameTick, GAME_TICK_INTERVAL);
     setInterval(saveGame, AUTO_SAVE_INTERVAL);
@@ -2393,8 +2722,14 @@
         saveGame();
         renderAllDynamic();
         updateUI();
+        scheduleSpriteRender(document);
       }
     });
+
+    window.addEventListener("pageshow", () => {
+      /* WKWebView can restore a frozen page from the back/foreground cache. */
+      setTimeout(() => scheduleSpriteRender(document), 0);
+    }, { passive: true });
 
     window.addEventListener("beforeunload", () => {
       processPassiveIncome();
@@ -2404,6 +2739,7 @@
     window.addEventListener("hustle:languageChanged", () => {
       renderAllDynamic();
       updateUI();
+      scheduleSpriteRender(document);
     });
 
     emitGameEvent("ready", {
@@ -2411,7 +2747,8 @@
       config: CONFIG,
       offlineIncome,
       playerStats: computePlayerStats(state),
-      collection: getCollectionSummary()
+      collection: getCollectionSummary(),
+      sprites: window.HustleSpriteDiagnostics?.()
     });
   }
 

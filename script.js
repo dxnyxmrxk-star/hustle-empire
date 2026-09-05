@@ -13,13 +13,28 @@
   let activeScreen = "home";
   let currentLanguage = DEFAULT_LANGUAGE;
 
+  function syncTelegramViewport() {
+    const tg = window.Telegram?.WebApp;
+    const rawHeight = Number(tg?.viewportStableHeight || tg?.viewportHeight || window.innerHeight || 0);
+    if (rawHeight > 0) {
+      document.documentElement.style.setProperty("--tg-viewport-height", `${Math.round(rawHeight)}px`);
+    }
+  }
+
   function initTelegram() {
     const tg = window.Telegram?.WebApp;
+
+    syncTelegramViewport();
+    window.addEventListener("resize", syncTelegramViewport, { passive: true });
+    window.addEventListener("orientationchange", () => setTimeout(syncTelegramViewport, 80), { passive: true });
+
     if (!tg) return;
     try {
       tg.ready();
       tg.expand();
+      syncTelegramViewport();
       if (typeof tg.disableVerticalSwipes === "function") tg.disableVerticalSwipes();
+      if (typeof tg.onEvent === "function") tg.onEvent("viewportChanged", syncTelegramViewport);
     } catch (error) {
       console.warn("[Hustle Empire] Telegram:", error);
     }

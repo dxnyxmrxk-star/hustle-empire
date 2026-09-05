@@ -3116,7 +3116,7 @@ img[src*="sprite_cases"] {
    2) SHEET DEFINITIONS
 ---------------------------------------------------------- */
 .sprite-character {
-  background-image: url("./assets/sprite_character_evolution.png?v=12.3") !important;
+  background-image: url("./assets/sprite_character_evolution_v124.png?v=12.3") !important;
   background-size: 200% 200% !important;
   aspect-ratio: 1 / 1;
 }
@@ -3126,7 +3126,7 @@ img[src*="sprite_cases"] {
 .char-level-4 { background-position: 100% 100% !important; }
 
 .sprite-business {
-  background-image: url("./assets/sprite_businesses.png?v=12.3") !important;
+  background-image: url("./assets/sprite_businesses_v124.png?v=12.3") !important;
   background-size: 300% 300% !important;
   aspect-ratio: 1 / 1;
 }
@@ -3141,7 +3141,7 @@ img[src*="sprite_cases"] {
 .business-empire     { background-position: 100% 100% !important; }
 
 .sprite-worker {
-  background-image: url("./assets/sprite_cards_workers.png?v=12.3") !important;
+  background-image: url("./assets/sprite_cards_workers_v124.png?v=12.3") !important;
   background-size: 300% 300% !important;
   aspect-ratio: 1 / 1;
 }
@@ -3156,7 +3156,7 @@ img[src*="sprite_cases"] {
 .worker-cfo        { background-position: 100% 100% !important; }
 
 .sprite-wardrobe {
-  background-image: url("./assets/sprite_wardrobe_items.png?v=12.3") !important;
+  background-image: url("./assets/sprite_wardrobe_items_v124.png?v=12.3") !important;
   background-size: 400% 400% !important;
   aspect-ratio: 1 / 1;
 }
@@ -3179,7 +3179,7 @@ img[src*="sprite_cases"] {
 
 /* Sheet is 1122x1402. Each 2x3 cell is ~561x467 -> aspect ~1.20. */
 .sprite-case {
-  background-image: url("./assets/sprite_cases.png?v=12.3") !important;
+  background-image: url("./assets/sprite_cases_v124.png?v=12.3") !important;
   background-size: 200% 300% !important;
   width: var(--sprite-case-w);
   height: var(--sprite-case-h);
@@ -3479,7 +3479,7 @@ img[src*="sprite_cases"] {
   min-height: clamp(300px, 62vw, 390px) !important;
   background-image:
     linear-gradient(180deg, rgba(4,11,20,.02), rgba(4,11,20,.12)),
-    url("./assets/sprite_city_map.png?v=12.3") !important;
+    url("./assets/sprite_city_map_v124.png?v=12.3") !important;
   background-size: cover !important;
   background-position: center center !important;
   background-repeat: no-repeat !important;
@@ -3561,4 +3561,193 @@ img[src*="sprite_cases"] {
   .city-map-wrapper .city-node strong { font-size: 6px !important; }
   .city-map-wrapper .city-node span,
   .city-map-wrapper .city-node small { font-size: 5px !important; }
+}
+
+/* ==========================================================
+   V12.4 — TELEGRAM iOS / WEBKIT SAFE SPRITE RENDERER
+   Canonical assets remain the six sprite sheets. Individual
+   cells are drawn by game.js into DPR-aware canvases.
+========================================================== */
+
+:root {
+  --tg-viewport-height: 100vh;
+}
+
+@supports (height: 100svh) {
+  :root { --tg-viewport-height: 100svh; }
+}
+
+html,
+body {
+  width: 100%;
+  height: var(--tg-viewport-height, 100vh) !important;
+  min-height: var(--tg-viewport-height, 100vh) !important;
+  overscroll-behavior: none;
+}
+
+body {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.app-shell {
+  height: var(--tg-viewport-height, 100vh) !important;
+  min-height: var(--tg-viewport-height, 100vh) !important;
+  max-height: var(--tg-viewport-height, 100vh) !important;
+}
+
+/* Never let WebKit paint the whole source sheet as a CSS background. */
+.sprite-icon,
+.sprite-frame,
+.sprite-character,
+.sprite-business,
+.sprite-worker,
+.sprite-wardrobe,
+.sprite-case {
+  position: relative !important;
+  overflow: hidden !important;
+  background-image: none !important;
+  background-size: auto !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  contain: none !important;
+  isolation: isolate;
+}
+
+.sprite-canvas {
+  position: absolute !important;
+  z-index: 1;
+  inset: 0 !important;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  pointer-events: none !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -webkit-touch-callout: none !important;
+}
+
+/* Loading state: blank crop window is better than flashing a giant sheet. */
+.sprites-loading .sprite-icon {
+  background: transparent !important;
+}
+
+/* Header avatar is a dedicated face crop rendered by canvas. */
+.player-avatar,
+.header-avatar,
+.player-avatar-sprite {
+  border-radius: 50% !important;
+  overflow: hidden !important;
+}
+
+.player-avatar-sprite .sprite-canvas {
+  border-radius: 50%;
+}
+
+/* Main character crop windows must stay inside their panels. */
+.home-center,
+.wardrobe-character {
+  overflow: hidden !important;
+  isolation: isolate;
+}
+
+.home-character-sprite.sprite-character {
+  width: min(88%, 340px) !important;
+  height: min(calc(100% - 70px), 390px) !important;
+  max-width: 88% !important;
+  max-height: calc(100% - 70px) !important;
+  left: 50% !important;
+  bottom: 58px !important;
+  transform: translateX(-50%) !important;
+}
+
+.wardrobe-character-sprite.sprite-character {
+  width: min(88%, 320px) !important;
+  height: min(92%, 360px) !important;
+  max-width: 88% !important;
+  max-height: 92% !important;
+  left: 50% !important;
+  bottom: 8px !important;
+  transform: translateX(-50%) !important;
+}
+
+/* Actual <img> for the map: more reliable than a CSS background in WKWebView. */
+.city-map-wrapper.city-map-sprite-background {
+  position: relative !important;
+  overflow: hidden !important;
+  background: #07111b !important;
+}
+
+.city-map-image {
+  position: absolute !important;
+  z-index: 0 !important;
+  inset: 0 !important;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  object-fit: cover !important;
+  object-position: center center !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -webkit-user-drag: none !important;
+  pointer-events: none !important;
+}
+
+.city-map-wrapper::after {
+  z-index: 1 !important;
+  pointer-events: none !important;
+}
+
+.city-map-wrapper .city-node {
+  z-index: 4 !important;
+}
+
+/* Tapping must remain reachable above every visual layer. */
+.home-tap-zone,
+.home-main-tap,
+.tap-button {
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+}
+
+.home-main-tap {
+  z-index: 20 !important;
+}
+
+/* Canvas crops inherit the existing edge-safe scale rules without exposing sheets. */
+.business-live-image,
+.district-business-image,
+.compact-card-image,
+.exclusive-card-image,
+.reward-card-image,
+.wardrobe-item-icon,
+.catalog-item-image,
+.accessory-reward-image,
+.real-case-art,
+.free-accessory-icon,
+.premium-accessory-case-icon,
+.premium-product-image {
+  overflow: hidden !important;
+}
+
+@media (max-width: 430px) {
+  .home-character-sprite.sprite-character {
+    width: min(84vw, 290px) !important;
+    height: min(calc(100% - 68px), 325px) !important;
+    bottom: 54px !important;
+  }
+
+  .wardrobe-character-sprite.sprite-character {
+    width: min(76vw, 270px) !important;
+    height: min(88%, 305px) !important;
+  }
+
+  .city-map-wrapper.city-map-sprite-background {
+    min-height: 300px !important;
+  }
 }
