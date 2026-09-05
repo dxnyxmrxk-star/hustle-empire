@@ -10922,3 +10922,335 @@ body.social-tasks-modal-open {
   }
 }
 
+
+/* ==========================================================
+   V18.5 — IMAGE / MEDIA RENDERING FIX
+   Cases + Shop + Wardrobe
+   Source assets are square PNGs; containers preserve ratio.
+   Keep this block LAST.
+========================================================== */
+
+/* Generic component media contract */
+.media-frame {
+  box-sizing: border-box !important;
+  position: relative !important;
+  display: grid !important;
+  place-items: center !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+.media-frame-square {
+  aspect-ratio: 1 / 1 !important;
+}
+
+.media-object-contain,
+.media-frame > img.asset-direct-image,
+.media-frame > img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  margin: auto !important;
+  object-fit: contain !important;
+  object-position: center center !important;
+  transform-origin: center center !important;
+}
+
+/* ----------------------------------------------------------
+   CASES
+---------------------------------------------------------- */
+
+/*
+   Do not stretch a square chest PNG into a full-width rectangle.
+   The visual frame itself stays square and centered.
+*/
+.screen[data-screen="cases"] .real-case-art {
+  width: min(100%, 154px) !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-width: 154px !important;
+  max-height: 154px !important;
+  aspect-ratio: 1 / 1 !important;
+  align-self: center !important;
+  justify-self: center !important;
+  margin: 0 auto !important;
+  padding: 5px !important;
+}
+
+.screen[data-screen="cases"] .real-case-art > img.asset-direct-image {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 94% !important;
+  max-height: 94% !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  transform: none !important;
+}
+
+/* Free accessory chest */
+.screen[data-screen="cases"] .free-accessory-icon {
+  width: 92px !important;
+  height: auto !important;
+  max-width: 92px !important;
+  max-height: 92px !important;
+  aspect-ratio: 1 / 1 !important;
+  align-self: center !important;
+  padding: 4px !important;
+}
+
+.screen[data-screen="cases"] .free-accessory-icon > img.asset-direct-image {
+  max-width: 92% !important;
+  max-height: 92% !important;
+  object-fit: contain !important;
+  transform: none !important;
+}
+
+/* Premium accessory cases */
+.screen[data-screen="cases"] .premium-accessory-case-icon {
+  width: min(100%, 112px) !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-width: 112px !important;
+  max-height: 112px !important;
+  aspect-ratio: 1 / 1 !important;
+  align-self: center !important;
+  margin-inline: auto !important;
+  padding: 4px !important;
+}
+
+.screen[data-screen="cases"] .premium-accessory-case-icon > img.asset-direct-image {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 94% !important;
+  max-height: 94% !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  transform: none !important;
+}
+
+/* ----------------------------------------------------------
+   WARDROBE / ACCESSORY CATALOG
+---------------------------------------------------------- */
+
+/* Equipment row icon: true square hit/visual box. */
+.screen[data-screen="wardrobe"] .wardrobe-item-icon {
+  width: 44px !important;
+  height: auto !important;
+  min-width: 44px !important;
+  min-height: 0 !important;
+  max-width: 44px !important;
+  max-height: 44px !important;
+  aspect-ratio: 1 / 1 !important;
+  padding: 2px !important;
+}
+
+.screen[data-screen="wardrobe"] .wardrobe-item-icon > img.asset-direct-image {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 94% !important;
+  max-height: 94% !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  transform: none !important;
+}
+
+/* Catalog cards: square image zone regardless of column width. */
+.catalog-item-image.media-frame {
+  width: min(100%, 126px) !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-width: 126px !important;
+  max-height: 126px !important;
+  aspect-ratio: 1 / 1 !important;
+  margin-inline: auto !important;
+  padding: 7px !important;
+}
+
+.catalog-item-image.media-frame > img.asset-direct-image {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 92% !important;
+  max-height: 92% !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  transform: none !important;
+}
+
+/* Reward modal uses the same square object contract. */
+.accessory-reward-image.media-frame {
+  width: min(100%, 190px) !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-width: 190px !important;
+  max-height: 190px !important;
+  aspect-ratio: 1 / 1 !important;
+  margin-inline: auto !important;
+  padding: 8px !important;
+}
+
+.accessory-reward-image.media-frame > img,
+.accessory-reward-image.media-frame > .asset-direct-image {
+  max-width: 92% !important;
+  max-height: 92% !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  transform: none !important;
+}
+
+/* ----------------------------------------------------------
+   SHOP
+---------------------------------------------------------- */
+
+/*
+   V18.4 mobile made the frame 44x58 while the icon remained 58x58.
+   Make both the frame and image proportional at every breakpoint.
+*/
+.screen[data-screen="shop"] .premium-product {
+  grid-template-columns: 62px minmax(0, 1fr) !important;
+}
+
+.screen[data-screen="shop"] .premium-product-image.media-frame {
+  width: 58px !important;
+  height: auto !important;
+  min-width: 58px !important;
+  min-height: 0 !important;
+  max-width: 58px !important;
+  max-height: 58px !important;
+  aspect-ratio: 1 / 1 !important;
+  align-self: center !important;
+  justify-self: center !important;
+  padding: 4px !important;
+}
+
+.screen[data-screen="shop"] .premium-product-image.media-frame > img.asset-direct-image,
+.screen[data-screen="shop"] .premium-product-image .shop-sprite-icon {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 88% !important;
+  max-height: 88% !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  transform: none !important;
+}
+
+/* Bundle: keep both square source assets inside the same square frame. */
+.screen[data-screen="shop"] .bundle-sprite-stack {
+  isolation: isolate !important;
+}
+
+.screen[data-screen="shop"] .bundle-sprite-stack .bundle-case-sprite {
+  position: absolute !important;
+  z-index: 1 !important;
+  left: 3px !important;
+  bottom: 3px !important;
+  width: 72% !important;
+  height: 72% !important;
+  max-width: 72% !important;
+  max-height: 72% !important;
+  object-fit: contain !important;
+  transform: none !important;
+}
+
+.screen[data-screen="shop"] .bundle-sprite-stack .bundle-item-sprite {
+  position: absolute !important;
+  z-index: 2 !important;
+  top: 3px !important;
+  right: 2px !important;
+  width: 52% !important;
+  height: 52% !important;
+  max-width: 52% !important;
+  max-height: 52% !important;
+  object-fit: contain !important;
+  transform: rotate(6deg) !important;
+  transform-origin: center !important;
+  filter: drop-shadow(0 3px 5px rgba(0,0,0,.42));
+}
+
+/* ----------------------------------------------------------
+   RESPONSIVE IMAGE SIZES
+---------------------------------------------------------- */
+@media (max-width: 480px) {
+  .screen[data-screen="cases"] .real-case-art {
+    width: min(100%, 132px) !important;
+    max-width: 132px !important;
+    max-height: 132px !important;
+  }
+
+  .screen[data-screen="cases"] .premium-accessory-case-icon {
+    width: min(100%, 98px) !important;
+    max-width: 98px !important;
+    max-height: 98px !important;
+  }
+
+  .screen[data-screen="shop"] .premium-product {
+    grid-template-columns: 52px minmax(0, 1fr) !important;
+  }
+
+  .screen[data-screen="shop"] .premium-product-image.media-frame {
+    width: 48px !important;
+    min-width: 48px !important;
+    max-width: 48px !important;
+    max-height: 48px !important;
+  }
+
+  .catalog-item-image.media-frame {
+    width: min(100%, 112px) !important;
+    max-width: 112px !important;
+    max-height: 112px !important;
+  }
+}
+
+@media (max-width: 350px) {
+  .screen[data-screen="cases"] .real-case-art {
+    width: min(100%, 146px) !important;
+    max-width: 146px !important;
+    max-height: 146px !important;
+  }
+
+  .screen[data-screen="shop"] .premium-product-image.media-frame {
+    width: 52px !important;
+    min-width: 52px !important;
+    max-width: 52px !important;
+    max-height: 52px !important;
+  }
+
+  .catalog-item-image.media-frame {
+    width: min(100%, 128px) !important;
+    max-width: 128px !important;
+    max-height: 128px !important;
+  }
+}
+
+
+/* ==========================================================
+   V18.6 — HUD TROPHY / LEADERBOARD BUTTON STATE
+========================================================== */
+
+.topbar.topbar-compact .leaderboard-hud-button {
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.topbar.topbar-compact .leaderboard-hud-button:active {
+  transform: scale(.94);
+  filter: brightness(.96);
+}
+
+.topbar.topbar-compact .leaderboard-hud-button.is-active,
+.topbar.topbar-compact .leaderboard-hud-button[aria-pressed="true"] {
+  color: #ffe075 !important;
+  background:
+    radial-gradient(circle at 50% 40%, rgba(255,216,92,.19), rgba(255,216,92,.05))
+    !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,216,92,.24),
+    0 0 12px rgba(255,216,92,.16) !important;
+  text-shadow:
+    0 0 8px rgba(255,216,92,.62),
+    0 0 15px rgba(255,216,92,.24) !important;
+}
+

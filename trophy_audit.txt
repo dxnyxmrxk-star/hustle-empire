@@ -1,0 +1,33 @@
+URBAN TYCOON V18.6 — TROPHY / LEADERBOARD STATIC AUDIT
+
+Root cause:
+- HUD trophy had data-nav="leaderboard".
+- The old/legacy navigation flow is designed around the six bottom .nav-item tabs.
+- game.js had a click listener that only called renderLeaderboard(); it never
+  added .active to #leaderboard-screen.
+- Result: the leaderboard data could render in the background while the visible
+  screen never changed.
+
+Fix:
+- Trophy now uses data-action="open-leaderboard".
+- Direct native-button click listener is bound in bindLeaderboardHudButton().
+- openLeaderboardScreen() explicitly:
+  1. deactivates the current .screen,
+  2. activates #leaderboard-screen,
+  3. clears bottom-nav selected state,
+  4. forces leaderboard render,
+  5. updates season countdown,
+  6. emits screenChanged,
+  7. updates aria-pressed / active trophy state.
+- Public API added: HustleGame.leaderboard.open() and .isOpen().
+- Enter/Space keyboard activation is inherited from the native <button>.
+
+Validation:
+- game.js node --check: OK
+- translations.js node --check: OK
+- obsolete render-only [data-nav="leaderboard"] listener: removed
+- HUD button has explicit direct action + aria state
+- CSS active/pressed state: present
+- CSS brace balance: OK
+
+No browser/Telegram runtime console test was performed in this environment.

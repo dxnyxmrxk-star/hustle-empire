@@ -61,7 +61,7 @@
      CSS/UI frame overlay rendered above it.
   ========================================================== */
 
-  const SPRITE_BUILD_VERSION = "18.4";
+  const SPRITE_BUILD_VERSION = "18.6";
 
   const REAL_GAME_ASSET_PATHS = Object.freeze([
     "assets/acc_epic.png",
@@ -819,10 +819,10 @@
   function directAssetMarkup(assetPath, extraClass = "") {
     const safePath = normalizeRelativeAssetPath(assetPath);
     if (!safePath || !REAL_GAME_ASSET_PATH_SET.has(safePath)) {
-      return `<img class="asset-direct-image ${extraClass}" src="${TRANSPARENT_ASSET_PLACEHOLDER}" alt="" aria-hidden="true" draggable="false">`;
+      return `<img class="asset-direct-image media-object-contain ${extraClass}" src="${TRANSPARENT_ASSET_PLACEHOLDER}" alt="" aria-hidden="true" draggable="false">`;
     }
 
-    return `<img class="asset-direct-image ${extraClass}" src="${resolveAssetUrl(safePath)}" alt="" aria-hidden="true" draggable="false" decoding="async">`;
+    return `<img class="asset-direct-image media-object-contain ${extraClass}" src="${resolveAssetUrl(safePath)}" alt="" aria-hidden="true" draggable="false" decoding="async">`;
   }
 
   function spriteMarkup(_sheetClass, cellClass, extraClass = "") {
@@ -4660,7 +4660,7 @@
 
       return `
         <article class="real-case-card ${ready ? "ready" : ""} ${caseId === "case_24h" ? "case-24h" : ""}">
-          <div class="real-case-art">${spriteMarkup("sprite-case", caseClass)}</div>
+          <div class="real-case-art media-frame media-frame-square">${spriteMarkup("sprite-case", caseClass)}</div>
           <strong class="real-case-name">${getTimedCaseDisplayName(caseId, cfg)}</strong>
           <span class="real-case-duration">${tr("cases.durationHours", { hours })}</span>
           <div class="case-live-timer">${ready ? tr("cases.ready") : formatCaseCountdown(remaining)}</div>
@@ -4842,7 +4842,7 @@
 
     container.innerHTML = `
       <article class="free-accessory-card">
-        <div class="free-accessory-icon">${spriteMarkup("sprite-case", caseClass)}</div>
+        <div class="free-accessory-icon media-frame media-frame-square">${spriteMarkup("sprite-case", caseClass)}</div>
         <div class="free-accessory-content">
           <strong>${getAccessoryCaseDisplayName("free_accessory", cfg)}</strong>
           <span class="free-accessory-timer">${ready ? tr("accessoryCases.ready") : formatCaseCountdown(remaining)}</span>
@@ -4873,7 +4873,7 @@
 
       return `
         <article class="premium-accessory-case ${rarity}">
-          <div class="premium-accessory-case-icon">${spriteMarkup("sprite-case", caseClass)}</div>
+          <div class="premium-accessory-case-icon media-frame media-frame-square">${spriteMarkup("sprite-case", caseClass)}</div>
           <strong>${getAccessoryCaseDisplayName(caseId, cfg)}</strong>
           <small>${tr(`rarity.${rarity}`)}</small>
           <button class="buy-accessory-case" type="button" data-premium-accessory-open="${caseId}" ${canAfford && availableItems ? "" : "disabled"}>
@@ -4954,7 +4954,7 @@
 
       return `
         <article class="catalog-item ${cfg.rarity} ${itemState.unlocked ? "unlocked" : "locked"}">
-          <div class="catalog-item-image">
+          <div class="catalog-item-image media-frame media-frame-square">
             ${spriteMarkup("sprite-wardrobe", spriteClass)}
             ${itemState.unlocked ? "" : '<span class="catalog-lock-icon">🔒</span>'}
           </div>
@@ -5359,7 +5359,7 @@
       const spriteClass = EQUIPMENT_SPRITE_CLASS[equipmentId] || "wardrobe-watch";
       const displayLevel = es.unlocked ? es.level : 0;
       row.innerHTML = `
-        <div class="wardrobe-item-icon">${spriteMarkup("sprite-wardrobe", spriteClass)}</div>
+        <div class="wardrobe-item-icon media-frame media-frame-square">${spriteMarkup("sprite-wardrobe", spriteClass)}</div>
         <span class="equipment-row-copy">
           <strong>${getEquipmentLocalizedName(equipmentId)}</strong>
           <small>${tr("common.levelShort")} ${displayLevel}</small>
@@ -7252,8 +7252,126 @@
     }
   }
 
+  function syncLeaderboardHudButtonState() {
+    const button = document.querySelector(".leaderboard-hud-button");
+    const screen = document.getElementById("leaderboard-screen");
+    if (!button || !screen) return false;
+
+    const isOpen = screen.classList.contains("active");
+
+    button.classList.toggle("is-active", isOpen);
+    button.setAttribute("aria-pressed", isOpen ? "true" : "false");
+
+    return isOpen;
+  }
+
+  function openLeaderboardScreen(options = {}) {
+    const screen = document.getElementById("leaderboard-screen");
+    const button = document.querySelector(".leaderboard-hud-button");
+
+    if (!screen) {
+      console.error(
+        "[Urban Tycoon] Cannot open leaderboard: #leaderboard-screen is missing."
+      );
+      return false;
+    }
+
+    /*
+       The old HUD trophy used only data-nav="leaderboard".
+       Legacy navigation handles the six .nav-item buttons and therefore did
+       not reliably activate this seventh HUD-only screen.
+       Activate the screen explicitly here.
+    */
+    document.querySelectorAll(".screens > .screen").forEach((candidate) => {
+      candidate.classList.toggle("active", candidate === screen);
+    });
+
+    /*
+       Leaderboard has no bottom-navigation tab, so none of those six tabs
+       should remain visually selected while this screen is open.
+    */
+    document
+      .querySelectorAll(".bottom-navigation .nav-item.active")
+      .forEach((navItem) => navItem.classList.remove("active"));
+
+    if (button) {
+      button.classList.add("is-active");
+      button.setAttribute("aria-pressed", "true");
+    }
+
+    leaderboardLastRenderSignature = "";
+    renderLeaderboard({ force: true });
+    updateLeaderboardSeasonCountdown();
+
+    requestAnimationFrame(() => {
+      /*
+         Keep the newly opened page at its top without moving the fixed HUD.
+      */
+      const screens = document.querySelector(".screens");
+      if (screens && typeof screens.scrollTo === "function") {
+        screens.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      }
+
+      if (options.focus === true) {
+        const heading = screen.querySelector("h1");
+        if (heading) {
+          heading.setAttribute("tabindex", "-1");
+          heading.focus({ preventScroll: true });
+        }
+      }
+    });
+
+    emitGameEvent("screenChanged", {
+      screen: "leaderboard",
+      source: options.source || "hud-trophy"
+    });
+
+    return true;
+  }
+
+  function bindLeaderboardHudButton() {
+    const button = document.querySelector(".leaderboard-hud-button");
+    if (!button || button.dataset.leaderboardBound === "true") {
+      syncLeaderboardHudButtonState();
+      return;
+    }
+
+    button.dataset.leaderboardBound = "true";
+
+    /*
+       Bind directly to the real <button>. This runs before document-level
+       legacy handlers and makes the visual button exactly the click target.
+       Keyboard Enter/Space works automatically because it is a native button.
+    */
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      openLeaderboardScreen({
+        source: "hud-trophy",
+        focus: false
+      });
+    });
+
+    /*
+       When the user leaves the leaderboard through one of the six bottom
+       tabs, let the legacy router switch pages first and then mirror the
+       resulting state on the trophy button.
+    */
+    document.addEventListener("click", (event) => {
+      if (!event.target?.closest?.(".bottom-navigation .nav-item[data-nav]")) {
+        return;
+      }
+
+      requestAnimationFrame(syncLeaderboardHudButtonState);
+    });
+
+    syncLeaderboardHudButtonState();
+  }
+
   function bindUIEvents() {
     bindTapControl();
+    bindLeaderboardHudButton();
 
     /*
        Capture these two legacy generic-modal actions before script.js bubble
@@ -7508,15 +7626,6 @@
     });
   }
 
-
-  document.addEventListener("click", (event) => {
-    const trigger = event.target?.closest?.('[data-nav="leaderboard"]');
-    if (!trigger) return;
-
-    requestAnimationFrame(() => {
-      renderLeaderboard({ force: true });
-    });
-  });
 
   function gameTick() {
     regenerateEnergy();
@@ -7957,6 +8066,10 @@
         boost: getLeaderboardFlashBoostState()
       }),
       purchaseFlashOffer: purchaseLeaderboardFlashOffer,
+      open: (options = {}) => openLeaderboardScreen(options),
+      isOpen: () => Boolean(
+        document.getElementById("leaderboard-screen")?.classList.contains("active")
+      ),
       render: (options = {}) => renderLeaderboard({ force: true, ...options })
     },
 
@@ -8012,3 +8125,7 @@
 /* V18.2: Step 3 — Cases + Collection/Cards EN/RU localization fix. */
 
 /* V18.3: Step 4 — Wardrobe/Shop localization + definitive legacy-safe RU/EN toggle. */
+
+/* V18.5: proportional image/media frames for Cases, Shop and Wardrobe. */
+
+/* V18.6: HUD trophy now directly opens and renders the Leaderboard screen. */
