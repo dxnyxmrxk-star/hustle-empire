@@ -3116,7 +3116,7 @@ img[src*="sprite_cases"] {
    2) SHEET DEFINITIONS
 ---------------------------------------------------------- */
 .sprite-character {
-  background-image: url("./assets/sprite_character_evolution_v124.png?v=12.3") !important;
+  background-image: url("assets/sprite_character_evolution.png?v=14.3") !important;
   background-size: 200% 200% !important;
   aspect-ratio: 1 / 1;
 }
@@ -3126,7 +3126,7 @@ img[src*="sprite_cases"] {
 .char-level-4 { background-position: 100% 100% !important; }
 
 .sprite-business {
-  background-image: url("./assets/sprite_businesses_v124.png?v=12.3") !important;
+  background-image: url("assets/sprite_businesses.png?v=14.3") !important;
   background-size: 300% 300% !important;
   aspect-ratio: 1 / 1;
 }
@@ -3141,7 +3141,7 @@ img[src*="sprite_cases"] {
 .business-empire     { background-position: 100% 100% !important; }
 
 .sprite-worker {
-  background-image: url("./assets/sprite_cards_workers_v124.png?v=12.3") !important;
+  background-image: url("assets/sprite_cards_workers.png?v=14.3") !important;
   background-size: 300% 300% !important;
   aspect-ratio: 1 / 1;
 }
@@ -3156,7 +3156,7 @@ img[src*="sprite_cases"] {
 .worker-cfo        { background-position: 100% 100% !important; }
 
 .sprite-wardrobe {
-  background-image: url("./assets/sprite_wardrobe_items_v124.png?v=12.3") !important;
+  background-image: url("assets/sprite_wardrobe_items.png?v=14.3") !important;
   background-size: 400% 400% !important;
   aspect-ratio: 1 / 1;
 }
@@ -3179,7 +3179,7 @@ img[src*="sprite_cases"] {
 
 /* Sheet is 1122x1402. Each 2x3 cell is ~561x467 -> aspect ~1.20. */
 .sprite-case {
-  background-image: url("./assets/sprite_cases_v124.png?v=12.3") !important;
+  background-image: url("assets/sprite_cases.png?v=14.3") !important;
   background-size: 200% 300% !important;
   width: var(--sprite-case-w);
   height: var(--sprite-case-h);
@@ -3479,7 +3479,7 @@ img[src*="sprite_cases"] {
   min-height: clamp(300px, 62vw, 390px) !important;
   background-image:
     linear-gradient(180deg, rgba(4,11,20,.02), rgba(4,11,20,.12)),
-    url("./assets/sprite_city_map_v124.png?v=12.3") !important;
+    url("assets/sprite_city_map.png?v=14.3") !important;
   background-size: cover !important;
   background-position: center center !important;
   background-repeat: no-repeat !important;

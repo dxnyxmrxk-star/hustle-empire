@@ -121,7 +121,7 @@
     premium_legendary: "case-gold"
   };
 
-  const SPRITE_BUILD_VERSION = "14.2";
+  const SPRITE_BUILD_VERSION = "14.3";
 
   /*
      V14.0 asset manifest.
@@ -175,12 +175,12 @@
   });
 
   const SPRITE_ASSET_FALLBACKS = Object.freeze({
-    character: "assets/sprite_character_evolution_v124.png",
-    cityMap: "assets/sprite_city_map_v124.png",
-    businesses: "assets/sprite_businesses_v124.png",
-    cases: "assets/sprite_cases_v124.png",
-    workers: "assets/sprite_cards_workers_v124.png",
-    wardrobe: "assets/sprite_wardrobe_items_v124.png"
+    character: "assets/sprite_character_evolution.png",
+    cityMap: "assets/sprite_city_map.png",
+    businesses: "assets/sprite_businesses.png",
+    cases: "assets/sprite_cases.png",
+    workers: "assets/sprite_cards_workers.png",
+    wardrobe: "assets/sprite_wardrobe_items.png"
   });
 
   /*
@@ -856,7 +856,7 @@
   const AUTO_SAVE_INTERVAL = 10000;
 
   /* ==========================================================
-     V14.2 — OFFLINE EARNINGS
+     V14.3 — OFFLINE EARNINGS
      Max accumulation: exactly 3 hours.
   ========================================================== */
   const OFFLINE_EARNINGS_CAP_SECONDS = 3 * 60 * 60;
@@ -1243,7 +1243,7 @@
     s.timestamps.lastSaveAt = Number(s.timestamps.lastSaveAt) || Date.now();
 
     /*
-       V14.2 migration path:
+       V14.3 migration path:
        prefer the dedicated localStorage timestamp, otherwise reuse the most
        recent save timestamp from older builds.
     */
