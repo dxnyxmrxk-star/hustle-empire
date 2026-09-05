@@ -46,155 +46,68 @@
   const RANDOM_EVENT_IDS = Object.keys(RANDOM_EVENT_DEFINITIONS);
 
   /* ==========================================================
-     V15.8 — DIRECT TRANSPARENT ASSET REGISTRY
-     No UI element depends on a sprite sheet anymore.
+     V15.9 — OFFICIAL FLAT ASSET REGISTRY
+     Every image lives directly in assets/ (NO asset subfolders).
+     Cards use full rectangular art as a background layer with a
+     CSS/UI frame overlay rendered above it.
   ========================================================== */
 
-  const BUSINESS_SPRITE_CLASS = {
-    kiosk: "business-hotdog",
-    laundry: "business-laundry",
-    gym: "business-gym",
-    cafe: "business-hotdog",
-    bar: "business-bar",
-    restaurant: "business-bar",
-    office: "business-crypto",
-    car_dealer: "business-dealership",
-    agency: "business-crypto",
-    nightclub: "business-nightclub",
-    luxury_hotel: "business-empire",
-    empire_tower: "business-empire"
-  };
+  const SPRITE_BUILD_VERSION = "15.9";
 
-  const CARD_WORKER_SPRITE_CLASS = {
-    gym_income: "worker-trainer",
-    coffee_income: "worker-bartender",
-    delivery_income: "worker-rider",
-    garage_income: "worker-mechanic",
-    nightclub_income: "worker-influencer",
-    tap_power: "worker-barber",
-    critical_rate: "worker-realtor",
-    critical_damage: "worker-mechanic",
-    energy_max: "worker-pizza",
-    energy_regen: "worker-cfo"
-  };
-
-  const EXCLUSIVE_WORKER_SPRITE_CLASS = {
-    founder: "worker-cfo",
-    golden_tycoon: "worker-realtor",
-    neon_king: "worker-influencer"
-  };
-
-  const EQUIPMENT_SPRITE_CLASS = {
-    cap: "wardrobe-rookie-cap",
-    glasses: "wardrobe-urban-sunglasses",
-    jacket: "wardrobe-leather-jacket",
-    pants: "wardrobe-ripped-jeans",
-    shoes: "wardrobe-red-sneakers",
-    accessory: "wardrobe-gold-watch"
-  };
-
-  const WARDROBE_CATALOG_SPRITE_CLASS = {
-    designer_cap: "wardrobe-designer-cap",
-    urban_shades: "wardrobe-urban-sunglasses",
-    street_jacket: "wardrobe-leather-jacket",
-    limited_sneakers: "wardrobe-red-sneakers",
-    neon_jacket: "wardrobe-hoodie",
-    tech_pants: "wardrobe-tech-pants",
-    chrono_watch: "wardrobe-gold-watch",
-    elite_shades: "wardrobe-visor",
-    crown_cap: "wardrobe-designer-cap",
-    royal_coat: "wardrobe-full-suit",
-    diamond_watch: "wardrobe-gold-watch",
-    imperial_shoes: "wardrobe-luxury-sneakers"
-  };
-
-  const TIMED_CASE_SPRITE_CLASS = {
-    case_2h: "case-wood",
-    case_4h: "case-leather",
-    case_8h: "case-steel",
-    case_24h: "case-cyan"
-  };
-
-  const ACCESSORY_CASE_SPRITE_CLASS = {
-    free_accessory: "case-accessory-free",
-    premium_rare: "case-accessory-rare",
-    premium_epic: "case-accessory-epic",
-    premium_legendary: "case-accessory-legendary"
-  };
-
-  const SPRITE_BUILD_VERSION = "15.8";
-
-  /*
-     V15.8 — REAL INDIVIDUAL ASSET MANIFEST
-     Generated from the official source art and exported as clean RGBA PNGs.
-     No business/card/case/wardrobe UI depends on sprite sheets.
-  */
   const REAL_GAME_ASSET_PATHS = Object.freeze([
+    "assets/acc_epic.png",
+    "assets/acc_free.png",
+    "assets/acc_legendary.png",
+    "assets/acc_rare.png",
+    "assets/autodealer.png",
     "assets/avatar_face.png",
-    "assets/business_bar.png",
-    "assets/business_barber.png",
-    "assets/business_crypto.png",
-    "assets/business_dealership.png",
-    "assets/business_empire.png",
-    "assets/business_gym.png",
-    "assets/business_hotdog.png",
-    "assets/business_laundry.png",
-    "assets/business_nightclub.png",
+    "assets/bank.png",
+    "assets/barber.png",
+    "assets/card_autodealer.png",
+    "assets/card_back.png",
+    "assets/card_bank.png",
+    "assets/card_barber.png",
+    "assets/card_booster.png",
+    "assets/card_club.png",
+    "assets/card_gym.png",
+    "assets/card_hotel.png",
+    "assets/card_kiosk.png",
+    "assets/card_laundry.png",
+    "assets/card_pizza.png",
     "assets/case_24h.png",
     "assets/case_2h.png",
     "assets/case_4h.png",
     "assets/case_8h.png",
-    "assets/case_accessory_epic.png",
-    "assets/case_accessory_free.png",
-    "assets/case_accessory_legendary.png",
-    "assets/case_accessory_rare.png",
-    "assets/case_boss.png",
-    "assets/case_hustler.png",
-    "assets/case_street.png",
-    "assets/case_tycoon.png",
-    "assets/character_hustler.png",
-    "assets/character_novice.png",
-    "assets/character_street.png",
-    "assets/character_tycoon.png",
+    "assets/case_daily.png",
     "assets/city_map.png",
-    "assets/wardrobe_bracelet.png",
-    "assets/wardrobe_designer_cap.png",
-    "assets/wardrobe_full_suit.png",
-    "assets/wardrobe_gold_chain.png",
-    "assets/wardrobe_gold_watch.png",
-    "assets/wardrobe_hoodie.png",
-    "assets/wardrobe_leather_jacket.png",
-    "assets/wardrobe_luxury_sneakers.png",
-    "assets/wardrobe_red_sneakers.png",
-    "assets/wardrobe_ring.png",
-    "assets/wardrobe_ripped_jeans.png",
-    "assets/wardrobe_rookie_cap.png",
-    "assets/wardrobe_tech_pants.png",
-    "assets/wardrobe_urban_sunglasses.png",
-    "assets/wardrobe_visor.png",
-    "assets/wardrobe_white_suit_jacket.png",
-    "assets/worker_barber.png",
-    "assets/worker_bartender.png",
-    "assets/worker_cfo.png",
-    "assets/worker_influencer.png",
-    "assets/worker_mechanic.png",
-    "assets/worker_pizza.png",
-    "assets/worker_realtor.png",
-    "assets/worker_rider.png",
-    "assets/worker_trainer.png"
+    "assets/club.png",
+    "assets/glasses.png",
+    "assets/gym.png",
+    "assets/hat.png",
+    "assets/hero_lvl1.png",
+    "assets/hero_lvl2.png",
+    "assets/hero_lvl3.png",
+    "assets/hotel.png",
+    "assets/jacket.png",
+    "assets/kiosk.png",
+    "assets/laundry.png",
+    "assets/pants.png",
+    "assets/pizza.png",
+    "assets/shoes.png",
+    "assets/watch.png"
 ]);
   const REAL_GAME_ASSET_PATH_SET = new Set(REAL_GAME_ASSET_PATHS);
 
   const ASSET_PATHS = Object.freeze({
     avatar: "assets/avatar_face.png",
     avatarFallback: "",
-    characterMain: "assets/character_novice.png",
+    characterMain: "assets/hero_lvl1.png",
 
     characters: Object.freeze({
-      1: Object.freeze({ primary: "assets/character_novice.png", fallback: "" }),
-      2: Object.freeze({ primary: "assets/character_street.png", fallback: "" }),
-      3: Object.freeze({ primary: "assets/character_hustler.png", fallback: "" }),
-      4: Object.freeze({ primary: "assets/character_tycoon.png", fallback: "" })
+      1: Object.freeze({ primary: "assets/hero_lvl1.png", fallback: "" }),
+      2: Object.freeze({ primary: "assets/hero_lvl2.png", fallback: "" }),
+      3: Object.freeze({ primary: "assets/hero_lvl3.png", fallback: "" }),
+      4: Object.freeze({ primary: "assets/hero_lvl3.png", fallback: "" })
     }),
 
     cityMap: "assets/city_map.png",
@@ -205,73 +118,196 @@
       case_4h: "assets/case_4h.png",
       case_8h: "assets/case_8h.png",
       case_24h: "assets/case_24h.png",
-      street: "assets/case_street.png",
-      hustler: "assets/case_hustler.png",
-      tycoon: "assets/case_tycoon.png",
-      boss: "assets/case_boss.png",
-      accessoryFree: "assets/case_accessory_free.png",
-      accessoryRare: "assets/case_accessory_rare.png",
-      accessoryEpic: "assets/case_accessory_epic.png",
-      accessoryLegendary: "assets/case_accessory_legendary.png"
+      daily: "assets/case_daily.png",
+      accessoryFree: "assets/acc_free.png",
+      accessoryRare: "assets/acc_rare.png",
+      accessoryEpic: "assets/acc_epic.png",
+      accessoryLegendary: "assets/acc_legendary.png"
+    }),
+
+    wardrobe: Object.freeze({
+      hat: "assets/hat.png",
+      glasses: "assets/glasses.png",
+      jacket: "assets/jacket.png",
+      pants: "assets/pants.png",
+      shoes: "assets/shoes.png",
+      watch: "assets/watch.png"
+    }),
+
+    businesses: Object.freeze({
+      kiosk: "assets/kiosk.png",
+      gym: "assets/gym.png",
+      laundry: "assets/laundry.png",
+      pizza: "assets/pizza.png",
+      barber: "assets/barber.png",
+      autodealer: "assets/autodealer.png",
+      club: "assets/club.png",
+      hotel: "assets/hotel.png",
+      bank: "assets/bank.png"
+    }),
+
+    cards: Object.freeze({
+      kiosk: "assets/card_kiosk.png",
+      gym: "assets/card_gym.png",
+      laundry: "assets/card_laundry.png",
+      pizza: "assets/card_pizza.png",
+      barber: "assets/card_barber.png",
+      autodealer: "assets/card_autodealer.png",
+      club: "assets/card_club.png",
+      hotel: "assets/card_hotel.png",
+      bank: "assets/card_bank.png",
+      booster: "assets/card_booster.png",
+      back: "assets/card_back.png"
     })
   });
 
-  const DIRECT_ASSET_BY_CELL = Object.freeze({
-    "business-hotdog": "assets/business_hotdog.png",
-    "business-laundry": "assets/business_laundry.png",
-    "business-gym": "assets/business_gym.png",
-    "business-barber": "assets/business_barber.png",
-    "business-bar": "assets/business_bar.png",
-    "business-dealership": "assets/business_dealership.png",
-    "business-nightclub": "assets/business_nightclub.png",
-    "business-crypto": "assets/business_crypto.png",
-    "business-empire": "assets/business_empire.png",
-    "worker-rider": "assets/worker_rider.png",
-    "worker-pizza": "assets/worker_pizza.png",
-    "worker-trainer": "assets/worker_trainer.png",
-    "worker-barber": "assets/worker_barber.png",
-    "worker-bartender": "assets/worker_bartender.png",
-    "worker-mechanic": "assets/worker_mechanic.png",
-    "worker-realtor": "assets/worker_realtor.png",
-    "worker-influencer": "assets/worker_influencer.png",
-    "worker-cfo": "assets/worker_cfo.png",
-    "wardrobe-rookie-cap": "assets/wardrobe_rookie_cap.png",
-    "wardrobe-designer-cap": "assets/wardrobe_designer_cap.png",
-    "wardrobe-urban-sunglasses": "assets/wardrobe_urban_sunglasses.png",
-    "wardrobe-visor": "assets/wardrobe_visor.png",
-    "wardrobe-hoodie": "assets/wardrobe_hoodie.png",
-    "wardrobe-leather-jacket": "assets/wardrobe_leather_jacket.png",
-    "wardrobe-white-suit-jacket": "assets/wardrobe_white_suit_jacket.png",
-    "wardrobe-full-suit": "assets/wardrobe_full_suit.png",
-    "wardrobe-ripped-jeans": "assets/wardrobe_ripped_jeans.png",
-    "wardrobe-tech-pants": "assets/wardrobe_tech_pants.png",
-    "wardrobe-red-sneakers": "assets/wardrobe_red_sneakers.png",
-    "wardrobe-luxury-sneakers": "assets/wardrobe_luxury_sneakers.png",
-    "wardrobe-gold-watch": "assets/wardrobe_gold_watch.png",
-    "wardrobe-gold-chain": "assets/wardrobe_gold_chain.png",
-    "wardrobe-bracelet": "assets/wardrobe_bracelet.png",
-    "wardrobe-ring": "assets/wardrobe_ring.png",
-    "case-wood": "assets/case_2h.png",
-    "case-leather": "assets/case_4h.png",
-    "case-steel": "assets/case_8h.png",
-    "case-cyan": "assets/case_24h.png",
-    "case-purple": "assets/case_accessory_epic.png",
-    "case-gold": "assets/case_accessory_legendary.png",
-    "case-accessory-free": "assets/case_accessory_free.png",
-    "case-accessory-rare": "assets/case_accessory_rare.png",
-    "case-accessory-epic": "assets/case_accessory_epic.png",
-    "case-accessory-legendary": "assets/case_accessory_legendary.png"
-});
+  /* Logical business IDs -> one of the nine official building PNGs. */
+  const BUSINESS_SPRITE_CLASS = Object.freeze({
+    kiosk: "business-kiosk",
+    laundry: "business-laundry",
+    gym: "business-gym",
+    pizza: "business-pizza",
+    barber: "business-barber",
+    autodealer: "business-autodealer",
+    club: "business-club",
+    hotel: "business-hotel",
+    bank: "business-bank",
+    cafe: "business-kiosk",
+    bar: "business-club",
+    restaurant: "business-pizza",
+    office: "business-bank",
+    car_dealer: "business-autodealer",
+    agency: "business-bank",
+    nightclub: "business-club",
+    luxury_hotel: "business-hotel",
+    empire_tower: "business-bank"
+  });
 
-  /*
-     Legacy sprite engine kept as a no-op compatibility layer only.
-     There are deliberately no sprite-sheet paths to preload.
-  */
+  /* Existing 10-card gameplay IDs -> the new complete rectangular card art. */
+  const CARD_ART_BY_ID = Object.freeze({
+    gym_income: ASSET_PATHS.cards.gym,
+    coffee_income: ASSET_PATHS.cards.kiosk,
+    delivery_income: ASSET_PATHS.cards.pizza,
+    garage_income: ASSET_PATHS.cards.autodealer,
+    nightclub_income: ASSET_PATHS.cards.club,
+    tap_power: ASSET_PATHS.cards.barber,
+    critical_rate: ASSET_PATHS.cards.bank,
+    critical_damage: ASSET_PATHS.cards.booster,
+    energy_max: ASSET_PATHS.cards.laundry,
+    energy_regen: ASSET_PATHS.cards.hotel
+  });
+
+  const CARD_BACK_ASSET = ASSET_PATHS.cards.back;
+
+  const EXCLUSIVE_CARD_ART_BY_ID = Object.freeze({
+    founder: ASSET_PATHS.cards.bank,
+    golden_tycoon: ASSET_PATHS.cards.booster,
+    neon_king: ASSET_PATHS.cards.club
+  });
+
+  /* Kept for compatibility with reward code that still asks for a logical key. */
+  const CARD_WORKER_SPRITE_CLASS = Object.freeze({
+    gym_income: "card-gym",
+    coffee_income: "card-kiosk",
+    delivery_income: "card-pizza",
+    garage_income: "card-autodealer",
+    nightclub_income: "card-club",
+    tap_power: "card-barber",
+    critical_rate: "card-bank",
+    critical_damage: "card-booster",
+    energy_max: "card-laundry",
+    energy_regen: "card-hotel"
+  });
+
+  const EXCLUSIVE_WORKER_SPRITE_CLASS = Object.freeze({
+    founder: "card-bank",
+    golden_tycoon: "card-booster",
+    neon_king: "card-club"
+  });
+
+  const EQUIPMENT_SPRITE_CLASS = Object.freeze({
+    cap: "wardrobe-hat",
+    glasses: "wardrobe-glasses",
+    jacket: "wardrobe-jacket",
+    pants: "wardrobe-pants",
+    shoes: "wardrobe-shoes",
+    accessory: "wardrobe-watch"
+  });
+
+  const WARDROBE_CATALOG_SPRITE_CLASS = Object.freeze({
+    designer_cap: "wardrobe-hat",
+    urban_shades: "wardrobe-glasses",
+    street_jacket: "wardrobe-jacket",
+    limited_sneakers: "wardrobe-shoes",
+    neon_jacket: "wardrobe-jacket",
+    tech_pants: "wardrobe-pants",
+    chrono_watch: "wardrobe-watch",
+    elite_shades: "wardrobe-glasses",
+    crown_cap: "wardrobe-hat",
+    royal_coat: "wardrobe-jacket",
+    diamond_watch: "wardrobe-watch",
+    imperial_shoes: "wardrobe-shoes"
+  });
+
+  const TIMED_CASE_SPRITE_CLASS = Object.freeze({
+    case_2h: "case-2h",
+    case_4h: "case-4h",
+    case_8h: "case-8h",
+    case_24h: "case-24h"
+  });
+
+  const ACCESSORY_CASE_SPRITE_CLASS = Object.freeze({
+    free_accessory: "case-acc-free",
+    premium_rare: "case-acc-rare",
+    premium_epic: "case-acc-epic",
+    premium_legendary: "case-acc-legendary"
+  });
+
+  const DIRECT_ASSET_BY_CELL = Object.freeze({
+    "business-kiosk": ASSET_PATHS.businesses.kiosk,
+    "business-laundry": ASSET_PATHS.businesses.laundry,
+    "business-gym": ASSET_PATHS.businesses.gym,
+    "business-pizza": ASSET_PATHS.businesses.pizza,
+    "business-barber": ASSET_PATHS.businesses.barber,
+    "business-autodealer": ASSET_PATHS.businesses.autodealer,
+    "business-club": ASSET_PATHS.businesses.club,
+    "business-hotel": ASSET_PATHS.businesses.hotel,
+    "business-bank": ASSET_PATHS.businesses.bank,
+
+    "wardrobe-hat": ASSET_PATHS.wardrobe.hat,
+    "wardrobe-glasses": ASSET_PATHS.wardrobe.glasses,
+    "wardrobe-jacket": ASSET_PATHS.wardrobe.jacket,
+    "wardrobe-pants": ASSET_PATHS.wardrobe.pants,
+    "wardrobe-shoes": ASSET_PATHS.wardrobe.shoes,
+    "wardrobe-watch": ASSET_PATHS.wardrobe.watch,
+
+    "case-2h": ASSET_PATHS.cases.case_2h,
+    "case-4h": ASSET_PATHS.cases.case_4h,
+    "case-8h": ASSET_PATHS.cases.case_8h,
+    "case-24h": ASSET_PATHS.cases.case_24h,
+    "case-daily": ASSET_PATHS.cases.daily,
+    "case-acc-free": ASSET_PATHS.cases.accessoryFree,
+    "case-acc-rare": ASSET_PATHS.cases.accessoryRare,
+    "case-acc-epic": ASSET_PATHS.cases.accessoryEpic,
+    "case-acc-legendary": ASSET_PATHS.cases.accessoryLegendary,
+
+    "card-kiosk": ASSET_PATHS.cards.kiosk,
+    "card-gym": ASSET_PATHS.cards.gym,
+    "card-laundry": ASSET_PATHS.cards.laundry,
+    "card-pizza": ASSET_PATHS.cards.pizza,
+    "card-barber": ASSET_PATHS.cards.barber,
+    "card-autodealer": ASSET_PATHS.cards.autodealer,
+    "card-club": ASSET_PATHS.cards.club,
+    "card-hotel": ASSET_PATHS.cards.hotel,
+    "card-bank": ASSET_PATHS.cards.bank,
+    "card-booster": ASSET_PATHS.cards.booster,
+    "card-back": ASSET_PATHS.cards.back
+  });
+
+  /* Old sprite-sheet renderer remains a no-op compatibility layer. */
   const OFFICIAL_SPRITE_ASSETS = Object.freeze({});
   const SPRITE_ASSET_FALLBACKS = Object.freeze({});
-
   const SPRITE_CELLS = Object.freeze({});
-
   const SPRITE_SHEET_CLASS_TO_KEY = Object.freeze({});
 
   const SPRITE_IMAGES = Object.create(null);
@@ -774,6 +810,30 @@
     return directAssetMarkup(assetPath, extraClass);
   }
 
+
+  function setCardArtBackground(element, assetPath) {
+    if (!element) return false;
+    const safePath = normalizeRelativeAssetPath(assetPath);
+    if (!safePath || !REAL_GAME_ASSET_PATH_SET.has(safePath)) {
+      element.style.backgroundImage = "none";
+      element.dataset.cardArt = "placeholder";
+      return false;
+    }
+    element.style.backgroundImage = `url("${resolveAssetUrl(safePath)}")`;
+    element.dataset.cardArt = safePath;
+    return true;
+  }
+
+  function cardArtMarkup(assetPath, extraClass = "") {
+    const safePath = normalizeRelativeAssetPath(assetPath);
+    const url = safePath && REAL_GAME_ASSET_PATH_SET.has(safePath)
+      ? resolveAssetUrl(safePath)
+      : TRANSPARENT_ASSET_PLACEHOLDER;
+    return `
+      <div class="card-art-background ${extraClass}" style="background-image:url(&quot;${url}&quot;)"></div>
+      <div class="card-ui-frame" aria-hidden="true"></div>`;
+  }
+
   function ensureSpriteCanvas(node) {
     let canvas = null;
     for (const child of Array.from(node.children || [])) {
@@ -984,7 +1044,7 @@
       ||
       ASSET_PATHS.characters[1]
       ||
-      { primary: "assets/character_novice.png", fallback: "" }
+      { primary: "assets/hero_lvl1.png", fallback: "" }
     );
   }
 
@@ -1190,17 +1250,17 @@
     street: Object.freeze({
       key: "street",
       label: "Street Case",
-      asset: "assets/case_street.png"
+      asset: ASSET_PATHS.cases.daily
     }),
     boss: Object.freeze({
       key: "boss",
       label: "Boss Case",
-      asset: "assets/case_boss.png"
+      asset: ASSET_PATHS.cases.accessoryEpic
     }),
     tycoon: Object.freeze({
       key: "tycoon",
       label: "Tycoon Case",
-      asset: "assets/case_tycoon.png"
+      asset: ASSET_PATHS.cases.accessoryLegendary
     })
   });
 
@@ -3487,10 +3547,10 @@
       const cfg = BUSINESS_CONFIGS[businessId];
       const bs = state.businesses[businessId];
       const cost = getBusinessUpgradeCost(businessId);
-      const spriteClass = BUSINESS_SPRITE_CLASS[businessId] || "business-hotdog";
+      const spriteClass = BUSINESS_SPRITE_CLASS[businessId] || "business-kiosk";
       return `
         <article class="business-live-card" data-business-card="${businessId}">
-          <div class="business-live-image image-fallback">${spriteMarkup("sprite-business", spriteClass, ["business-nightclub", "business-crypto", "business-empire"].includes(spriteClass) ? "business-edge-safe" : "")}</div>
+          <div class="business-live-image image-fallback">${spriteMarkup("sprite-business", spriteClass)}</div>
           <div class="business-live-content">
             <div class="business-live-top"><strong>${getLocalizedValue(cfg.name)}</strong><span class="business-level-badge">${tr("common.levelShort")} ${bs.level}</span></div>
             <span class="business-income-second">${formatIncomePerSecond(getBusinessRevenuePerSecond(businessId))}</span>
@@ -3567,11 +3627,11 @@
       const previewIncome = bs.owned
         ? getBusinessRevenuePerSecond(businessId)
         : getBusinessBaseRevenuePerHour(businessId, previewLevel) / 3600;
-      const spriteClass = BUSINESS_SPRITE_CLASS[businessId] || "business-hotdog";
+      const spriteClass = BUSINESS_SPRITE_CLASS[businessId] || "business-kiosk";
 
       return `
         <article class="district-business-card ${stateClass}">
-          <div class="district-business-image">${spriteMarkup("sprite-business", spriteClass, ["business-nightclub", "business-crypto", "business-empire"].includes(spriteClass) ? "business-edge-safe" : "")}</div>
+          <div class="district-business-image">${spriteMarkup("sprite-business", spriteClass)}</div>
           <div class="district-business-content">
             <strong>${getLocalizedValue(cfg.name)}</strong>
             <span class="business-status ${stateClass}">${statusText}</span>
@@ -3705,12 +3765,14 @@
         : card.unlocked
           ? tr("collection.levelUp")
           : tr("collection.unlock");
-      const workerClass = CARD_WORKER_SPRITE_CLASS[cardId] || "worker-cfo";
+      const cardArtPath = card.unlocked
+        ? (CARD_ART_BY_ID[cardId] || ASSET_PATHS.cards.booster)
+        : CARD_BACK_ASSET;
 
       return `
         <article class="collection-card-item compact-card-item ${cfg.rarity}-card ${card.unlocked ? "" : "locked-card"}" data-card-id="${cardId}">
-          <div class="compact-card-image">
-            ${spriteMarkup("sprite-worker", workerClass, ["worker-pizza", "worker-realtor"].includes(workerClass) ? "worker-edge-safe" : "")}
+          <div class="compact-card-image card-art-shell ${card.unlocked ? "" : "card-back-shell"}">
+            ${cardArtMarkup(cardArtPath)}
             ${card.unlocked ? "" : '<span class="compact-card-lock">🔒</span>'}
           </div>
           <div class="compact-card-meta">
@@ -3756,10 +3818,10 @@
     if (!container) return;
     container.innerHTML = EXCLUSIVE_CARD_IDS.map((cardId) => {
       const card = EXCLUSIVE_CARD_CONFIGS[cardId];
-      const workerClass = EXCLUSIVE_WORKER_SPRITE_CLASS[cardId] || "worker-cfo";
+      const artPath = EXCLUSIVE_CARD_ART_BY_ID[cardId] || ASSET_PATHS.cards.booster;
       return `
         <article class="exclusive-card">
-          <div class="exclusive-card-image">${spriteMarkup("sprite-worker", workerClass)}</div>
+          <div class="exclusive-card-image card-art-shell">${cardArtMarkup(artPath)}</div>
           <strong>${getLocalizedValue(card.name)}</strong>
           <small>${getLocalizedValue(card.description)}</small>
           <button type="button" data-exclusive-card-buy="${cardId}">${tr("collection.specialPurchase")}</button>
@@ -3876,7 +3938,7 @@
       const ready = isTimedCaseReady(caseId);
       const remaining = getTimedCaseRemainingSeconds(caseId);
       const hours = cfg.durationSeconds / 3600;
-      const caseClass = TIMED_CASE_SPRITE_CLASS[caseId] || "case-wood";
+      const caseClass = TIMED_CASE_SPRITE_CLASS[caseId] || "case-2h";
 
       return `
         <article class="real-case-card ${ready ? "ready" : ""} ${caseId === "case_24h" ? "case-24h" : ""}">
@@ -3905,10 +3967,12 @@
 
     const box = overlay.querySelector("#case-reward-card");
     box.className = `reward-card-preview ${card.rarity}`;
-    const sprite = overlay.querySelector("#case-reward-card-sprite");
-    if (sprite) {
-      const workerKey = CARD_WORKER_SPRITE_CLASS[card.cardId] || "worker-cfo";
-      setDirectImageAsset(sprite, DIRECT_ASSET_BY_CELL[workerKey] || "assets/worker_cfo.png");
+    const rewardArt = overlay.querySelector("#case-reward-card-art");
+    if (rewardArt) {
+      setCardArtBackground(
+        rewardArt,
+        CARD_ART_BY_ID[card.cardId] || ASSET_PATHS.cards.booster
+      );
     }
     overlay.querySelector("#case-reward-rarity").textContent = tr(`rarity.${card.rarity}`).toUpperCase();
     overlay.querySelector("#case-reward-card-name").textContent = getLocalizedValue(card.card.name);
@@ -4053,7 +4117,7 @@
 
     const ready = isFreeAccessoryCaseReady();
     const remaining = getFreeAccessoryCaseRemaining();
-    const caseClass = ACCESSORY_CASE_SPRITE_CLASS.free_accessory || "case-leather";
+    const caseClass = ACCESSORY_CASE_SPRITE_CLASS.free_accessory || "case-acc-free";
 
     container.innerHTML = `
       <article class="free-accessory-card">
@@ -4084,7 +4148,7 @@
         return !state.wardrobeCatalog[itemId]?.unlocked && itemCfg.sources.includes(caseId);
       });
       const canAfford = state.gems >= cfg.gemCost;
-      const caseClass = ACCESSORY_CASE_SPRITE_CLASS[caseId] || "case-cyan";
+      const caseClass = ACCESSORY_CASE_SPRITE_CLASS[caseId] || "case-acc-rare";
 
       return `
         <article class="premium-accessory-case ${rarity}">
@@ -4113,8 +4177,8 @@
 
     const sprite = overlay.querySelector("#accessory-reward-sprite");
     if (sprite) {
-      const wardrobeKey = WARDROBE_CATALOG_SPRITE_CLASS[itemId] || "wardrobe-gold-watch";
-      setDirectImageAsset(sprite, DIRECT_ASSET_BY_CELL[wardrobeKey] || "assets/wardrobe_gold_watch.png");
+      const wardrobeKey = WARDROBE_CATALOG_SPRITE_CLASS[itemId] || "wardrobe-watch";
+      setDirectImageAsset(sprite, DIRECT_ASSET_BY_CELL[wardrobeKey] || ASSET_PATHS.wardrobe.watch);
     }
 
     const rarity = overlay.querySelector("#accessory-reward-rarity");
@@ -4162,7 +4226,7 @@
     container.innerHTML = WARDROBE_CATALOG_IDS.map((itemId) => {
       const cfg = WARDROBE_CATALOG_CONFIGS[itemId];
       const itemState = state.wardrobeCatalog[itemId];
-      const spriteClass = WARDROBE_CATALOG_SPRITE_CLASS[itemId] || "wardrobe-gold-watch";
+      const spriteClass = WARDROBE_CATALOG_SPRITE_CLASS[itemId] || "wardrobe-watch";
 
       return `
         <article class="catalog-item ${cfg.rarity} ${itemState.unlocked ? "unlocked" : "locked"}">
@@ -4510,7 +4574,7 @@
       row.type = "button";
       row.className = `equipment-row${selectedWardrobeSlot === equipmentId ? " selected" : ""}`;
       row.dataset.wardrobeSlot = equipmentId;
-      const spriteClass = EQUIPMENT_SPRITE_CLASS[equipmentId] || "wardrobe-gold-watch";
+      const spriteClass = EQUIPMENT_SPRITE_CLASS[equipmentId] || "wardrobe-watch";
       row.innerHTML = `
         <div class="wardrobe-item-icon">${spriteMarkup("sprite-wardrobe", spriteClass)}</div>
         <span><strong>${getEquipmentLocalizedName(equipmentId)}</strong><small>${es.unlocked ? `${tr("common.levelShort")} ${es.level} · ${getEquipmentEffectLabel(equipmentId)}` : `${tr("common.locked")} · ${formatCompactMoney(getEquipmentUpgradeCost(equipmentId))}`}</small></span>`;

@@ -3116,7 +3116,7 @@ img[src*="sprite_cases"] {
    2) SHEET DEFINITIONS
 ---------------------------------------------------------- */
 .sprite-character {
-  background-image: url("assets/sprite_character_evolution.png?v=14.3") !important;
+  background-image: none !important;
   background-size: 200% 200% !important;
   aspect-ratio: 1 / 1;
 }
@@ -3126,7 +3126,7 @@ img[src*="sprite_cases"] {
 .char-level-4 { background-position: 100% 100% !important; }
 
 .sprite-business {
-  background-image: url("assets/sprite_businesses.png?v=14.3") !important;
+  background-image: none !important;
   background-size: 300% 300% !important;
   aspect-ratio: 1 / 1;
 }
@@ -3141,7 +3141,7 @@ img[src*="sprite_cases"] {
 .business-empire     { background-position: 100% 100% !important; }
 
 .sprite-worker {
-  background-image: url("assets/sprite_cards_workers.png?v=14.3") !important;
+  background-image: none !important;
   background-size: 300% 300% !important;
   aspect-ratio: 1 / 1;
 }
@@ -3156,7 +3156,7 @@ img[src*="sprite_cases"] {
 .worker-cfo        { background-position: 100% 100% !important; }
 
 .sprite-wardrobe {
-  background-image: url("assets/sprite_wardrobe_items.png?v=14.3") !important;
+  background-image: none !important;
   background-size: 400% 400% !important;
   aspect-ratio: 1 / 1;
 }
@@ -3179,7 +3179,7 @@ img[src*="sprite_cases"] {
 
 /* Sheet is 1122x1402. Each 2x3 cell is ~561x467 -> aspect ~1.20. */
 .sprite-case {
-  background-image: url("assets/sprite_cases.png?v=14.3") !important;
+  background-image: none !important;
   background-size: 200% 300% !important;
   width: var(--sprite-case-w);
   height: var(--sprite-case-h);
@@ -3479,7 +3479,7 @@ img[src*="sprite_cases"] {
   min-height: clamp(300px, 62vw, 390px) !important;
   background-image:
     linear-gradient(180deg, rgba(4,11,20,.02), rgba(4,11,20,.12)),
-    url("assets/sprite_city_map.png?v=14.3") !important;
+    url("assets/city_map.png?v=15.9") !important;
   background-size: cover !important;
   background-position: center center !important;
   background-repeat: no-repeat !important;
@@ -4839,7 +4839,7 @@ img[src*="assets/"] {
 
 
 /* ==========================================================
-   V15.8 — HOME VIEWPORT / CHARACTER / TAP / COLUMNS
+   V15.9 — HOME VIEWPORT / CHARACTER / TAP / COLUMNS
    Final layout override. Keep this block LAST in style.css.
 ========================================================== */
 
@@ -5214,7 +5214,7 @@ body .screen[data-screen="home"] .home-center > .home-character-stage {
 
 
 /* ==========================================================
-   V15.8 — DIRECT TRANSPARENT ASSETS + AVATAR FACE
+   V15.9 — DIRECT TRANSPARENT ASSETS + AVATAR FACE
    No business/card/case/wardrobe visual depends on a sprite sheet.
 ========================================================== */
 
@@ -5365,4 +5365,120 @@ body .screen[data-screen="home"] .home-center > .home-character-stage {
     height: min(57vh, 93%) !important;
     max-width: 140% !important;
   }
+}
+
+
+/* ==========================================================
+   V15.9 — FULL CARD ART BACKGROUND + UI FRAME OVERLAY
+   The artwork is a rectangular background layer. The frame is CSS/UI,
+   rendered above it, so the source PNG is never stretched into a frame.
+========================================================== */
+.card-art-shell {
+  position: relative !important;
+  overflow: hidden !important;
+  isolation: isolate;
+  background: #0b1420 !important;
+  border-radius: 14px !important;
+}
+
+.card-art-background {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background-repeat: no-repeat !important;
+  background-position: center center !important;
+  background-size: cover !important;
+  background-color: #0b1420 !important;
+  transform: translateZ(0);
+}
+
+.card-back-shell .card-art-background {
+  background-size: cover !important;
+  background-position: center !important;
+}
+
+.card-ui-frame {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 2 !important;
+  pointer-events: none !important;
+  border-radius: inherit !important;
+  border: 2px solid rgba(88, 215, 255, .88) !important;
+  box-shadow:
+    inset 0 0 0 2px rgba(5, 39, 72, .92),
+    inset 0 0 14px rgba(0, 176, 255, .22),
+    0 0 10px rgba(0, 176, 255, .12) !important;
+}
+
+.card-ui-frame::before,
+.card-ui-frame::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 13px;
+  height: 13px;
+  border-radius: 3px;
+  background: linear-gradient(135deg, #7eeeff, #009fe8);
+  border: 2px solid rgba(225, 250, 255, .9);
+  box-shadow: 0 0 8px rgba(0, 176, 255, .55);
+}
+.card-ui-frame::before { top: -7px; }
+.card-ui-frame::after { bottom: -7px; }
+
+.compact-card-image.card-art-shell {
+  width: 100% !important;
+  height: 118px !important;
+  padding: 0 !important;
+}
+
+.compact-card-image.card-art-shell .compact-card-lock {
+  position: absolute !important;
+  z-index: 4 !important;
+  right: 8px !important;
+  top: 8px !important;
+  display: grid !important;
+  place-items: center !important;
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 50% !important;
+  background: rgba(5, 11, 20, .78) !important;
+  border: 1px solid rgba(255,255,255,.18) !important;
+  filter: none !important;
+}
+
+.compact-card-item.locked-card .card-art-background {
+  filter: brightness(.55) saturate(.75) !important;
+}
+
+.exclusive-card-image.card-art-shell,
+.reward-card-image.card-art-shell {
+  min-height: 132px !important;
+  padding: 0 !important;
+}
+
+.reward-card-image.card-art-shell .card-art-background,
+.exclusive-card-image.card-art-shell .card-art-background {
+  background-size: cover !important;
+}
+
+/* Flat official assets: never stretch transparent icons. */
+.real-case-art .asset-direct-image,
+.free-accessory-icon .asset-direct-image,
+.premium-accessory-case-icon .asset-direct-image,
+.catalog-item-image .asset-direct-image,
+.wardrobe-item-icon .asset-direct-image,
+.business-live-image .asset-direct-image,
+.district-business-image .asset-direct-image,
+.premium-product-image .asset-direct-image {
+  object-fit: contain !important;
+  object-position: center !important;
+}
+
+.city-map-wrapper.city-map-sprite-background {
+  background-image:
+    linear-gradient(180deg, rgba(4,11,20,.02), rgba(4,11,20,.12)),
+    url("assets/city_map.png?v=15.9") !important;
 }
