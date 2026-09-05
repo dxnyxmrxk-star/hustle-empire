@@ -7,11 +7,11 @@
 <meta content="#0b0f19" name="theme-color"/>
 <title>Hustle Empire</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<link href="./style.css?v=12.4" rel="stylesheet"/>
-<script defer="" src="./locales.js?v=12.4"></script>
-<script defer="" src="./config.js?v=12.4"></script>
-<script defer="" src="./script.js?v=12.4"></script>
-<script defer="" src="./game.js?v=12.4"></script>
+<link href="./style.css?v=12.5" rel="stylesheet"/>
+<script defer="" src="./locales.js?v=12.5"></script>
+<script defer="" src="./config.js?v=12.5"></script>
+<script defer="" src="./script.js?v=12.5"></script>
+<script defer="" src="./game.js?v=12.5"></script>
 </head>
 <body>
 <div class="app-shell">
@@ -79,18 +79,11 @@
 <aside class="quests-panel home-missions">
 <div class="missions-title-row">
 <div><h2 data-i18n="home.missions">Missions</h2><span>LV 1</span></div>
-<strong>0/6</strong>
+<strong>0/4</strong>
 </div>
-<div class="quest-level"><div class="quest-level-top"><strong>LV 1</strong><strong>0/6</strong></div></div>
-<div class="quest-list">
-<div class="quest-card" data-quest="tap250"><span class="quest-icon">☝</span><div class="quest-info"><strong data-i18n="quests.tap250">Make 250 taps</strong><div class="mini-progress"><span style="width:0%"></span></div><small>0 / 250</small></div><span class="quest-reward">+$250</span></div>
-<div class="quest-card" data-quest="deliveries8"><span class="quest-icon">📦</span><div class="quest-info"><strong data-i18n="quests.deliveries8">Complete 8 jobs</strong><div class="mini-progress"><span style="width:0%"></span></div><small>0 / 8</small></div><span class="quest-reward">+$500</span></div>
-<div class="quest-card" data-quest="earn25k"><span class="quest-icon">🎯</span><div class="quest-info"><strong data-i18n="quests.earn25k">Earn $25K</strong><div class="mini-progress"><span style="width:0%"></span></div><small>$0 / $25K</small></div><span class="quest-reward">+$1.5K</span></div>
-<div class="quest-card" data-quest="events3"><span class="quest-icon">👥</span><div class="quest-info"><strong data-i18n="quests.events3">Join 3 events</strong><div class="mini-progress"><span style="width:0%"></span></div><small>0 / 3</small></div><span class="quest-reward">+$750</span></div>
-<div class="quest-card" data-quest="buyUpgrade1"><span class="quest-icon">🛒</span><div class="quest-info"><strong data-i18n="quests.buyUpgrade1">Buy 1 upgrade</strong><div class="mini-progress"><span style="width:0%"></span></div><small>0 / 1</small></div><span class="quest-reward">+$300</span></div>
-<div class="quest-card" data-quest="collectBonus4"><span class="quest-icon">🎟</span><div class="quest-info"><strong data-i18n="quests.collectBonus4">Collect 4 bonuses</strong><div class="mini-progress"><span style="width:0%"></span></div><small>0 / 4</small></div><span class="quest-reward">+$400</span></div>
-</div>
-<button class="next-level-button" data-action="next-level" type="button"><span>⬆</span><span><strong data-i18n="home.nextLevel">Next Level</strong><small>LV 2</small></span></button>
+<div class="quest-level"><div class="quest-level-top"><strong>LV 1</strong><strong>0/4</strong></div></div>
+<div class="quest-list" id="mission-list"></div>
+<button aria-disabled="true" class="next-level-button" data-action="next-level" disabled type="button"><span>⬆</span><span><strong data-i18n="home.nextLevel">Next Level</strong><small>LV 2</small></span></button>
 </aside>
 </div>
 <section class="quick-jobs-panel">

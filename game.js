@@ -1,6 +1,6 @@
 /* ============================================================
    HUSTLE EMPIRE TYCOON
-   GAME ENGINE V12.2
+   GAME ENGINE V12.5 — Mission Progression
    - Level 1 formula economy
    - Quick Jobs
    - District business progression
@@ -16,8 +16,8 @@
   const CONFIG = window.GAME_CONFIG;
   if (!CONFIG) throw new Error("[Hustle Empire] config.js must load before game.js");
 
-  const SAVE_KEY = "hustleEmpireSave_v11";
-  const LEGACY_SAVE_KEYS = ["hustleEmpireSave_v10", "hustleEmpireSave_v9", "hustleEmpireSave_v8", "hustleEmpireSave_v7", "hustleEmpireSave_v6"];
+  const SAVE_KEY = "hustleEmpireSave_v12_5";
+  const LEGACY_SAVE_KEYS = ["hustleEmpireSave_v11", "hustleEmpireSave_v10", "hustleEmpireSave_v9", "hustleEmpireSave_v8", "hustleEmpireSave_v7", "hustleEmpireSave_v6"];
 
   const BUSINESS_CONFIGS = CONFIG.BUSINESSES || {};
   const BUSINESS_IDS = Object.keys(BUSINESS_CONFIGS);
@@ -468,7 +468,70 @@
 
   const COLLECTION_CONFIG = CONFIG.COLLECTION || {};
   const WARDROBE_CONFIG = CONFIG.WARDROBE || {};
-  const TAP_QUEST_CONFIG = CONFIG.QUESTS.tap250;
+
+  /* ==========================================================
+     V12.5 — LEVEL MISSIONS
+     Level 1-3 use the exact requested balance.
+     From LV4 onward, LV3 values scale by +50% per level.
+  ========================================================== */
+
+  const MISSION_ICONS = {
+    taps: "☝",
+    jobs: "📦",
+    earn: "💵",
+    upgrades: "🛠",
+    bonuses: "🎁",
+    events: "⚡"
+  };
+
+  const MISSION_LEVELS = {
+    1: [
+      { id: "taps", type: "taps", target: 50, reward: 50 },
+      { id: "jobs", type: "jobs", target: 1, reward: 100 },
+      { id: "earn", type: "earn", target: 200, reward: 150 },
+      { id: "upgrades", type: "upgrades", target: 1, reward: 100 }
+    ],
+    2: [
+      { id: "taps", type: "taps", target: 150, reward: 150 },
+      { id: "jobs", type: "jobs", target: 3, reward: 300 },
+      { id: "earn", type: "earn", target: 1000, reward: 500 },
+      { id: "upgrades", type: "upgrades", target: 2, reward: 400 },
+      { id: "bonuses", type: "bonuses", target: 1, reward: 200 }
+    ],
+    3: [
+      { id: "taps", type: "taps", target: 300, reward: 300 },
+      { id: "jobs", type: "jobs", target: 5, reward: 600 },
+      { id: "earn", type: "earn", target: 5000, reward: 1200 },
+      { id: "events", type: "events", target: 1, reward: 500 },
+      { id: "upgrades", type: "upgrades", target: 3, reward: 800 },
+      { id: "bonuses", type: "bonuses", target: 2, reward: 400 }
+    ]
+  };
+
+  function getMissionDefinitions(level) {
+    const safeLevel = Math.max(1, Math.floor(Number(level) || 1));
+    if (MISSION_LEVELS[safeLevel]) {
+      return MISSION_LEVELS[safeLevel].map((mission) => ({ ...mission }));
+    }
+
+    const factor = Math.pow(1.5, safeLevel - 3);
+    return MISSION_LEVELS[3].map((mission) => ({
+      ...mission,
+      target: Math.max(1, Math.ceil(mission.target * factor)),
+      reward: Math.max(1, Math.ceil(mission.reward * factor))
+    }));
+  }
+
+  function createMissionState(level = 1) {
+    const safeLevel = Math.max(1, Math.floor(Number(level) || 1));
+    const definitions = getMissionDefinitions(safeLevel);
+    return {
+      level: safeLevel,
+      progress: Object.fromEntries(definitions.map((mission) => [mission.id, 0])),
+      completed: Object.fromEntries(definitions.map((mission) => [mission.id, false])),
+      rewarded: Object.fromEntries(definitions.map((mission) => [mission.id, false]))
+    };
+  }
 
   const GAME_TICK_INTERVAL = 1000;
   const AUTO_SAVE_INTERVAL = 10000;
@@ -604,9 +667,7 @@
 
     streak: { days: 0, bonusPercent: 0 },
 
-    quests: {
-      tap250: { taps: 0, completed: false, rewardGranted: false }
-    },
+    missions: createMissionState(1),
 
     hustles: createDefaultHustlesState(),
     businesses: createDefaultBusinessesState(),
@@ -750,6 +811,28 @@
     };
   }
 
+  function sanitizeMissions(missions, playerLevel) {
+    const safeLevel = Math.max(1, Math.floor(Number(playerLevel) || 1));
+    const fresh = createMissionState(safeLevel);
+
+    if (!missions || Number(missions.level) !== safeLevel) return fresh;
+
+    const definitions = getMissionDefinitions(safeLevel);
+    definitions.forEach((mission) => {
+      const rawProgress = Number(missions.progress?.[mission.id]) || 0;
+      const progress = Math.min(mission.target, Math.max(0, rawProgress));
+      const completed = Boolean(missions.completed?.[mission.id] || progress >= mission.target);
+
+      fresh.progress[mission.id] = completed ? mission.target : progress;
+      fresh.completed[mission.id] = completed;
+      fresh.rewarded[mission.id] = completed
+        ? Boolean(missions.rewarded?.[mission.id] ?? true)
+        : false;
+    });
+
+    return fresh;
+  }
+
   function sanitizeState(s) {
     s.money = Math.max(0, Number(s.money) || 0);
     s.gems = Math.max(0, Number(s.gems) || 0);
@@ -765,11 +848,7 @@
     s.accessoryCases = sanitizeAccessoryCases(s.accessoryCases);
     s.randomEvents = sanitizeRandomEvents(s.randomEvents);
 
-    s.quests ||= {};
-    s.quests.tap250 ||= clone(DEFAULT_STATE.quests.tap250);
-    s.quests.tap250.taps = Math.min(TAP_QUEST_CONFIG.target, Math.max(0, Math.floor(Number(s.quests.tap250.taps) || 0)));
-    s.quests.tap250.completed = Boolean(s.quests.tap250.completed || s.quests.tap250.taps >= TAP_QUEST_CONFIG.target);
-    s.quests.tap250.rewardGranted = Boolean(s.quests.tap250.rewardGranted);
+    s.missions = sanitizeMissions(s.missions, s.level);
 
     s.city ||= { selectedDistrictId: "poor_block" };
     if (!DISTRICT_CONFIGS[s.city.selectedDistrictId]) s.city.selectedDistrictId = "poor_block";
@@ -916,35 +995,188 @@
   }
 
   function addXp(amount) {
-    state.xp += Math.max(0, Number(amount) || 0);
-    let needed = getXpRequired(state.level);
-    let leveledUp = false;
-
-    while (state.xp >= needed) {
-      state.xp -= needed;
-      state.level += 1;
-      leveledUp = true;
-      emitGameEvent("levelUp", { level: state.level });
-      needed = getXpRequired(state.level);
-    }
-
-    if (leveledUp) refreshBusinessPanels();
+    /*
+       XP remains a progress meter, but it NO LONGER changes player level.
+       Level advancement is exclusively gated by the Missions / Next Level button.
+    */
+    const needed = getXpRequired(state.level);
+    state.xp = Math.min(needed, Math.max(0, state.xp + Math.max(0, Number(amount) || 0)));
   }
 
-  function registerQuestTap() {
-    const quest = state.quests.tap250;
-    if (quest.completed) return;
-    quest.taps += 1;
+  function missionTitle(mission) {
+    const lang = currentLanguage();
+    const target = mission.target;
 
-    if (quest.taps >= TAP_QUEST_CONFIG.target) {
-      quest.taps = TAP_QUEST_CONFIG.target;
-      quest.completed = true;
-      if (!quest.rewardGranted) {
-        state.money += TAP_QUEST_CONFIG.reward;
-        quest.rewardGranted = true;
+    const titles = {
+      taps: {
+        en: `Make ${formatNumber(target)} taps`,
+        ru: `Сделать ${formatNumber(target)} тапов`
+      },
+      jobs: {
+        en: `Complete ${formatNumber(target)} ${target === 1 ? "job" : "jobs"}`,
+        ru: `Выполнить заданий: ${formatNumber(target)}`
+      },
+      earn: {
+        en: `Earn ${formatCompactMoney(target)} total`,
+        ru: `Заработать ${formatCompactMoney(target)}`
+      },
+      upgrades: {
+        en: `Buy ${formatNumber(target)} ${target === 1 ? "upgrade" : "upgrades"}`,
+        ru: `Купить улучшений: ${formatNumber(target)}`
+      },
+      bonuses: {
+        en: `Collect ${formatNumber(target)} ${target === 1 ? "bonus" : "bonuses"}`,
+        ru: `Собрать бонусов: ${formatNumber(target)}`
+      },
+      events: {
+        en: `Join ${formatNumber(target)} ${target === 1 ? "event" : "events"}`,
+        ru: `Участвовать в событиях: ${formatNumber(target)}`
       }
-      emitGameEvent("questCompleted", { questId: "tap250", reward: TAP_QUEST_CONFIG.reward });
+    };
+
+    return titles[mission.type]?.[lang] || titles[mission.type]?.en || mission.id;
+  }
+
+  function missionProgressText(mission, progress) {
+    if (mission.type === "earn") {
+      return `${formatCompactMoney(progress)} / ${formatCompactMoney(mission.target)}`;
     }
+    return `${formatNumber(progress)} / ${formatNumber(mission.target)}`;
+  }
+
+  function getCurrentMissionDefinitions() {
+    return getMissionDefinitions(state.level);
+  }
+
+  function ensureCurrentMissionState() {
+    if (!state.missions || Number(state.missions.level) !== Number(state.level)) {
+      state.missions = createMissionState(state.level);
+    }
+    return state.missions;
+  }
+
+  function checkLevelUpEligibility() {
+    const missionState = ensureCurrentMissionState();
+    const definitions = getCurrentMissionDefinitions();
+    return definitions.length > 0 && definitions.every((mission) => Boolean(missionState.completed[mission.id]));
+  }
+
+  function updateMissionProgress(type, amount = 1, source = "manual", options = {}) {
+    const missionState = ensureCurrentMissionState();
+    const mission = getCurrentMissionDefinitions().find((item) => item.type === type);
+    if (!mission || missionState.completed[mission.id]) return false;
+
+    const delta = Math.max(0, Number(amount) || 0);
+    if (delta <= 0) return false;
+
+    const oldProgress = Number(missionState.progress[mission.id]) || 0;
+    const newProgress = Math.min(mission.target, oldProgress + delta);
+    missionState.progress[mission.id] = newProgress;
+
+    let completedNow = false;
+
+    if (newProgress >= mission.target) {
+      missionState.completed[mission.id] = true;
+      completedNow = true;
+
+      if (!missionState.rewarded[mission.id]) {
+        /*
+           Mission rewards do NOT count toward the "earn money" mission.
+           This prevents chain-completing missions from their own rewards.
+        */
+        state.money += mission.reward;
+        missionState.rewarded[mission.id] = true;
+        emitGameEvent("missionRewardGranted", {
+          missionId: mission.id,
+          type: mission.type,
+          reward: mission.reward,
+          level: state.level
+        });
+      }
+
+      emitGameEvent("missionCompleted", {
+        missionId: mission.id,
+        type: mission.type,
+        level: state.level,
+        reward: mission.reward,
+        source
+      });
+    }
+
+    emitGameEvent("missionProgress", {
+      missionId: mission.id,
+      type: mission.type,
+      level: state.level,
+      progress: newProgress,
+      target: mission.target,
+      completed: Boolean(missionState.completed[mission.id]),
+      source
+    });
+
+    if (options.save !== false) saveGame();
+
+    if (options.render !== false) {
+      updatePlayerResources();
+      renderMissions();
+    }
+
+    return completedNow || newProgress !== oldProgress;
+  }
+
+  function registerMoneyEarned(amount, source = "gameplay", options = {}) {
+    const earned = Math.max(0, Number(amount) || 0);
+    if (!earned) return false;
+    return updateMissionProgress("earn", earned, source, options);
+  }
+
+  function completeCurrentMissionsForTesting() {
+    const missionState = ensureCurrentMissionState();
+    getCurrentMissionDefinitions().forEach((mission) => {
+      missionState.progress[mission.id] = mission.target;
+      if (!missionState.completed[mission.id]) {
+        missionState.completed[mission.id] = true;
+        if (!missionState.rewarded[mission.id]) {
+          state.money += mission.reward;
+          missionState.rewarded[mission.id] = true;
+        }
+      }
+    });
+    saveGame();
+    updateUI();
+    return checkLevelUpEligibility();
+  }
+
+  function advanceToNextLevel() {
+    if (!checkLevelUpEligibility()) {
+      emitGameEvent("levelLockedByMissions", {
+        level: state.level,
+        completed: getCurrentMissionDefinitions().filter((mission) => state.missions.completed[mission.id]).length,
+        total: getCurrentMissionDefinitions().length
+      });
+      renderMissions();
+      return false;
+    }
+
+    const previousLevel = state.level;
+    state.level += 1;
+    state.xp = 0;
+    state.missions = createMissionState(state.level);
+
+    recomputeDerivedState();
+    state.energy = Math.min(state.energy, state.maxEnergy);
+
+    saveGame();
+    updateUI();
+    renderAllDynamic();
+    refreshBusinessPanels();
+
+    emitGameEvent("levelUp", {
+      previousLevel,
+      level: state.level,
+      via: "missions"
+    });
+
+    return true;
   }
 
   function spawnTapFloatingNumber(amount, isCritical = false) {
@@ -1000,7 +1232,9 @@
     state.energy -= 1;
     state.money += moneyEarned;
     addXp(CONFIG.XP_PER_TAP);
-    registerQuestTap();
+
+    updateMissionProgress("taps", 1, "tap", { save: false, render: false });
+    registerMoneyEarned(moneyEarned, "tap", { save: false, render: false });
 
     saveGame();
     updateUI();
@@ -1057,6 +1291,9 @@
     state.money += cfg.rewardMoney;
     addXp(cfg.rewardXp);
     hs.runs += 1;
+
+    updateMissionProgress("jobs", 1, "hustle", { save: false, render: false });
+    registerMoneyEarned(cfg.rewardMoney, "hustle", { save: false, render: false });
 
     saveGame();
     updateUI();
@@ -1160,6 +1397,7 @@
 
     const earned = elapsed * (getTotalPassiveIncomePerHour() / 3600000);
     state.money += earned;
+    registerMoneyEarned(earned, "passiveIncome", { save: false, render: false });
     return earned;
   }
 
@@ -1202,6 +1440,7 @@
     processPassiveIncome();
     state.money -= cost;
     bs.level += 1;
+    updateMissionProgress("upgrades", 1, "businessUpgrade", { save: false, render: false });
     saveGame();
     updateUI();
     refreshBusinessPanels();
@@ -1386,6 +1625,7 @@
     }
 
     recomputeDerivedState();
+    updateMissionProgress("upgrades", 1, "cardUpgrade", { save: false, render: false });
     saveGame();
     updateUI();
     renderCollectionUI();
@@ -1576,6 +1816,9 @@
     state.gems += cfg.gemReward;
     if (cardReward) state.cards[cardReward.cardId].fragments += cardReward.fragments;
 
+    registerMoneyEarned(moneyReward, "timedCase", { save: false, render: false });
+    updateMissionProgress("bonuses", 1, "timedCase", { save: false, render: false });
+
     cs.unlockAt = Date.now() + cfg.durationSeconds * 1000;
     cs.opens += 1;
 
@@ -1722,6 +1965,7 @@
       state.gems += 5;
       state.accessoryCases.freeUnlockAt = Date.now() + cfg.durationSeconds * 1000;
       state.accessoryCases.freeOpens += 1;
+      updateMissionProgress("bonuses", 1, "freeAccessoryCase", { save: false, render: false });
       saveGame();
       updateUI();
       renderAccessoryCases();
@@ -1732,6 +1976,7 @@
     unlockWardrobeCatalogItem(reward.itemId, caseId);
     state.accessoryCases.freeUnlockAt = Date.now() + cfg.durationSeconds * 1000;
     state.accessoryCases.freeOpens += 1;
+    updateMissionProgress("bonuses", 1, "freeAccessoryCase", { save: false, render: false });
 
     saveGame();
     updateUI();
@@ -2068,6 +2313,10 @@
 
     const eventId = active.eventId;
     state.randomEvents.activeEvent = null;
+
+    updateMissionProgress("events", 1, "randomEvent", { save: false, render: false });
+    updateMissionProgress("bonuses", 1, "randomEvent", { save: false, render: false });
+
     scheduleNextRandomEvent();
     saveGame();
     updateUI();
@@ -2135,6 +2384,7 @@
     es.level = 1;
     es.equipped = true;
     recomputeDerivedState();
+    updateMissionProgress("upgrades", 1, "equipmentUpgrade", { save: false, render: false });
     saveGame();
     updateUI();
     renderWardrobeUI();
@@ -2154,6 +2404,7 @@
     state.money -= cost;
     es.level += 1;
     recomputeDerivedState();
+    updateMissionProgress("upgrades", 1, "equipmentUpgrade", { save: false, render: false });
     saveGame();
     updateUI();
     renderWardrobeUI();
@@ -2419,19 +2670,60 @@
     }
   }
 
-  function updateTapQuestUI() {
-    const quest = state.quests.tap250;
-    const card = document.querySelector('[data-quest="tap250"]');
-    if (!card) return;
-    const pct = Math.min(100, quest.taps / TAP_QUEST_CONFIG.target * 100);
-    const bar = card.querySelector(".mini-progress span");
-    const text = card.querySelector(".quest-info small");
-    const reward = card.querySelector(".quest-reward");
-    if (bar) bar.style.width = `${pct}%`;
-    if (text) text.textContent = `${quest.taps} / ${TAP_QUEST_CONFIG.target}`;
-    if (reward) reward.textContent = `${quest.completed ? "✓ " : "+"}${formatCompactMoney(TAP_QUEST_CONFIG.reward)}`;
-    const completedCount = quest.completed ? 1 : 0;
-    document.querySelectorAll(".missions-title-row > strong, .quest-level-top strong:last-child").forEach((el) => { el.textContent = `${completedCount}/6`; });
+  function renderMissions() {
+    const list = document.getElementById("mission-list") || document.querySelector(".quest-list");
+    const missionState = ensureCurrentMissionState();
+    const definitions = getCurrentMissionDefinitions();
+
+    if (list) {
+      list.innerHTML = definitions.map((mission) => {
+        const progress = Math.min(mission.target, Math.max(0, Number(missionState.progress[mission.id]) || 0));
+        const completed = Boolean(missionState.completed[mission.id]);
+        const percent = mission.target > 0 ? Math.min(100, progress / mission.target * 100) : 100;
+
+        return `
+          <div class="quest-card ${completed ? "completed" : ""}" data-mission="${mission.id}">
+            <span class="quest-icon">${completed ? "✓" : (MISSION_ICONS[mission.type] || "•")}</span>
+            <div class="quest-info">
+              <strong>${missionTitle(mission)}</strong>
+              <div class="mini-progress">
+                <span style="width:${percent}%"></span>
+              </div>
+              <small>${missionProgressText(mission, progress)}</small>
+            </div>
+            <span class="quest-reward">${completed ? "✓ " : "+"}${formatCompactMoney(mission.reward)}</span>
+          </div>`;
+      }).join("");
+    }
+
+    const completedCount = definitions.filter((mission) => Boolean(missionState.completed[mission.id])).length;
+    const total = definitions.length;
+
+    document.querySelectorAll(".missions-title-row > strong, .quest-level-top strong:last-child").forEach((element) => {
+      element.textContent = `${completedCount}/${total}`;
+    });
+
+    document.querySelectorAll(".missions-title-row span").forEach((element) => {
+      element.textContent = `${tr("common.levelShort")} ${state.level}`;
+    });
+
+    const hiddenLevel = document.querySelector(".quest-level-top strong:first-child");
+    if (hiddenLevel) hiddenLevel.textContent = `${tr("common.levelShort")} ${state.level}`;
+
+    const button = document.querySelector(".next-level-button");
+    const eligible = checkLevelUpEligibility();
+
+    if (button) {
+      button.disabled = !eligible;
+      button.classList.toggle("ready-state", eligible);
+      button.setAttribute("aria-disabled", eligible ? "false" : "true");
+      button.title = eligible
+        ? ""
+        : `${completedCount}/${total} ${currentLanguage() === "ru" ? "миссий завершено" : "missions completed"}`;
+
+      const next = button.querySelector("small");
+      if (next) next.textContent = `${tr("common.levelShort")} ${state.level + 1}`;
+    }
   }
 
   function updateShopUI() {
@@ -2479,7 +2771,7 @@
     updatePlayerResources();
     updateXpUI();
     updateTapButton();
-    updateTapQuestUI();
+    renderMissions();
     updateShopUI();
     updateCollectionSummaryUI();
     renderQuickJobs();
@@ -2525,6 +2817,14 @@
     bindTapControl();
 
     document.addEventListener("click", (event) => {
+      const nextLevelButton = event.target.closest('[data-action="next-level"]');
+      if (nextLevelButton) {
+        event.preventDefault();
+        if (!nextLevelButton.disabled) advanceToNextLevel();
+        else renderMissions();
+        return;
+      }
+
       const hustleButton = event.target.closest("[data-hustle-run]");
       if (hustleButton) { event.preventDefault(); performHustle(hustleButton.dataset.hustleRun); return; }
 
@@ -2628,7 +2928,10 @@
   function gameTick() {
     regenerateEnergy();
     const earned = processPassiveIncome();
-    if (earned > 0) updatePlayerResources();
+    if (earned > 0) {
+      updatePlayerResources();
+      renderMissions();
+    }
 
     /* Keeps temporary tap boosts and energy UI visually in sync. */
     updateTapButton();
@@ -2658,6 +2961,7 @@
     state.money = 999000000;
     state.gems = 99999;
     state.xp = 0;
+    state.missions = createMissionState(state.level);
     recomputeDerivedState();
     state.energy = state.maxEnergy;
     if (DISTRICT_IDS.length) state.city.selectedDistrictId = DISTRICT_IDS[DISTRICT_IDS.length - 1];
@@ -2777,6 +3081,16 @@
     setMaxLevel,
     getXpRequired,
     getPlayerStats: () => computePlayerStats(state),
+
+    missions: {
+      getDefinitions: (level = state.level) => getMissionDefinitions(level),
+      getState: () => state.missions,
+      update: updateMissionProgress,
+      canLevelUp: checkLevelUpEligibility,
+      nextLevel: advanceToNextLevel,
+      completeForTesting: completeCurrentMissionsForTesting,
+      render: renderMissions
+    },
 
     hustles: {
       ids: HUSTLE_IDS,
