@@ -1,6 +1,6 @@
 /* ============================================================
    HUSTLE EMPIRE TYCOON
-   GAME ENGINE V11
+   GAME ENGINE V12.2
    - Level 1 formula economy
    - Quick Jobs
    - District business progression
@@ -122,12 +122,12 @@
   };
 
   const OFFICIAL_SPRITE_ASSETS = Object.freeze({
-    character: "./assets/sprite_character_evolution.png",
-    cityMap: "./assets/sprite_city_map.png",
-    businesses: "./assets/sprite_businesses.png",
-    cases: "./assets/sprite_cases.png",
-    workers: "./assets/sprite_cards_workers.png",
-    wardrobe: "./assets/sprite_wardrobe_items.png"
+    character: "./assets/sprite_character_evolution.png?v=12.2",
+    cityMap: "./assets/sprite_city_map.png?v=12.2",
+    businesses: "./assets/sprite_businesses.png?v=12.2",
+    cases: "./assets/sprite_cases.png?v=12.2",
+    workers: "./assets/sprite_cards_workers.png?v=12.2",
+    wardrobe: "./assets/sprite_wardrobe_items.png?v=12.2"
   });
 
   function preloadOfficialSpriteSheets() {
@@ -141,7 +141,21 @@
   window.HustleSpriteAssets = OFFICIAL_SPRITE_ASSETS;
 
   function spriteMarkup(sheetClass, cellClass, extraClass = "") {
-    return `<div class="sprite-icon ${sheetClass} ${cellClass} ${extraClass}" aria-hidden="true"></div>`;
+    const classes = ["sprite-icon", "sprite-frame", sheetClass, cellClass, extraClass]
+      .filter(Boolean)
+      .join(" ");
+    return `<div class="${classes}" data-sprite-cell="${cellClass}" aria-hidden="true"></div>`;
+  }
+
+  function normalizeSpriteFrames() {
+    document.querySelectorAll(".sprite-icon").forEach((node) => {
+      node.classList.add("sprite-frame");
+    });
+
+    document.querySelectorAll('img[src*="sprite_"]').forEach((image) => {
+      image.hidden = true;
+      image.setAttribute("aria-hidden", "true");
+    });
   }
 
   function getCharacterStage(level = state?.level || 1) {
@@ -2341,6 +2355,7 @@
 
   function initGame() {
     preloadOfficialSpriteSheets();
+    normalizeSpriteFrames();
     recomputeDerivedState();
     regenerateEnergy();
     const offlineIncome = processOfflineIncome();

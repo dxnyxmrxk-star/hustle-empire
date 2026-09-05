@@ -3064,510 +3064,312 @@ body {
 }
 
 /* ==========================================================
-   V12 — OFFICIAL 3D ISOMETRIC SPRITE SYSTEM
-   Hustle Empire / Urban Tycoon
+   V12.2 — HARD RESET SPRITE CROP SYSTEM
+   GitHub Pages / Telegram WebView safe
 ========================================================== */
 
-/* Generic crop system. Every specific sprite class only sets
-   its sheet, grid size and X/Y background position. */
-.sprite-icon {
-  display: block;
-  flex: 0 0 auto;
-  background-repeat: no-repeat;
-  background-position: var(--sprite-x, 0%) var(--sprite-y, 0%);
-  background-size: var(--sprite-size-x, 100%) var(--sprite-size-y, 100%);
-  background-color: transparent;
+:root {
+  --sprite-avatar: 38px;
+  --sprite-business: 72px;
+  --sprite-worker: 92px;
+  --sprite-wardrobe: 72px;
+  --sprite-case-w: 112px;
+  --sprite-case-h: 94px;
 }
 
-/* ---------- CHARACTER EVOLUTION: 2x2 ---------- */
+/* ----------------------------------------------------------
+   1) GENERIC SPRITE FRAME
+   Important: sprite sheets must NEVER be rendered with <img>.
+   Each visual is a fixed crop window with a CSS background.
+---------------------------------------------------------- */
+.sprite-icon,
+.sprite-frame {
+  display: block !important;
+  flex: 0 0 auto !important;
+  position: relative !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+  width: 64px;
+  height: 64px;
+  max-width: 100%;
+  background-repeat: no-repeat !important;
+  background-color: transparent !important;
+  background-origin: border-box !important;
+  background-clip: border-box !important;
+  image-rendering: auto;
+  user-select: none;
+  -webkit-user-select: none;
+  pointer-events: none;
+  contain: paint;
+}
+
+/* Prevent a stale/legacy <img src="sprite_..."> from exposing the sheet. */
+img[src*="sprite_character_evolution"],
+img[src*="sprite_businesses"],
+img[src*="sprite_cards_workers"],
+img[src*="sprite_wardrobe_items"],
+img[src*="sprite_cases"] {
+  display: none !important;
+}
+
+/* ----------------------------------------------------------
+   2) SHEET DEFINITIONS
+---------------------------------------------------------- */
 .sprite-character {
-  --sprite-size-x: 200%;
-  --sprite-size-y: 200%;
-  background-image: url("./assets/sprite_character_evolution.png");
+  background-image: url("./assets/sprite_character_evolution.png?v=12.2") !important;
+  background-size: 200% 200% !important;
   aspect-ratio: 1 / 1;
 }
-.char-level-1 { --sprite-x: 0%; --sprite-y: 0%; }
-.char-level-2 { --sprite-x: 100%; --sprite-y: 0%; }
-.char-level-3 { --sprite-x: 0%; --sprite-y: 100%; }
-.char-level-4 { --sprite-x: 100%; --sprite-y: 100%; }
+.char-level-1 { background-position: 0% 0% !important; }
+.char-level-2 { background-position: 100% 0% !important; }
+.char-level-3 { background-position: 0% 100% !important; }
+.char-level-4 { background-position: 100% 100% !important; }
 
-/* ---------- BUSINESSES: 3x3 ---------- */
 .sprite-business {
-  --sprite-size-x: 300%;
-  --sprite-size-y: 300%;
-  background-image: url("./assets/sprite_businesses.png");
+  background-image: url("./assets/sprite_businesses.png?v=12.2") !important;
+  background-size: 300% 300% !important;
   aspect-ratio: 1 / 1;
 }
-.business-hotdog     { --sprite-x: 0%;   --sprite-y: 0%; }
-.business-laundry    { --sprite-x: 50%;  --sprite-y: 0%; }
-.business-gym        { --sprite-x: 100%; --sprite-y: 0%; }
-.business-barber     { --sprite-x: 0%;   --sprite-y: 50%; }
-.business-bar        { --sprite-x: 50%;  --sprite-y: 50%; }
-.business-dealership { --sprite-x: 100%; --sprite-y: 50%; }
-.business-nightclub  { --sprite-x: 0%;   --sprite-y: 100%; }
-.business-crypto     { --sprite-x: 50%;  --sprite-y: 100%; }
-.business-empire     { --sprite-x: 100%; --sprite-y: 100%; }
+.business-hotdog     { background-position: 0% 0% !important; }
+.business-laundry    { background-position: 50% 0% !important; }
+.business-gym        { background-position: 100% 0% !important; }
+.business-barber     { background-position: 0% 50% !important; }
+.business-bar        { background-position: 50% 50% !important; }
+.business-dealership { background-position: 100% 50% !important; }
+.business-nightclub  { background-position: 0% 100% !important; }
+.business-crypto     { background-position: 50% 100% !important; }
+.business-empire     { background-position: 100% 100% !important; }
 
-/* ---------- WORKER CARDS: 3x3 ---------- */
 .sprite-worker {
-  --sprite-size-x: 300%;
-  --sprite-size-y: 300%;
-  background-image: url("./assets/sprite_cards_workers.png");
+  background-image: url("./assets/sprite_cards_workers.png?v=12.2") !important;
+  background-size: 300% 300% !important;
   aspect-ratio: 1 / 1;
 }
-.worker-rider      { --sprite-x: 0%;   --sprite-y: 0%; }
-.worker-pizza      { --sprite-x: 50%;  --sprite-y: 0%; }
-.worker-trainer    { --sprite-x: 100%; --sprite-y: 0%; }
-.worker-barber     { --sprite-x: 0%;   --sprite-y: 50%; }
-.worker-bartender  { --sprite-x: 50%;  --sprite-y: 50%; }
-.worker-mechanic   { --sprite-x: 100%; --sprite-y: 50%; }
-.worker-realtor    { --sprite-x: 0%;   --sprite-y: 100%; }
-.worker-influencer { --sprite-x: 50%;  --sprite-y: 100%; }
-.worker-cfo        { --sprite-x: 100%; --sprite-y: 100%; }
+.worker-rider      { background-position: 0% 0% !important; }
+.worker-pizza      { background-position: 50% 0% !important; }
+.worker-trainer    { background-position: 100% 0% !important; }
+.worker-barber     { background-position: 0% 50% !important; }
+.worker-bartender  { background-position: 50% 50% !important; }
+.worker-mechanic   { background-position: 100% 50% !important; }
+.worker-realtor    { background-position: 0% 100% !important; }
+.worker-influencer { background-position: 50% 100% !important; }
+.worker-cfo        { background-position: 100% 100% !important; }
 
-/* ---------- WARDROBE: 4x4 ---------- */
 .sprite-wardrobe {
-  --sprite-size-x: 400%;
-  --sprite-size-y: 400%;
-  background-image: url("./assets/sprite_wardrobe_items.png");
+  background-image: url("./assets/sprite_wardrobe_items.png?v=12.2") !important;
+  background-size: 400% 400% !important;
   aspect-ratio: 1 / 1;
 }
-.wardrobe-rookie-cap        { --sprite-x: 0%;       --sprite-y: 0%; }
-.wardrobe-designer-cap      { --sprite-x: 33.333%;  --sprite-y: 0%; }
-.wardrobe-urban-sunglasses  { --sprite-x: 66.667%;  --sprite-y: 0%; }
-.wardrobe-visor             { --sprite-x: 100%;     --sprite-y: 0%; }
-.wardrobe-hoodie            { --sprite-x: 0%;       --sprite-y: 33.333%; }
-.wardrobe-leather-jacket    { --sprite-x: 33.333%;  --sprite-y: 33.333%; }
-.wardrobe-white-suit-jacket { --sprite-x: 66.667%;  --sprite-y: 33.333%; }
-.wardrobe-full-suit         { --sprite-x: 100%;     --sprite-y: 33.333%; }
-.wardrobe-ripped-jeans      { --sprite-x: 0%;       --sprite-y: 66.667%; }
-.wardrobe-tech-pants        { --sprite-x: 33.333%;  --sprite-y: 66.667%; }
-.wardrobe-red-sneakers      { --sprite-x: 66.667%;  --sprite-y: 66.667%; }
-.wardrobe-luxury-sneakers   { --sprite-x: 100%;     --sprite-y: 66.667%; }
-.wardrobe-gold-watch        { --sprite-x: 0%;       --sprite-y: 100%; }
-.wardrobe-gold-chain        { --sprite-x: 33.333%;  --sprite-y: 100%; }
-.wardrobe-bracelet          { --sprite-x: 66.667%;  --sprite-y: 100%; }
-.wardrobe-ring              { --sprite-x: 100%;     --sprite-y: 100%; }
+.wardrobe-rookie-cap        { background-position: 0% 0% !important; }
+.wardrobe-designer-cap      { background-position: 33.333% 0% !important; }
+.wardrobe-urban-sunglasses  { background-position: 66.667% 0% !important; }
+.wardrobe-visor             { background-position: 100% 0% !important; }
+.wardrobe-hoodie            { background-position: 0% 33.333% !important; }
+.wardrobe-leather-jacket    { background-position: 33.333% 33.333% !important; }
+.wardrobe-white-suit-jacket { background-position: 66.667% 33.333% !important; }
+.wardrobe-full-suit         { background-position: 100% 33.333% !important; }
+.wardrobe-ripped-jeans      { background-position: 0% 66.667% !important; }
+.wardrobe-tech-pants        { background-position: 33.333% 66.667% !important; }
+.wardrobe-red-sneakers      { background-position: 66.667% 66.667% !important; }
+.wardrobe-luxury-sneakers   { background-position: 100% 66.667% !important; }
+.wardrobe-gold-watch        { background-position: 0% 100% !important; }
+.wardrobe-gold-chain        { background-position: 33.333% 100% !important; }
+.wardrobe-bracelet          { background-position: 66.667% 100% !important; }
+.wardrobe-ring              { background-position: 100% 100% !important; }
 
-/* ---------- CASES: 2 columns x 3 rows ---------- */
+/* Sheet is 1122x1402. Each 2x3 cell is ~561x467 -> aspect ~1.20. */
 .sprite-case {
-  --sprite-size-x: 200%;
-  --sprite-size-y: 300%;
-  background-image: url("./assets/sprite_cases.png");
+  background-image: url("./assets/sprite_cases.png?v=12.2") !important;
+  background-size: 200% 300% !important;
+  width: var(--sprite-case-w);
+  height: var(--sprite-case-h);
   aspect-ratio: 1.2 / 1;
 }
-.case-wood    { --sprite-x: 0%;   --sprite-y: 0%; }
-.case-leather { --sprite-x: 100%; --sprite-y: 0%; }
-.case-steel   { --sprite-x: 0%;   --sprite-y: 50%; }
-.case-cyan    { --sprite-x: 100%; --sprite-y: 50%; }
-.case-purple  { --sprite-x: 0%;   --sprite-y: 100%; }
-.case-gold    { --sprite-x: 100%; --sprite-y: 100%; }
+.case-wood    { background-position: 0% 0% !important; }
+.case-leather { background-position: 100% 0% !important; }
+.case-steel   { background-position: 0% 50% !important; }
+.case-cyan    { background-position: 100% 50% !important; }
+.case-purple  { background-position: 0% 100% !important; }
+.case-gold    { background-position: 100% 100% !important; }
 
-/* Slight compensation for the two visually larger lower chests. */
-.case-purple,
-.case-gold {
-  transform: scale(.92);
-  transform-origin: center;
-}
-
-/* ---------- CITY MAP ---------- */
-.city-map-wrapper.city-map-sprite-background {
-  position: relative;
-  overflow: hidden;
-  min-height: 390px;
-  background-image:
-    linear-gradient(180deg, rgba(4, 11, 20, .04), rgba(4, 11, 20, .16)),
-    url("./assets/sprite_city_map.png");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-}
-.city-map-wrapper.city-map-sprite-background::after {
-  z-index: 1;
-  pointer-events: none;
-}
-.city-map-wrapper .city-node {
-  z-index: 3;
-  right: auto !important;
-  bottom: auto !important;
-  transform: translate(-50%, -50%);
-  backdrop-filter: blur(8px);
-  background: rgba(8, 18, 31, .78) !important;
-}
-/* Coordinates tuned to the supplied official city artwork. */
-.city-map-wrapper .city-node.poor {
-  top: 72% !important;
-  left: 16% !important;
-}
-.city-map-wrapper .city-node.center {
-  top: 52% !important;
-  left: 45% !important;
-}
-.city-map-wrapper .city-node.business {
-  top: 21% !important;
-  left: 60% !important;
-}
-.city-map-wrapper .city-node.rich {
-  top: 55% !important;
-  left: 86% !important;
-}
-
-/* ---------- CHARACTER PLACEMENT ---------- */
-.player-avatar-sprite {
-  width: 38px !important;
-  height: 38px !important;
-  border-radius: 50%;
-  background-color: rgba(8, 19, 31, .86);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.08);
-}
-.home-character-sprite {
-  position: absolute !important;
-  z-index: 3 !important;
-  left: 50% !important;
-  bottom: 4px !important;
-  width: min(100%, 470px) !important;
-  height: auto !important;
-  transform: translateX(-50%) !important;
-  filter:
-    drop-shadow(0 26px 28px rgba(0,0,0,.72))
-    drop-shadow(0 0 13px rgba(0,176,255,.12)) !important;
-}
-.wardrobe-character-sprite {
-  position: absolute !important;
-  z-index: 2 !important;
-  left: 50% !important;
-  bottom: 4px !important;
-  width: min(112%, 470px) !important;
-  height: auto !important;
-  transform: translateX(-50%) !important;
-  filter:
-    drop-shadow(0 24px 26px rgba(0,0,0,.68))
-    drop-shadow(0 0 11px rgba(0,176,255,.10));
-}
-
-/* ---------- UI crop containers ---------- */
-.business-live-image .sprite-business,
-.district-business-image .sprite-business {
-  width: 100%;
-  height: 100%;
-  min-height: 70px;
-}
-.compact-card-image .sprite-worker {
-  width: 100%;
-  height: 100%;
-}
-.exclusive-card-image .sprite-worker {
-  width: 100%;
-  height: 100%;
-}
-.wardrobe-item-icon {
-  overflow: hidden;
-}
-.wardrobe-item-icon .sprite-wardrobe {
-  width: 100%;
-  height: 100%;
-}
-.catalog-item-image .sprite-wardrobe,
-.accessory-reward-image .sprite-wardrobe {
-  width: 100%;
-  height: 100%;
-}
-.real-case-art {
-  width: 100%;
-  height: 76px;
-  display: grid;
-  place-items: center;
-  margin-bottom: 3px;
-}
-.real-case-art .sprite-case {
-  width: min(100%, 108px);
-}
-.free-accessory-icon {
-  overflow: hidden;
-  padding: 2px;
-}
-.free-accessory-icon .sprite-case {
-  width: 100%;
-}
-.premium-accessory-case-icon {
-  width: 100%;
-  height: 70px;
-  overflow: hidden;
-}
-.premium-accessory-case-icon .sprite-case {
-  width: 100%;
-  height: 100%;
-}
-.reward-card-sprite,
-.accessory-reward-sprite {
-  width: 100%;
-  height: 100%;
-}
-.shop-sprite-icon {
-  width: 100%;
-  height: 100%;
-}
-.premium-product-image {
-  overflow: hidden;
-}
-
-/* Locked sprites remain recognizable without exposing full color. */
-.locked-card .sprite-worker,
-.catalog-item.locked .sprite-wardrobe {
-  filter: grayscale(.75) brightness(.30);
-}
-
-@media (max-width: 700px) {
-  .city-map-wrapper.city-map-sprite-background {
-    min-height: 350px;
-    background-position: center;
-  }
-  .city-map-wrapper .city-node {
-    max-width: 31%;
-  }
-  .city-map-wrapper .city-node.poor { left: 17% !important; top: 72% !important; }
-  .city-map-wrapper .city-node.center { left: 44% !important; top: 53% !important; }
-  .city-map-wrapper .city-node.business { left: 60% !important; top: 22% !important; }
-  .city-map-wrapper .city-node.rich { left: 84% !important; top: 56% !important; }
-}
-
-/* ==========================================================
-   V12.1 — DISPLAY FIXES
-   Header face crop / legacy cleanup / sprite-safe scaling
-========================================================== */
-
-/* ---------- 1) HEADER AVATAR: FACE-ONLY CROP ---------- */
+/* ----------------------------------------------------------
+   3) HEADER AVATAR — FACE CROP, NOT FULL BODY
+   Uses a deeper zoom into the same 2x2 sheet.
+---------------------------------------------------------- */
 .header-avatar,
 .player-avatar {
-  flex: 0 0 36px !important;
-  width: 36px !important;
-  height: 36px !important;
-  border-radius: 50% !important;
+  width: var(--sprite-avatar) !important;
+  height: var(--sprite-avatar) !important;
+  flex: 0 0 var(--sprite-avatar) !important;
   overflow: hidden !important;
-  border: 1px solid rgba(82, 221, 255, .72) !important;
-  background: #0a1520 !important;
-  box-shadow:
-    0 0 0 2px rgba(4, 16, 27, .88),
-    0 0 12px rgba(0, 176, 255, .22) !important;
+  border-radius: 50% !important;
+  border: 1px solid rgba(82,221,255,.72) !important;
+  background: #101a24 !important;
+  box-shadow: 0 0 0 2px rgba(4,16,27,.9), 0 0 12px rgba(0,176,255,.22) !important;
 }
 
-.player-avatar-image,
-.player-avatar-sprite {
+.player-avatar-sprite.sprite-character {
   width: 100% !important;
   height: 100% !important;
   border-radius: 50% !important;
-  overflow: hidden !important;
-  aspect-ratio: 1 / 1 !important;
-  background-size: 700% 700% !important;
+  background-size: 900% 900% !important;
   background-repeat: no-repeat !important;
   transform: none !important;
   filter: none !important;
 }
+/* Face centers tuned to the supplied 1254x1254 sheet. */
+.player-avatar-sprite.char-level-1 { background-position: 22.4% 5.5% !important; }
+.player-avatar-sprite.char-level-2 { background-position: 75.0% 3.7% !important; }
+.player-avatar-sprite.char-level-3 { background-position: 22.4% 59.7% !important; }
+.player-avatar-sprite.char-level-4 { background-position: 74.1% 58.3% !important; }
 
-/* Face centers measured against the official 1254x1254 2x2 sheet. */
-.player-avatar-sprite.char-level-1 {
-  background-position: 23% 1.5% !important;
-}
-.player-avatar-sprite.char-level-2 {
-  background-position: 79% 1.5% !important;
-}
-.player-avatar-sprite.char-level-3 {
-  background-position: 23% 58% !important;
-}
-.player-avatar-sprite.char-level-4 {
-  background-position: 79% 58% !important;
-}
-
-/* ---------- 2) REMOVE LEGACY DARK/ANIME BACKGROUNDS ---------- */
-.home-left,
-.home-center {
-  background: #0d131d !important;
-  background-image: none !important;
-}
-
-.home-left {
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.035),
-    0 10px 24px rgba(0,0,0,.22) !important;
+/* ----------------------------------------------------------
+   4) MAIN CHARACTER — HOME + WARDROBE
+---------------------------------------------------------- */
+.home-center,
+.wardrobe-character {
+  position: relative !important;
+  overflow: hidden !important;
 }
 
 .home-background,
-.wardrobe-bg {
-  display: none !important;
+.wardrobe-bg { display: none !important; }
+
+.home-center {
+  background: #0d131d !important;
+  background-image: radial-gradient(circle at 50% 34%, rgba(0,176,255,.09), transparent 43%) !important;
 }
 
-.wardrobe-character {
-  overflow: hidden !important;
-  background:
-    radial-gradient(circle at 50% 36%, rgba(0,176,255,.10), transparent 38%),
-    linear-gradient(180deg, #111a25 0%, #0b121b 62%, #080d14 100%) !important;
-}
-
-/* ---------- 3) MAIN CHARACTER SCALE / PANEL SAFETY ---------- */
-.home-center,
-.wardrobe-character {
-  overflow: hidden !important;
-}
-
-.home-character-sprite {
+.home-character-sprite.sprite-character {
+  position: absolute !important;
+  z-index: 3 !important;
   left: 50% !important;
   bottom: 58px !important;
-  width: min(92%, 360px) !important;
-  height: auto !important;
+  width: clamp(230px, 58vw, 360px) !important;
+  height: clamp(230px, 58vw, 360px) !important;
   max-width: 92% !important;
-  max-height: calc(100% - 66px) !important;
-  aspect-ratio: 1 / 1 !important;
+  max-height: calc(100% - 68px) !important;
   transform: translateX(-50%) !important;
-  transform-origin: center bottom !important;
-  filter:
-    drop-shadow(0 22px 24px rgba(0,0,0,.66))
-    drop-shadow(0 0 10px rgba(0,176,255,.10)) !important;
+  filter: drop-shadow(0 22px 24px rgba(0,0,0,.66)) drop-shadow(0 0 10px rgba(0,176,255,.10)) !important;
 }
 
-.wardrobe-character-sprite {
+.wardrobe-character {
+  background: radial-gradient(circle at 50% 34%, rgba(0,176,255,.10), transparent 42%), #0d131d !important;
+}
+
+.wardrobe-character-sprite.sprite-character {
+  position: absolute !important;
+  z-index: 2 !important;
   left: 50% !important;
-  bottom: 14px !important;
-  width: min(92%, 330px) !important;
-  height: auto !important;
+  bottom: 10px !important;
+  width: clamp(220px, 55vw, 330px) !important;
+  height: clamp(220px, 55vw, 330px) !important;
   max-width: 92% !important;
   max-height: 92% !important;
-  aspect-ratio: 1 / 1 !important;
   transform: translateX(-50%) !important;
-  transform-origin: center bottom !important;
-  filter:
-    drop-shadow(0 20px 22px rgba(0,0,0,.64))
-    drop-shadow(0 0 9px rgba(0,176,255,.09)) !important;
+  filter: drop-shadow(0 20px 22px rgba(0,0,0,.64)) drop-shadow(0 0 9px rgba(0,176,255,.09)) !important;
 }
 
-/* ---------- 4) WORKER CARD EDGE PADDING ---------- */
-.compact-card-image {
-  padding: 4px !important;
-  box-sizing: border-box;
-}
-
-.compact-card-image .sprite-worker {
-  width: 100% !important;
-  height: 100% !important;
-  transform-origin: center !important;
-}
-
-/* Chef pizza + Realtor house need more transparent breathing room. */
-.compact-card-image .sprite-worker.worker-edge-safe {
-  transform: scale(.84) !important;
-}
-.compact-card-image .sprite-worker.worker-pizza.worker-edge-safe {
-  transform: scale(.82) translateY(2%) !important;
-}
-.compact-card-image .sprite-worker.worker-realtor.worker-edge-safe {
-  transform: scale(.82) translateY(3%) !important;
-}
-
-/* ---------- 5) CITY BUSINESS ISOMETRIC ASPECT-RATIO ---------- */
-.district-business-card {
-  grid-template-columns: 66px minmax(0, 1fr) !important;
-  align-items: center !important;
-}
-
-.district-business-image,
-.business-live-image {
-  width: 66px !important;
-  height: 66px !important;
-  aspect-ratio: 1 / 1 !important;
+/* ----------------------------------------------------------
+   5) HOME + CITY BUSINESS ICONS
+---------------------------------------------------------- */
+.business-live-image,
+.district-business-image {
+  width: var(--sprite-business) !important;
+  height: var(--sprite-business) !important;
+  min-width: var(--sprite-business) !important;
   overflow: hidden !important;
-  padding: 2px !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 3px !important;
   box-sizing: border-box !important;
-  background: rgba(6, 23, 37, .82) !important;
+  border-radius: 8px;
+  background: rgba(6,23,37,.82) !important;
 }
 
-.district-business-image .sprite-business,
-.business-live-image .sprite-business {
+.business-live-image .sprite-business,
+.district-business-image .sprite-business {
   width: 100% !important;
   height: 100% !important;
-  min-height: 0 !important;
-  aspect-ratio: 1 / 1 !important;
-  transform: scale(.92);
+  transform: scale(.94);
   transform-origin: center;
 }
 
-/* Large/tall late-game buildings get extra internal space. */
-.district-business-image .sprite-business.business-edge-safe,
-.business-live-image .sprite-business.business-edge-safe {
-  transform: scale(.84) !important;
+.business-live-image .sprite-business.business-edge-safe,
+.district-business-image .sprite-business.business-edge-safe {
+  transform: scale(.82) !important;
 }
 
-/* ---------- 6) SHOP: OFFICIAL SPRITES ONLY ---------- */
-.premium-product {
-  grid-template-columns: 66px minmax(0, 1fr) !important;
+.district-business-card,
+.business-live-card {
+  min-width: 0 !important;
+  overflow: hidden !important;
 }
 
-.premium-product-image {
+/* ----------------------------------------------------------
+   6) WORKER/CARD CROPS
+---------------------------------------------------------- */
+.compact-card-image,
+.exclusive-card-image,
+.reward-card-image {
   position: relative !important;
-  width: 62px !important;
-  height: 66px !important;
+  overflow: hidden !important;
   display: grid !important;
   place-items: center !important;
-  overflow: hidden !important;
-  border: 1px solid rgba(255,255,255,.08);
-  border-radius: 8px;
-  background: rgba(8, 17, 27, .76) !important;
 }
 
-.premium-product-image > .sprite-icon.shop-sprite-icon {
-  width: 58px !important;
-  height: 58px !important;
-  max-width: 100% !important;
-  max-height: 100% !important;
+.compact-card-image {
+  height: clamp(76px, 22vw, 96px) !important;
+  padding: 5px !important;
+}
+
+.compact-card-image .sprite-worker,
+.exclusive-card-image .sprite-worker,
+.reward-card-image .sprite-worker {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Pizza + house extend far sideways in the source artwork. */
+.compact-card-image .worker-pizza.worker-edge-safe {
+  transform: scale(.80) translateY(2%) !important;
+  transform-origin: center !important;
+}
+.compact-card-image .worker-realtor.worker-edge-safe {
+  transform: scale(.78) translateY(3%) !important;
   transform-origin: center !important;
 }
 
-.premium-product-image > .sprite-case.shop-sprite-icon {
-  transform: scale(.88) !important;
-}
-
-.premium-product-image > .sprite-wardrobe.shop-sprite-icon {
-  transform: scale(.88) !important;
-}
-
-.bundle-sprite-stack {
-  isolation: isolate;
-}
-.bundle-sprite-stack .bundle-case-sprite {
-  position: absolute;
-  z-index: 1;
-  left: 2px;
-  bottom: 2px;
-  width: 52px !important;
-  height: 52px !important;
-  transform: scale(.78) !important;
-  opacity: .92;
-}
-.bundle-sprite-stack .bundle-item-sprite {
-  position: absolute;
-  z-index: 2;
-  right: -4px;
-  top: -2px;
-  width: 38px !important;
-  height: 38px !important;
-  transform: rotate(8deg) scale(.88) !important;
-  filter: drop-shadow(0 3px 5px rgba(0,0,0,.42));
-}
-
-/* ---------- 7) ACCESSORY CATALOG: OFFICIAL 4x4 SPRITE ONLY ---------- */
-.catalog-item-image {
-  height: 112px !important;
+/* ----------------------------------------------------------
+   7) WARDROBE / CATALOG
+---------------------------------------------------------- */
+.wardrobe-item-icon {
+  width: 44px !important;
+  height: 44px !important;
   overflow: hidden !important;
-  padding: 7px !important;
-  box-sizing: border-box !important;
-  background: rgba(7, 19, 29, .58);
-  border-radius: 7px;
+  display: grid !important;
+  place-items: center !important;
 }
-
-.catalog-item-image .sprite-wardrobe,
-.accessory-reward-image .sprite-wardrobe,
 .wardrobe-item-icon .sprite-wardrobe {
   width: 100% !important;
   height: 100% !important;
-  aspect-ratio: 1 / 1 !important;
+}
+
+.catalog-item-image {
+  height: clamp(92px, 28vw, 116px) !important;
+  overflow: hidden !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 7px !important;
+  box-sizing: border-box !important;
+  border-radius: 7px;
+  background: rgba(7,19,29,.58) !important;
+}
+
+.catalog-item-image .sprite-wardrobe,
+.accessory-reward-image .sprite-wardrobe {
+  width: 100% !important;
+  height: 100% !important;
   transform: scale(.90);
   transform-origin: center;
 }
@@ -3576,34 +3378,187 @@ body {
   filter: grayscale(.78) brightness(.30) !important;
 }
 
-/* Never show a legacy single-image icon if stale markup survives a cache. */
+/* ----------------------------------------------------------
+   8) CASES
+---------------------------------------------------------- */
+.real-case-art,
+.free-accessory-icon,
+.premium-accessory-case-icon {
+  overflow: hidden !important;
+  display: grid !important;
+  place-items: center !important;
+}
+
+.real-case-art {
+  height: 96px !important;
+}
+.real-case-art .sprite-case {
+  width: min(100%, 112px) !important;
+  height: auto !important;
+  aspect-ratio: 1.2 / 1 !important;
+}
+
+.free-accessory-icon {
+  width: 72px !important;
+  height: 72px !important;
+}
+.free-accessory-icon .sprite-case {
+  width: 72px !important;
+  height: 60px !important;
+}
+
+.premium-accessory-case-icon {
+  width: 100% !important;
+  height: 78px !important;
+}
+.premium-accessory-case-icon .sprite-case {
+  width: 92px !important;
+  height: 77px !important;
+}
+
+.case-purple,
+.case-gold {
+  transform: scale(.90);
+  transform-origin: center;
+}
+
+/* ----------------------------------------------------------
+   9) SHOP
+---------------------------------------------------------- */
+.premium-product {
+  grid-template-columns: 68px minmax(0,1fr) !important;
+}
+
+.premium-product-image {
+  position: relative !important;
+  width: 64px !important;
+  height: 68px !important;
+  overflow: hidden !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 8px;
+  background: rgba(8,17,27,.76) !important;
+}
+
+.premium-product-image .shop-sprite-icon {
+  width: 58px !important;
+  height: 58px !important;
+}
+.premium-product-image .sprite-case.shop-sprite-icon {
+  width: 60px !important;
+  height: 50px !important;
+}
+
+.bundle-sprite-stack { isolation: isolate; }
+.bundle-sprite-stack .bundle-case-sprite {
+  position: absolute !important;
+  z-index: 1;
+  left: 1px;
+  bottom: 4px;
+  width: 54px !important;
+  height: 45px !important;
+  transform: scale(.80) !important;
+}
+.bundle-sprite-stack .bundle-item-sprite {
+  position: absolute !important;
+  z-index: 2;
+  right: -2px;
+  top: 1px;
+  width: 38px !important;
+  height: 38px !important;
+  transform: rotate(8deg) scale(.88) !important;
+  filter: drop-shadow(0 3px 5px rgba(0,0,0,.42));
+}
+
+/* ----------------------------------------------------------
+   10) CITY MAP
+---------------------------------------------------------- */
+.city-map-wrapper.city-map-sprite-background {
+  position: relative !important;
+  overflow: hidden !important;
+  min-height: clamp(300px, 62vw, 390px) !important;
+  background-image:
+    linear-gradient(180deg, rgba(4,11,20,.02), rgba(4,11,20,.12)),
+    url("./assets/sprite_city_map.png?v=12.2") !important;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+}
+
+.city-map-wrapper .city-node {
+  position: absolute !important;
+  z-index: 4 !important;
+  right: auto !important;
+  bottom: auto !important;
+  transform: translate(-50%,-50%) !important;
+  max-width: 30%;
+}
+.city-map-wrapper .city-node.poor     { left: 16% !important; top: 72% !important; }
+.city-map-wrapper .city-node.center   { left: 45% !important; top: 52% !important; }
+.city-map-wrapper .city-node.business { left: 60% !important; top: 21% !important; }
+.city-map-wrapper .city-node.rich     { left: 86% !important; top: 55% !important; }
+
+/* ----------------------------------------------------------
+   11) LEGACY IMAGE SAFETY
+---------------------------------------------------------- */
 .catalog-item-image > img,
 .premium-product-image > img,
 .business-live-image > img,
-.district-business-image > img {
+.district-business-image > img,
+.compact-card-image > img,
+.real-case-art > img,
+.wardrobe-item-icon > img {
   display: none !important;
 }
 
-/* ---------- Narrow-screen safety ---------- */
+/* ----------------------------------------------------------
+   12) TELEGRAM MOBILE RESPONSIVE
+---------------------------------------------------------- */
+@media (max-width: 700px) {
+  :root {
+    --sprite-avatar: 36px;
+    --sprite-business: 66px;
+  }
+
+  .city-map-wrapper.city-map-sprite-background {
+    min-height: 340px !important;
+  }
+
+  .city-map-wrapper .city-node {
+    min-width: 78px !important;
+    max-width: 31% !important;
+    padding: 6px !important;
+  }
+}
+
 @media (max-width: 390px) {
-  .home-character-sprite {
-    bottom: 55px !important;
-    width: min(94%, 300px) !important;
-    max-width: 94% !important;
+  :root {
+    --sprite-avatar: 34px;
+    --sprite-business: 60px;
   }
 
-  .wardrobe-character-sprite {
-    width: min(94%, 285px) !important;
-    max-width: 94% !important;
+  .home-character-sprite.sprite-character {
+    width: min(88vw, 300px) !important;
+    height: min(88vw, 300px) !important;
+    bottom: 54px !important;
   }
 
-  .district-business-card {
-    grid-template-columns: 64px minmax(0, 1fr) !important;
+  .wardrobe-character-sprite.sprite-character {
+    width: min(80vw, 278px) !important;
+    height: min(80vw, 278px) !important;
   }
 
-  .district-business-image,
-  .business-live-image {
-    width: 64px !important;
-    height: 64px !important;
+  .city-map-wrapper.city-map-sprite-background {
+    min-height: 315px !important;
   }
+
+  .city-map-wrapper .city-node {
+    min-width: 68px !important;
+    max-width: 32% !important;
+    padding: 5px !important;
+  }
+
+  .city-map-wrapper .city-node strong { font-size: 6px !important; }
+  .city-map-wrapper .city-node span,
+  .city-map-wrapper .city-node small { font-size: 5px !important; }
 }
