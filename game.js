@@ -1445,6 +1445,15 @@
     return Math.floor(Number(value) || 0).toLocaleString("en-US");
   }
 
+  function formatCompactCount(value) {
+    const amount = Math.max(0, Math.floor(Number(value) || 0));
+    if (amount >= 1e12) return `${(amount / 1e12).toFixed(1).replace(".0", "")}T`;
+    if (amount >= 1e9) return `${(amount / 1e9).toFixed(1).replace(".0", "")}B`;
+    if (amount >= 1e6) return `${(amount / 1e6).toFixed(1).replace(".0", "")}M`;
+    if (amount >= 1e3) return `${(amount / 1e3).toFixed(1).replace(".0", "")}K`;
+    return formatNumber(amount);
+  }
+
   function formatCompactMoney(value) {
     const amount = Math.max(0, Number(value) || 0);
     if (amount >= 1e9) return `$${(amount / 1e9).toFixed(1).replace(".0", "")}B`;
@@ -4755,9 +4764,25 @@
     const money = document.querySelector(".money-card strong");
     const energy = document.querySelector(".energy-card strong");
     const gems = document.querySelector(".gem-card strong");
-    if (money) money.textContent = formatCompactMoney(state.money);
-    if (energy) energy.textContent = `${Math.floor(state.energy)}/${state.maxEnergy}`;
-    if (gems) gems.textContent = formatNumber(state.gems);
+
+    if (money) {
+      money.textContent = formatCompactMoney(state.money);
+      money.title = `$${formatNumber(state.money)}`;
+    }
+
+    if (energy) {
+      const currentEnergy = Math.max(0, Math.floor(Number(state.energy) || 0));
+      const maxEnergy = Math.max(0, Math.floor(Number(state.maxEnergy) || 0));
+      energy.textContent = maxEnergy >= 10000
+        ? `${formatCompactCount(currentEnergy)}/${formatCompactCount(maxEnergy)}`
+        : `${formatNumber(currentEnergy)}/${formatNumber(maxEnergy)}`;
+      energy.title = `${formatNumber(currentEnergy)} / ${formatNumber(maxEnergy)}`;
+    }
+
+    if (gems) {
+      gems.textContent = formatCompactCount(state.gems);
+      gems.title = formatNumber(state.gems);
+    }
   }
 
   function updateLevelUpBoostUI() {
@@ -4834,7 +4859,10 @@
     const xp = document.querySelector(".xp-row > span");
     const xpBar = document.querySelector(".player-level .progress-fill");
     if (level) level.textContent = `${tr("common.levelShort")} ${state.level}`;
-    if (xp) xp.textContent = `${formatNumber(state.xp)} / ${formatNumber(needed)} XP`;
+    if (xp) {
+      xp.textContent = `${formatCompactCount(state.xp)} / ${formatCompactCount(needed)} XP`;
+      xp.title = `${formatNumber(state.xp)} / ${formatNumber(needed)} XP`;
+    }
     if (xpBar) xpBar.style.width = `${pct}%`;
 
     document.querySelectorAll(".missions-title-row span").forEach((el) => { el.textContent = `${tr("common.levelShort")} ${state.level}`; });
@@ -4956,6 +4984,137 @@
     });
   }
 
+  /* ==========================================================
+     V16.3 — NOTIFICATIONS POPUP
+     Dedicated modal with safe backdrop/focus cleanup.
+  ========================================================== */
+
+  let notificationsReturnFocus = null;
+
+  function getNotificationItems() {
+    const items = [];
+
+    const dailyCompleted = getDailyChallengesCompletionCount();
+    if (dailyCompleted < 3) {
+      items.push({
+        icon: "🎯",
+        tone: "green",
+        title: "Sfide giornaliere",
+        message: `${dailyCompleted}/3 completate · completa le attività prima del reset.`
+      });
+    }
+
+    const missionState = ensureCurrentMissionState();
+    const missionDefinitions = getCurrentMissionDefinitions();
+    const completedMissions = missionDefinitions.filter(
+      (mission) => Boolean(missionState.completed[mission.id])
+    ).length;
+
+    if (missionDefinitions.length && completedMissions === missionDefinitions.length) {
+      items.push({
+        icon: "⬆",
+        tone: "gold",
+        title: "Next Level pronto",
+        message: `Hai completato tutte le ${missionDefinitions.length} missioni del livello ${state.level}.`
+      });
+    }
+
+    const boostRemaining = getLevelUpBoostRemainingMs(state);
+    const boostMultiplier = getLevelUpEarningsMultiplier(state);
+    if (boostRemaining > 0 && boostMultiplier > 1) {
+      items.push({
+        icon: "⚡",
+        tone: "blue",
+        title: "Boost guadagni attivo",
+        message: `${formatBoostMultiplier(boostMultiplier)} ancora per ${formatBoostTimer(boostRemaining)}.`
+      });
+    }
+
+    return items;
+  }
+
+  function renderNotificationsUI() {
+    const button = document.querySelector('[data-action="notifications"]');
+    const badge = button?.querySelector(".badge");
+    const count = getNotificationItems().length;
+
+    if (badge) {
+      badge.textContent = count > 9 ? "9+" : String(count);
+      badge.hidden = count === 0;
+      badge.setAttribute("aria-hidden", count === 0 ? "true" : "false");
+    }
+
+    if (button) {
+      const modal = document.getElementById("notifications-modal");
+      button.setAttribute("aria-expanded", modal && !modal.hidden ? "true" : "false");
+      button.title = count ? `${count} notifiche` : "Nessuna nuova notifica";
+    }
+  }
+
+  function renderNotificationsModalContent() {
+    const list = document.getElementById("notifications-list");
+    if (!list) return;
+
+    const items = getNotificationItems();
+    if (!items.length) {
+      list.innerHTML = `
+        <div class="notification-empty-state">
+          <span aria-hidden="true">✓</span>
+          <strong>Tutto sotto controllo</strong>
+          <small>Non ci sono notifiche urgenti in questo momento.</small>
+        </div>`;
+      return;
+    }
+
+    list.innerHTML = items.map((item) => `
+      <article class="notification-item ${item.tone || ""}">
+        <span class="notification-item-icon" aria-hidden="true">${item.icon}</span>
+        <div class="notification-item-copy">
+          <strong>${item.title}</strong>
+          <small>${item.message}</small>
+        </div>
+      </article>`).join("");
+  }
+
+  function openNotificationsModal(trigger = null) {
+    const modal = document.getElementById("notifications-modal");
+    if (!modal) return false;
+
+    notificationsReturnFocus = trigger || document.activeElement;
+    renderNotificationsModalContent();
+
+    modal.hidden = false;
+    modal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("notifications-modal-open");
+
+    const button = document.querySelector('[data-action="notifications"]');
+    if (button) button.setAttribute("aria-expanded", "true");
+
+    requestAnimationFrame(() => {
+      modal.querySelector(".notifications-close")?.focus?.({ preventScroll: true });
+    });
+
+    return true;
+  }
+
+  function closeNotificationsModal() {
+    const modal = document.getElementById("notifications-modal");
+    if (!modal || modal.hidden) return;
+
+    modal.hidden = true;
+    modal.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("notifications-modal-open");
+
+    const button = document.querySelector('[data-action="notifications"]');
+    if (button) button.setAttribute("aria-expanded", "false");
+
+    const focusTarget = notificationsReturnFocus;
+    notificationsReturnFocus = null;
+    requestAnimationFrame(() => focusTarget?.focus?.({ preventScroll: true }));
+
+    renderNotificationsUI();
+  }
+
   function updateUI() {
     recomputeDerivedState();
     updateHomeCharacter();
@@ -4966,6 +5125,7 @@
     renderMissions();
     updateLevelUpBoostUI();
     updateShopUI();
+    renderNotificationsUI();
     updateCollectionSummaryUI();
     renderQuickJobs();
   }
@@ -5010,6 +5170,19 @@
     bindTapControl();
 
     document.addEventListener("click", (event) => {
+      const notificationsButton = event.target.closest('[data-action="notifications"]');
+      if (notificationsButton) {
+        event.preventDefault();
+        openNotificationsModal(notificationsButton);
+        return;
+      }
+
+      if (event.target.closest("[data-notifications-close]")) {
+        event.preventDefault();
+        closeNotificationsModal();
+        return;
+      }
+
       if (event.target.closest("[data-daily-challenges-open]")) {
         event.preventDefault();
         openDailyChallengesModal();
@@ -5160,6 +5333,13 @@
 
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape") {
+        const notificationsModal = document.getElementById("notifications-modal");
+        if (notificationsModal && !notificationsModal.hidden) {
+          event.preventDefault();
+          closeNotificationsModal();
+          return;
+        }
+
         const modal = document.getElementById("daily-challenges-modal");
         if (modal && !modal.hidden) {
           event.preventDefault();
@@ -5191,6 +5371,12 @@
     updateTapButton();
     updateLevelUpBoostUI();
     tickDailyRetentionSystem();
+    renderNotificationsUI();
+
+    const notificationsModal = document.getElementById("notifications-modal");
+    if (notificationsModal && !notificationsModal.hidden) {
+      renderNotificationsModalContent();
+    }
 
     tickRandomEventSystem();
 

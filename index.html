@@ -17,11 +17,11 @@
 <link rel="icon" href="data:,"/>
 <link rel="shortcut icon" href="data:,"/>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<link href="style.css?v=16.0" rel="stylesheet"/>
+<link href="style.css?v=16.3" rel="stylesheet"/>
 <script defer="" src="locales.js?v=16.0"></script>
 <script defer="" src="config.js?v=16.0"></script>
 <script defer="" src="script.js?v=16.0"></script>
-<script defer="" src="game.js?v=16.0"></script>
+<script defer="" src="game.js?v=16.3"></script>
 
 <style id="level-up-rewards-v14-1">
   #level-boost-indicator[hidden],
@@ -242,7 +242,7 @@
 <div class="resource-card gem-card"><img class="hud-icon hud-icon-gems" data-hud-icon="gems" src="assets/icon_gems.png?v=16.0" alt="Gems" draggable="false" decoding="async"/><strong>0</strong></div>
 </div>
 <div class="topbar-actions">
-<button aria-label="Notifications" class="top-action notification-button" data-action="notifications" type="button">🔔<span class="badge">2</span></button>
+<button aria-label="Notifications" aria-controls="notifications-modal" aria-expanded="false" class="top-action notification-button" data-action="notifications" type="button">🔔<span class="badge">2</span></button>
 <button aria-label="Menu" class="top-action" data-action="settings" type="button">☰</button>
 <button class="language-button" id="language-switch" type="button">RU</button>
 </div>
@@ -597,7 +597,7 @@
       <div class="daily-challenges-modal-title">
         <span class="daily-challenges-modal-icon">🎯</span>
         <div>
-          <span class="section-eyebrow">DAILY RETENTION</span>
+          <span class="section-eyebrow">TYCOON DAILY</span>
           <h2 id="daily-challenges-title">Sfide Giornaliere</h2>
           <p>Completa le attività di oggi e torna domani per una nuova rotazione.</p>
         </div>
@@ -681,7 +681,7 @@
               id="daily-morse-submit"
               data-daily-morse-submit
               type="button"
-            >Decifra</button>
+            >Decifra Codice</button>
           </div>
 
           <div class="daily-retention-status" id="daily-morse-status">
@@ -748,6 +748,42 @@
       Riscatta e Sfrutta il Boost!
     </button>
   </div>
+</div>
+
+
+<div id="notifications-modal" hidden aria-hidden="true">
+  <button
+    class="notifications-backdrop"
+    data-notifications-close
+    type="button"
+    aria-label="Chiudi notifiche"
+  ></button>
+
+  <section
+    class="notifications-dialog"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="notifications-title"
+    aria-describedby="notifications-subtitle"
+  >
+    <header class="notifications-header">
+      <div class="notifications-heading">
+        <span class="notifications-icon" aria-hidden="true">🔔</span>
+        <div>
+          <span class="section-eyebrow">TYCOON ALERTS</span>
+          <h2 id="notifications-title">Notifications</h2>
+          <p id="notifications-subtitle">Aggiornamenti utili sul tuo impero.</p>
+        </div>
+      </div>
+      <button class="notifications-close" data-notifications-close type="button" aria-label="Chiudi">×</button>
+    </header>
+
+    <div class="notifications-list" id="notifications-list" aria-live="polite"></div>
+
+    <footer class="notifications-footer">
+      <button class="notifications-done" data-notifications-close type="button">Chiudi</button>
+    </footer>
+  </section>
 </div>
 
 <div class="game-modal" hidden="" id="game-modal">
