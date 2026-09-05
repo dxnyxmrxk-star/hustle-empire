@@ -1,0 +1,34 @@
+URBAN TYCOON V18.7 — HUD CURRENCY ALIGNMENT STATIC AUDIT
+
+Analyzed:
+- topbar / topbar-compact
+- topbar-resources
+- resource-card
+- money-card / energy-card / gem-card
+- HUD PNG icons
+- existing game.js resource update selectors
+
+Changes:
+- Added .resource-value to all three numeric currency values
+- Unified resource cards around a 2-column CSS grid (icon + value)
+- Explicit vertical centering for both icon and numeric glyph box
+- 1px optical top correction for compact numeric font
+- font-weight normalized to 800
+- tabular + lining numerals enabled
+- icon geometry normalized to 13x13 desktop, 12x12 narrow, 11x11 ultra-narrow
+- Energy badge gets slightly larger min/max width because 120/120 is longer
+- Left accent strip reduced to 2px to improve optical balance
+- Responsive widths/padding normalized at <=430px and <=360px
+
+Compatibility:
+- game.js still updates .money-card strong / .energy-card strong / .gem-card strong
+- No resource update logic changed
+
+Validation:
+- game.js node --check: OK
+- translations.js node --check: OK
+- CSS brace balance: OK
+- version/cache refs: 18.7
+- exactly 3 .resource-value nodes: OK
+
+No browser/Telegram visual runtime screenshot test was performed.

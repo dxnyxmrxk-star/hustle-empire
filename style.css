@@ -11254,3 +11254,200 @@ body.social-tasks-modal-open {
     0 0 15px rgba(255,216,92,.24) !important;
 }
 
+
+/* ==========================================================
+   V18.7 — HUD CURRENCY BADGE ALIGNMENT / TYPOGRAPHY
+   Keeps money, energy and gems optically centered with icons.
+   Keep this block LAST.
+========================================================== */
+
+.topbar.topbar-compact .topbar-resources {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 3px !important;
+  min-width: 0 !important;
+  overflow: visible !important;
+}
+
+/*
+  One stable internal grid for all currency badges:
+  icon column + numeric-value column.
+  This prevents different font metrics from shifting text vertically.
+*/
+.topbar.topbar-compact .resource-card {
+  box-sizing: border-box !important;
+  display: inline-grid !important;
+  grid-template-columns: 13px minmax(0, auto) !important;
+  align-items: center !important;
+  justify-content: center !important;
+  column-gap: 3px !important;
+
+  width: auto !important;
+  min-width: 39px !important;
+  max-width: 68px !important;
+  height: 22px !important;
+  min-height: 22px !important;
+
+  padding: 0 5px 0 4px !important;
+  margin: 0 !important;
+
+  border-radius: 6px !important;
+  vertical-align: middle !important;
+  overflow: hidden !important;
+}
+
+/* Energy has the longest value, so give it a little more breathing room. */
+.topbar.topbar-compact .energy-card {
+  min-width: 51px !important;
+  max-width: 72px !important;
+}
+
+/*
+  The value itself fills the badge height and centers its glyph box.
+  A 1px top optical correction compensates for the compact font's ascenders.
+*/
+.topbar.topbar-compact .resource-card .resource-value,
+.topbar.topbar-compact .resource-card > strong {
+  box-sizing: border-box !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+
+  min-width: 0 !important;
+  max-width: 100% !important;
+  height: 100% !important;
+  min-height: 100% !important;
+
+  margin: 0 !important;
+  padding: 1px 0 0 !important;
+
+  font-size: clamp(6.2px, 1.28vw, 7.4px) !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  letter-spacing: -0.015em !important;
+
+  font-variant-numeric: tabular-nums lining-nums !important;
+  font-feature-settings: "tnum" 1, "lnum" 1 !important;
+
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Normalize icon geometry inside the same 13px grid column. */
+.topbar.topbar-compact .resource-card .hud-icon {
+  display: block !important;
+  align-self: center !important;
+  justify-self: center !important;
+
+  width: 13px !important;
+  height: 13px !important;
+  min-width: 13px !important;
+  min-height: 13px !important;
+  max-width: 13px !important;
+  max-height: 13px !important;
+  flex: none !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  object-fit: contain !important;
+  object-position: center !important;
+}
+
+/* Keep the three resource colors equally strong in the design system. */
+.topbar.topbar-compact .money-card .resource-value {
+  color: #79ffbe !important;
+}
+
+.topbar.topbar-compact .energy-card .resource-value {
+  color: #ffb14b !important;
+}
+
+.topbar.topbar-compact .gem-card .resource-value {
+  color: #7ee8ff !important;
+}
+
+/*
+  The colored accent bar is 3px wide; reserve enough left padding so
+  the icon never visually collides with it.
+*/
+.topbar.topbar-compact .resource-card::before {
+  width: 2px !important;
+}
+
+/* ----------------------------------------------------------
+   Narrow HUD
+---------------------------------------------------------- */
+@media (max-width: 430px) {
+  .topbar.topbar-compact .topbar-resources {
+    gap: 2px !important;
+  }
+
+  .topbar.topbar-compact .resource-card {
+    grid-template-columns: 12px minmax(0, auto) !important;
+    column-gap: 2px !important;
+
+    min-width: 35px !important;
+    max-width: 57px !important;
+    height: 21px !important;
+    min-height: 21px !important;
+
+    padding: 0 4px 0 3px !important;
+  }
+
+  .topbar.topbar-compact .energy-card {
+    min-width: 47px !important;
+    max-width: 62px !important;
+  }
+
+  .topbar.topbar-compact .resource-card .hud-icon {
+    width: 12px !important;
+    height: 12px !important;
+    min-width: 12px !important;
+    min-height: 12px !important;
+    max-width: 12px !important;
+    max-height: 12px !important;
+  }
+
+  .topbar.topbar-compact .resource-card .resource-value,
+  .topbar.topbar-compact .resource-card > strong {
+    font-size: 5.9px !important;
+    font-weight: 800 !important;
+    padding-top: 1px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .topbar.topbar-compact .topbar-resources {
+    gap: 1px !important;
+  }
+
+  .topbar.topbar-compact .resource-card {
+    grid-template-columns: 11px minmax(0, auto) !important;
+    min-width: 32px !important;
+    max-width: 50px !important;
+    padding-inline: 3px !important;
+  }
+
+  .topbar.topbar-compact .energy-card {
+    min-width: 43px !important;
+    max-width: 55px !important;
+  }
+
+  .topbar.topbar-compact .resource-card .hud-icon {
+    width: 11px !important;
+    height: 11px !important;
+    min-width: 11px !important;
+    min-height: 11px !important;
+    max-width: 11px !important;
+    max-height: 11px !important;
+  }
+
+  .topbar.topbar-compact .resource-card .resource-value,
+  .topbar.topbar-compact .resource-card > strong {
+    font-size: 5.6px !important;
+  }
+}
+
