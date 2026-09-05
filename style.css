@@ -3827,3 +3827,172 @@ body {
 .next-level-button.ready-state:not(:disabled)::before {
   display: block;
 }
+
+
+/* ==========================================================
+   V14.2 — OFFLINE EARNINGS / WELCOME BACK MODAL
+========================================================== */
+
+#offline-earnings-modal[hidden] {
+  display: none !important;
+}
+
+body.offline-earnings-modal-open {
+  overflow: hidden !important;
+}
+
+#offline-earnings-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 5100;
+  display: grid;
+  place-items: center;
+  padding:
+    max(18px, env(safe-area-inset-top, 0px))
+    18px
+    max(18px, env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
+}
+
+.offline-earnings-backdrop {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 30%, rgba(0, 230, 118, .16), transparent 34%),
+    rgba(2, 7, 13, .84);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+.offline-earnings-card {
+  position: relative;
+  width: min(390px, 100%);
+  max-height: calc(100dvh - 36px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  box-sizing: border-box;
+  padding: 24px 20px 20px;
+  border: 1px solid rgba(0, 230, 118, .32);
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(0, 176, 255, .09), transparent 40%),
+    linear-gradient(180deg, rgba(18, 33, 46, .99), rgba(7, 15, 24, .99));
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, .58),
+    0 0 34px rgba(0, 230, 118, .13);
+  color: #fff;
+  text-align: center;
+}
+
+.offline-earnings-icon {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 10px;
+  border: 1px solid rgba(255, 215, 0, .3);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle, rgba(255, 215, 0, .18), rgba(255, 215, 0, .04));
+  box-shadow: 0 0 24px rgba(255, 215, 0, .10);
+  font-size: 38px;
+}
+
+.offline-earnings-kicker {
+  display: inline-flex;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(0, 230, 118, .10);
+  color: #72ffb8;
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: .12em;
+}
+
+#offline-earnings-title {
+  margin: 10px 0 7px;
+  color: #fff;
+  font-size: clamp(25px, 7vw, 34px);
+  line-height: 1.05;
+}
+
+.offline-earnings-time {
+  min-height: 34px;
+  margin: 0 auto 16px;
+  color: rgba(229, 241, 250, .72);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.offline-earnings-reward {
+  display: grid;
+  gap: 5px;
+  margin: 0 0 16px;
+  padding: 16px;
+  border: 1px solid rgba(82, 221, 255, .18);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, .04);
+}
+
+.offline-earnings-reward small {
+  color: rgba(229, 241, 250, .62);
+  font-size: 11px;
+  font-weight: 750;
+}
+
+#offline-earnings-amount {
+  color: #ffd700;
+  font-size: clamp(30px, 10vw, 42px);
+  line-height: 1.05;
+  text-shadow: 0 0 18px rgba(255, 215, 0, .16);
+}
+
+.offline-earnings-reward span {
+  color: rgba(229, 241, 250, .52);
+  font-size: 10px;
+}
+
+.offline-earnings-claim-button {
+  width: 100%;
+  min-height: 52px;
+  border: 0;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #19ef83, #00c864);
+  box-shadow: 0 8px 24px rgba(0, 230, 118, .24);
+  color: #03130b;
+  font-size: 14px;
+  font-weight: 950;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.offline-earnings-claim-button:active {
+  transform: scale(.985);
+}
+
+@supports not (height: 100dvh) {
+  .offline-earnings-card {
+    max-height: calc(100vh - 36px);
+  }
+}
+
+@media (max-width: 390px) {
+  #offline-earnings-modal {
+    padding:
+      max(14px, env(safe-area-inset-top, 0px))
+      14px
+      max(14px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .offline-earnings-card {
+    padding: 20px 16px 16px;
+    border-radius: 22px;
+  }
+
+  .offline-earnings-icon {
+    width: 64px;
+    height: 64px;
+    font-size: 34px;
+  }
+}

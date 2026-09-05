@@ -121,7 +121,7 @@
     premium_legendary: "case-gold"
   };
 
-  const SPRITE_BUILD_VERSION = "14.0";
+  const SPRITE_BUILD_VERSION = "14.2";
 
   /*
      V14.0 asset manifest.
@@ -722,8 +722,145 @@
     };
   }
 
+  /* ==========================================================
+     V14.1 — LEVEL UP REWARDS + TEMPORARY EARNINGS BOOST
+     Rewards are granted once when the Missions-gated Next Level
+     action successfully advances the player.
+  ========================================================== */
+
+  const LEVEL_UP_CASE_REWARDS = Object.freeze({
+    street: Object.freeze({
+      key: "street",
+      label: "Street Case",
+      asset: "assets/case_street.png"
+    }),
+    boss: Object.freeze({
+      key: "boss",
+      label: "Boss Case",
+      asset: "assets/case_boss.png"
+    }),
+    tycoon: Object.freeze({
+      key: "tycoon",
+      label: "Tycoon Case",
+      asset: "assets/case_tycoon.png"
+    })
+  });
+
+  const LEVEL_UP_BOOST_TIERS = Object.freeze([
+    Object.freeze({ minLevel: 2, maxLevel: 5, multiplier: 1.5, durationSeconds: 180 }),
+    Object.freeze({ minLevel: 6, maxLevel: 10, multiplier: 2, durationSeconds: 300 }),
+    Object.freeze({ minLevel: 11, maxLevel: Infinity, multiplier: 3, durationSeconds: 600 })
+  ]);
+
+  function createDefaultLevelRewardsState() {
+    return {
+      lastRewardedLevel: 1,
+      caseInventory: {
+        street: 0,
+        boss: 0,
+        tycoon: 0
+      },
+      activeBoost: {
+        multiplier: 1,
+        startedAt: 0,
+        endsAt: 0,
+        sourceLevel: 0
+      }
+    };
+  }
+
+  function getLevelUpCaseReward(level) {
+    const safeLevel = Math.max(2, Math.floor(Number(level) || 2));
+    if (safeLevel <= 5) return LEVEL_UP_CASE_REWARDS.street;
+    if (safeLevel <= 10) return LEVEL_UP_CASE_REWARDS.boss;
+    return LEVEL_UP_CASE_REWARDS.tycoon;
+  }
+
+  function getLevelUpBoostConfig(level) {
+    const safeLevel = Math.max(2, Math.floor(Number(level) || 2));
+    return LEVEL_UP_BOOST_TIERS.find((tier) =>
+      safeLevel >= tier.minLevel && safeLevel <= tier.maxLevel
+    ) || LEVEL_UP_BOOST_TIERS[LEVEL_UP_BOOST_TIERS.length - 1];
+  }
+
+  function getLevelUpEarningsMultiplier(targetState = state, now = Date.now()) {
+    const boost = targetState?.levelRewards?.activeBoost;
+    if (!boost || Number(boost.endsAt) <= now) return 1;
+    return Math.max(1, Number(boost.multiplier) || 1);
+  }
+
+  function getLevelUpBoostRemainingMs(targetState = state, now = Date.now()) {
+    return Math.max(0, (Number(targetState?.levelRewards?.activeBoost?.endsAt) || 0) - now);
+  }
+
+  function formatBoostMultiplier(multiplier) {
+    const value = Math.max(1, Number(multiplier) || 1);
+    return Number.isInteger(value) ? `${value}x` : `${value.toFixed(1).replace(/\.0$/, "")}x`;
+  }
+
+  function formatBoostTimer(milliseconds) {
+    const totalSeconds = Math.max(0, Math.ceil((Number(milliseconds) || 0) / 1000));
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  }
+
+  function grantLevelUpRewards(level) {
+    const safeLevel = Math.max(2, Math.floor(Number(level) || 2));
+    state.levelRewards ||= createDefaultLevelRewardsState();
+
+    /*
+       Idempotency guard: one reward package per reached level.
+       Prevents double rewards from accidental double taps / restored events.
+    */
+    if (safeLevel <= (Number(state.levelRewards.lastRewardedLevel) || 1)) {
+      return null;
+    }
+
+    const caseReward = getLevelUpCaseReward(safeLevel);
+    const boostConfig = getLevelUpBoostConfig(safeLevel);
+    const gemReward = 5 * safeLevel;
+    const now = Date.now();
+
+    state.levelRewards.caseInventory[caseReward.key] =
+      Math.max(0, Number(state.levelRewards.caseInventory[caseReward.key]) || 0) + 1;
+
+    state.gems += gemReward;
+
+    state.levelRewards.activeBoost = {
+      multiplier: boostConfig.multiplier,
+      startedAt: now,
+      endsAt: now + boostConfig.durationSeconds * 1000,
+      sourceLevel: safeLevel
+    };
+
+    state.levelRewards.lastRewardedLevel = safeLevel;
+
+    const reward = {
+      level: safeLevel,
+      gems: gemReward,
+      caseKey: caseReward.key,
+      caseLabel: caseReward.label,
+      caseAsset: caseReward.asset,
+      caseInventoryCount: state.levelRewards.caseInventory[caseReward.key],
+      boostMultiplier: boostConfig.multiplier,
+      boostDurationSeconds: boostConfig.durationSeconds,
+      boostEndsAt: state.levelRewards.activeBoost.endsAt
+    };
+
+    emitGameEvent("levelUpRewardGranted", reward);
+    return reward;
+  }
+
   const GAME_TICK_INTERVAL = 1000;
   const AUTO_SAVE_INTERVAL = 10000;
+
+  /* ==========================================================
+     V14.2 — OFFLINE EARNINGS
+     Max accumulation: exactly 3 hours.
+  ========================================================== */
+  const OFFLINE_EARNINGS_CAP_SECONDS = 3 * 60 * 60;
+  const OFFLINE_LAST_CLAIM_STORAGE_KEY = "lastClaimTime";
 
   let selectedWardrobeSlot = EQUIPMENT_IDS[0] || "cap";
   let wardrobeView = "items";
@@ -867,11 +1004,25 @@
     wardrobeCatalog: createDefaultWardrobeCatalogState(),
     accessoryCases: createDefaultAccessoryCasesState(),
     randomEvents: createDefaultRandomEventsState(),
+    levelRewards: createDefaultLevelRewardsState(),
+
+    /*
+       Pending reward is persisted so closing Telegram before pressing
+       "Claim" never deletes an already-calculated offline reward.
+    */
+    offlineEarnings: {
+      pendingAmount: 0,
+      elapsedSeconds: 0,
+      cappedSeconds: 0,
+      wasCapped: false,
+      calculatedAt: 0
+    },
 
     timestamps: {
       lastEnergyAt: Date.now(),
       lastIncomeAt: Date.now(),
-      lastSaveAt: Date.now()
+      lastSaveAt: Date.now(),
+      lastClaimTime: 0
     }
   };
 
@@ -1000,6 +1151,34 @@
     };
   }
 
+  function sanitizeLevelRewards(levelRewards, playerLevel) {
+    const fallback = createDefaultLevelRewardsState();
+    const safePlayerLevel = Math.max(1, Math.floor(Number(playerLevel) || 1));
+    const sourceBoost = levelRewards?.activeBoost || {};
+
+    return {
+      /*
+         Existing saves upgrading to V14.1 should still receive the reward for
+         their next real level-up, but never retroactively duplicate old levels.
+      */
+      lastRewardedLevel: Math.min(
+        safePlayerLevel,
+        Math.max(1, Math.floor(Number(levelRewards?.lastRewardedLevel) || safePlayerLevel))
+      ),
+      caseInventory: {
+        street: Math.max(0, Math.floor(Number(levelRewards?.caseInventory?.street) || 0)),
+        boss: Math.max(0, Math.floor(Number(levelRewards?.caseInventory?.boss) || 0)),
+        tycoon: Math.max(0, Math.floor(Number(levelRewards?.caseInventory?.tycoon) || 0))
+      },
+      activeBoost: {
+        multiplier: Math.max(1, Number(sourceBoost.multiplier) || fallback.activeBoost.multiplier),
+        startedAt: Math.max(0, Number(sourceBoost.startedAt) || 0),
+        endsAt: Math.max(0, Number(sourceBoost.endsAt) || 0),
+        sourceLevel: Math.max(0, Math.floor(Number(sourceBoost.sourceLevel) || 0))
+      }
+    };
+  }
+
   function sanitizeMissions(missions, playerLevel) {
     const safeLevel = Math.max(1, Math.floor(Number(playerLevel) || 1));
     const fresh = createMissionState(safeLevel);
@@ -1022,6 +1201,19 @@
     return fresh;
   }
 
+  function sanitizeOfflineEarnings(offlineEarnings) {
+    return {
+      pendingAmount: Math.max(0, Number(offlineEarnings?.pendingAmount) || 0),
+      elapsedSeconds: Math.max(0, Math.floor(Number(offlineEarnings?.elapsedSeconds) || 0)),
+      cappedSeconds: Math.max(0, Math.min(
+        OFFLINE_EARNINGS_CAP_SECONDS,
+        Math.floor(Number(offlineEarnings?.cappedSeconds) || 0)
+      )),
+      wasCapped: Boolean(offlineEarnings?.wasCapped),
+      calculatedAt: Math.max(0, Number(offlineEarnings?.calculatedAt) || 0)
+    };
+  }
+
   function sanitizeState(s) {
     s.money = Math.max(0, Number(s.money) || 0);
     s.gems = Math.max(0, Number(s.gems) || 0);
@@ -1036,6 +1228,8 @@
     s.wardrobeCatalog = sanitizeWardrobeCatalog(s.wardrobeCatalog);
     s.accessoryCases = sanitizeAccessoryCases(s.accessoryCases);
     s.randomEvents = sanitizeRandomEvents(s.randomEvents);
+    s.levelRewards = sanitizeLevelRewards(s.levelRewards, s.level);
+    s.offlineEarnings = sanitizeOfflineEarnings(s.offlineEarnings);
 
     s.missions = sanitizeMissions(s.missions, s.level);
 
@@ -1047,6 +1241,25 @@
     s.timestamps.lastEnergyAt = Number(s.timestamps.lastEnergyAt) || Date.now();
     s.timestamps.lastIncomeAt = Number(s.timestamps.lastIncomeAt) || Date.now();
     s.timestamps.lastSaveAt = Number(s.timestamps.lastSaveAt) || Date.now();
+
+    /*
+       V14.2 migration path:
+       prefer the dedicated localStorage timestamp, otherwise reuse the most
+       recent save timestamp from older builds.
+    */
+    let storedLastClaimTime = 0;
+    try {
+      storedLastClaimTime = Number(localStorage.getItem(OFFLINE_LAST_CLAIM_STORAGE_KEY)) || 0;
+    } catch (_) {}
+
+    s.timestamps.lastClaimTime =
+      storedLastClaimTime
+      ||
+      Number(s.timestamps.lastClaimTime)
+      ||
+      Number(s.timestamps.lastSaveAt)
+      ||
+      Date.now();
 
     const stats = computePlayerStats(s);
     s.maxEnergy = stats.maxEnergy;
@@ -1095,7 +1308,7 @@
     return 1;
   }
 
-  function computePlayerStats(targetState = state) {
+  function computePlayerStats(targetState = state, options = {}) {
     const stats = {
       tapPower: Number(CONFIG.BASE_TAP_REWARD) || 1,
       tapPowerMultiplier: 1,
@@ -1155,7 +1368,30 @@
       }
     });
 
-    stats.tapPower = Math.max(1, Math.round(stats.tapPower * stats.tapPowerMultiplier * getTemporaryTapMultiplier(targetState)));
+    const includeLevelUpBoost = options.includeLevelUpBoost !== false;
+    const levelUpBoostMultiplier = includeLevelUpBoost
+      ? getLevelUpEarningsMultiplier(targetState)
+      : 1;
+
+    /*
+       Level-up boost stacks with cards/outfits and with the random-event tap
+       multiplier. globalIncomeMultiplier feeds all Business income.
+    */
+    stats.globalIncomeMultiplier *= levelUpBoostMultiplier;
+    stats.levelUpBoostMultiplier = levelUpBoostMultiplier;
+
+    stats.tapPower = Math.max(
+      1,
+      Math.round(
+        stats.tapPower
+        *
+        stats.tapPowerMultiplier
+        *
+        getTemporaryTapMultiplier(targetState)
+        *
+        levelUpBoostMultiplier
+      )
+    );
     stats.maxEnergy = Math.max(1, Math.round(stats.maxEnergy));
     stats.energyRegenMultiplier = Math.max(.01, stats.energyRegenMultiplier);
 
@@ -1374,6 +1610,8 @@
     state.xp = 0;
     state.missions = createMissionState(state.level);
 
+    const levelUpReward = grantLevelUpRewards(state.level);
+
     recomputeDerivedState();
     state.energy = Math.min(state.energy, state.maxEnergy);
 
@@ -1385,9 +1623,11 @@
     emitGameEvent("levelUp", {
       previousLevel,
       level: state.level,
-      via: "missions"
+      via: "missions",
+      reward: levelUpReward
     });
 
+    showLevelUpCelebration(levelUpReward);
     return true;
   }
 
@@ -1575,19 +1815,19 @@
     return (Number(cfg.baseIncomePerSecond) || 0) * safeLevel * 3600;
   }
 
-  function getBusinessIncomeMultiplier(businessId) {
-    const stats = computePlayerStats(state);
+  function getBusinessIncomeMultiplier(businessId, options = {}) {
+    const stats = computePlayerStats(state, options);
     return (stats.globalIncomeMultiplier || 1) * (stats.businessIncomeMultipliers[businessId] || 1);
   }
 
-  function getBusinessRevenuePerHour(businessId) {
+  function getBusinessRevenuePerHour(businessId, options = {}) {
     const bs = state.businesses[businessId];
     if (!bs?.owned) return 0;
-    return getBusinessBaseRevenuePerHour(businessId, bs.level) * getBusinessIncomeMultiplier(businessId);
+    return getBusinessBaseRevenuePerHour(businessId, bs.level) * getBusinessIncomeMultiplier(businessId, options);
   }
 
-  function getBusinessRevenuePerSecond(businessId) {
-    return getBusinessRevenuePerHour(businessId) / 3600;
+  function getBusinessRevenuePerSecond(businessId, options = {}) {
+    return getBusinessRevenuePerHour(businessId, options) / 3600;
   }
 
   function getBusinessUpgradeCost(businessId) {
@@ -1598,12 +1838,12 @@
     return Math.ceil((Number(cfg.baseCost) || 0) * Math.pow(growth, Math.max(0, bs.level)));
   }
 
-  function getTotalPassiveIncomePerHour() {
-    return BUSINESS_IDS.reduce((sum, id) => sum + getBusinessRevenuePerHour(id), 0);
+  function getTotalPassiveIncomePerHour(options = {}) {
+    return BUSINESS_IDS.reduce((sum, id) => sum + getBusinessRevenuePerHour(id, options), 0);
   }
 
-  function getTotalPassiveIncomePerSecond() {
-    return getTotalPassiveIncomePerHour() / 3600;
+  function getTotalPassiveIncomePerSecond(options = {}) {
+    return getTotalPassiveIncomePerHour(options) / 3600;
   }
 
   function processPassiveIncome() {
@@ -1613,16 +1853,287 @@
     state.timestamps.lastIncomeAt = now;
     if (!elapsed) return 0;
 
-    const earned = elapsed * (getTotalPassiveIncomePerHour() / 3600000);
+    /*
+       Integrate the temporary Level-Up boost only over the exact portion of
+       elapsed time where it was active. This prevents backgrounding Telegram
+       from extending a 3/5/10-minute boost over an entire offline interval.
+    */
+    const baseIncomePerMs =
+      getTotalPassiveIncomePerHour({ includeLevelUpBoost: false }) / 3600000;
+
+    const boost = state.levelRewards?.activeBoost;
+    const boostMultiplier = Math.max(1, Number(boost?.multiplier) || 1);
+    const boostStartedAt = Math.max(0, Number(boost?.startedAt) || 0);
+    const boostEndsAt = Math.max(0, Number(boost?.endsAt) || 0);
+
+    const boostedStart = Math.max(last, boostStartedAt);
+    const boostedEnd = Math.min(now, boostEndsAt);
+    const boostedMs = Math.max(0, boostedEnd - boostedStart);
+    const normalMs = Math.max(0, elapsed - boostedMs);
+
+    const earned =
+      baseIncomePerMs * normalMs
+      +
+      baseIncomePerMs * boostedMs * boostMultiplier;
+
     state.money += earned;
     registerMoneyEarned(earned, "passiveIncome", { save: false, render: false });
     return earned;
   }
 
-  function processOfflineIncome() {
-    const earned = processPassiveIncome();
+  function readLastClaimTime() {
+    let stored = 0;
+    try {
+      stored = Number(localStorage.getItem(OFFLINE_LAST_CLAIM_STORAGE_KEY)) || 0;
+    } catch (_) {}
+
+    return (
+      stored
+      ||
+      Number(state.timestamps?.lastClaimTime)
+      ||
+      Number(state.timestamps?.lastSaveAt)
+      ||
+      Date.now()
+    );
+  }
+
+  function persistLastClaimTime(timestamp = Date.now()) {
+    const safeTimestamp = Math.max(0, Number(timestamp) || Date.now());
+    state.timestamps ||= {};
+    state.timestamps.lastClaimTime = safeTimestamp;
+
+    try {
+      localStorage.setItem(
+        OFFLINE_LAST_CLAIM_STORAGE_KEY,
+        String(safeTimestamp)
+      );
+    } catch (error) {
+      console.warn("[Hustle Empire] lastClaimTime save failed:", error);
+    }
+
+    return safeTimestamp;
+  }
+
+  function getPendingOfflineEarnings() {
+    state.offlineEarnings = sanitizeOfflineEarnings(state.offlineEarnings);
+    return state.offlineEarnings;
+  }
+
+  function clearPendingOfflineEarnings() {
+    state.offlineEarnings = {
+      pendingAmount: 0,
+      elapsedSeconds: 0,
+      cappedSeconds: 0,
+      wasCapped: false,
+      calculatedAt: 0
+    };
+  }
+
+  function formatOfflineDuration(elapsedSeconds, wasCapped = false) {
+    const safeSeconds = Math.max(0, Math.floor(Number(elapsedSeconds) || 0));
+
+    if (wasCapped || safeSeconds > OFFLINE_EARNINGS_CAP_SECONDS) {
+      return "Sei stato assente per più di 3 ore (Limite raggiunto!)";
+    }
+
+    const hours = Math.floor(safeSeconds / 3600);
+    const minutes = Math.floor((safeSeconds % 3600) / 60);
+
+    if (hours > 0) {
+      return `Sei stato assente per: ${hours} ${hours === 1 ? "ora" : "ore"} e ${minutes} ${minutes === 1 ? "minuto" : "minuti"}`;
+    }
+
+    if (minutes > 0) {
+      return `Sei stato assente per: ${minutes} ${minutes === 1 ? "minuto" : "minuti"}`;
+    }
+
+    return "Sei stato assente per meno di un minuto";
+  }
+
+  /*
+     Calculates the reward ONCE and stores it as pending.
+     Temporary Level-Up boosts are deliberately excluded from the offline
+     formula so a 3/5/10 minute boost cannot be stretched to three hours.
+     Permanent Card/Wardrobe/Business multipliers still apply.
+  */
+  function checkOfflineEarnings() {
+    const now = Date.now();
+    const existingPending = getPendingOfflineEarnings();
+
+    /*
+       If the player closed Telegram before claiming, keep the exact reward
+       previously calculated instead of recalculating it with newer upgrades.
+    */
+    if (existingPending.pendingAmount > 0) {
+      state.timestamps.lastIncomeAt = now;
+      return { ...existingPending };
+    }
+
+    const lastClaimTime = readLastClaimTime();
+    const elapsedSeconds = Math.max(
+      0,
+      Math.floor((now - lastClaimTime) / 1000)
+    );
+    const cappedSeconds = Math.min(
+      OFFLINE_EARNINGS_CAP_SECONDS,
+      elapsedSeconds
+    );
+    const wasCapped = elapsedSeconds > OFFLINE_EARNINGS_CAP_SECONDS;
+
+    const incomePerSecond = Math.max(
+      0,
+      getTotalPassiveIncomePerSecond({ includeLevelUpBoost: false })
+    );
+
+    const pendingAmount = Math.max(
+      0,
+      incomePerSecond * cappedSeconds
+    );
+
+    /*
+       Prevent processPassiveIncome() from paying the same offline interval a
+       second time when the normal 1-second game tick starts.
+    */
+    state.timestamps.lastIncomeAt = now;
+
+    if (pendingAmount <= 0) {
+      clearPendingOfflineEarnings();
+
+      /*
+         Important anti-exploit rule:
+         if income is currently zero, start a fresh accumulation window now.
+         Otherwise a player could wait 3h with no Business, buy one, reload
+         and receive 3h at the new income rate.
+      */
+      persistLastClaimTime(now);
+      saveGame();
+      return {
+        pendingAmount: 0,
+        elapsedSeconds,
+        cappedSeconds,
+        wasCapped,
+        calculatedAt: now
+      };
+    }
+
+    state.offlineEarnings = {
+      pendingAmount,
+      elapsedSeconds,
+      cappedSeconds,
+      wasCapped,
+      calculatedAt: now
+    };
+
     saveGame();
-    return earned;
+    return { ...state.offlineEarnings };
+  }
+
+  function showOfflineEarningsModal(offlineResult = getPendingOfflineEarnings()) {
+    const modal = document.getElementById("offline-earnings-modal");
+    if (!modal || !(Number(offlineResult?.pendingAmount) > 0)) return false;
+
+    const amount = Math.max(0, Number(offlineResult.pendingAmount) || 0);
+    const timeText = document.getElementById("offline-earnings-time");
+    const amountText = document.getElementById("offline-earnings-amount");
+    const claimButton = document.getElementById("offline-earnings-claim");
+
+    if (timeText) {
+      timeText.textContent = formatOfflineDuration(
+        offlineResult.elapsedSeconds,
+        offlineResult.wasCapped
+      );
+    }
+
+    if (amountText) {
+      amountText.textContent = formatCompactMoney(amount);
+    }
+
+    if (claimButton) {
+      const claimAmountLabel =
+        amount < 10
+          ? amount.toFixed(2).replace(/\.00$/, "").replace(/(\.\d)0$/, "$1")
+          : formatNumber(amount);
+
+      claimButton.textContent = `Riscatta ${claimAmountLabel}$`;
+    }
+
+    modal.hidden = false;
+    modal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("offline-earnings-modal-open");
+    return true;
+  }
+
+  function hideOfflineEarningsModal() {
+    const modal = document.getElementById("offline-earnings-modal");
+    if (!modal) return;
+
+    modal.hidden = true;
+    modal.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("offline-earnings-modal-open");
+  }
+
+  function claimOfflineEarnings() {
+    const pending = getPendingOfflineEarnings();
+    const amount = Math.max(0, Number(pending.pendingAmount) || 0);
+
+    if (amount <= 0) {
+      hideOfflineEarningsModal();
+      persistLastClaimTime(Date.now());
+      saveGame();
+      return 0;
+    }
+
+    const now = Date.now();
+
+    state.money += amount;
+    registerMoneyEarned(
+      amount,
+      "offlineIncome",
+      { save: false, render: false }
+    );
+
+    clearPendingOfflineEarnings();
+    persistLastClaimTime(now);
+    state.timestamps.lastIncomeAt = now;
+
+    saveGame();
+    hideOfflineEarningsModal();
+    updateUI();
+    renderMissions();
+    updateHomeMetaUI(amount);
+
+    emitGameEvent("offlineEarningsClaimed", {
+      amount,
+      claimedAt: now
+    });
+
+    return amount;
+  }
+
+  /*
+     Called when Telegram/iOS backgrounds or closes the WebView.
+     It first pays the active-session passive income, then writes the exact
+     timestamp required for the next offline calculation.
+  */
+  function recordSessionCloseTimestamp() {
+    const now = Date.now();
+
+    processPassiveIncome();
+    persistLastClaimTime(now);
+    state.timestamps.lastIncomeAt = now;
+    saveGame();
+
+    return now;
+  }
+
+  /*
+     Backwards-compatible alias retained for integrations/debug helpers.
+     It now returns the PENDING capped reward instead of instantly paying an
+     uncapped offline interval.
+  */
+  function processOfflineIncome() {
+    return checkOfflineEarnings().pendingAmount || 0;
   }
 
   function purchaseBusiness(businessId) {
@@ -2858,6 +3369,73 @@
     if (gems) gems.textContent = formatNumber(state.gems);
   }
 
+  function updateLevelUpBoostUI() {
+    const indicator = document.getElementById("level-boost-indicator");
+    const label = document.getElementById("level-boost-indicator-text");
+    if (!indicator || !label) return;
+
+    const remaining = getLevelUpBoostRemainingMs(state);
+    const multiplier = getLevelUpEarningsMultiplier(state);
+
+    if (remaining <= 0 || multiplier <= 1) {
+      indicator.hidden = true;
+      indicator.setAttribute("aria-hidden", "true");
+      return;
+    }
+
+    indicator.hidden = false;
+    indicator.setAttribute("aria-hidden", "false");
+    label.textContent = `⚡ Boost ${formatBoostMultiplier(multiplier)}: ${formatBoostTimer(remaining)}`;
+  }
+
+  function showLevelUpCelebration(reward) {
+    if (!reward) return;
+
+    const modal = document.getElementById("level-up-modal");
+    if (!modal) return;
+
+    const title = document.getElementById("level-up-modal-title");
+    const image = document.getElementById("level-up-case-image");
+    const caseName = document.getElementById("level-up-case-name");
+    const gems = document.getElementById("level-up-gems");
+    const boost = document.getElementById("level-up-boost-badge");
+    const inventory = document.getElementById("level-up-inventory-count");
+
+    if (title) title.textContent = `LEVEL UP! LEVEL ${reward.level}`;
+    if (caseName) caseName.textContent = reward.caseLabel;
+    if (gems) gems.textContent = `♦ +${formatNumber(reward.gems)} Gemme`;
+    if (boost) {
+      boost.textContent =
+        `⚡ ${formatBoostMultiplier(reward.boostMultiplier)} guadagni · ${formatBoostTimer(reward.boostDurationSeconds * 1000)}`;
+    }
+    if (inventory) {
+      inventory.textContent = `Inventario: ${reward.caseLabel} ×${formatNumber(reward.caseInventoryCount)}`;
+    }
+
+    if (image) {
+      image.src = resolveAssetUrl(reward.caseAsset);
+      image.alt = reward.caseLabel;
+    }
+
+    modal.hidden = false;
+    modal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("level-up-modal-open");
+
+    updateLevelUpBoostUI();
+
+    try {
+      window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred?.("success");
+    } catch (_) {}
+  }
+
+  function closeLevelUpCelebration() {
+    const modal = document.getElementById("level-up-modal");
+    if (!modal) return;
+    modal.hidden = true;
+    modal.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("level-up-modal-open");
+  }
+
   function updateXpUI() {
     const needed = getXpRequired(state.level);
     const pct = Math.min(100, state.xp / needed * 100);
@@ -2995,6 +3573,7 @@
     updateXpUI();
     updateTapButton();
     renderMissions();
+    updateLevelUpBoostUI();
     updateShopUI();
     updateCollectionSummaryUI();
     renderQuickJobs();
@@ -3040,6 +3619,20 @@
     bindTapControl();
 
     document.addEventListener("click", (event) => {
+      const offlineClaimButton = event.target.closest("[data-offline-earnings-claim]");
+      if (offlineClaimButton) {
+        event.preventDefault();
+        claimOfflineEarnings();
+        return;
+      }
+
+      const levelUpClaimButton = event.target.closest("[data-level-up-claim]");
+      if (levelUpClaimButton) {
+        event.preventDefault();
+        closeLevelUpCelebration();
+        return;
+      }
+
       const nextLevelButton = event.target.closest('[data-action="next-level"]');
       if (nextLevelButton) {
         event.preventDefault();
@@ -3156,8 +3749,9 @@
       renderMissions();
     }
 
-    /* Keeps temporary tap boosts and energy UI visually in sync. */
+    /* Keeps temporary boosts, their timer and energy UI visually in sync. */
     updateTapButton();
+    updateLevelUpBoostUI();
 
     tickRandomEventSystem();
 
@@ -3223,7 +3817,12 @@
 
     recomputeDerivedState();
     regenerateEnergy();
-    const offlineIncome = processOfflineIncome();
+
+    const offlineResult = checkOfflineEarnings();
+    const offlineIncome = Math.max(
+      0,
+      Number(offlineResult?.pendingAmount) || 0
+    );
 
     if (!state.randomEvents.nextSpawnAt && !state.randomEvents.activeEvent) {
       scheduleNextRandomEvent();
@@ -3233,6 +3832,10 @@
     renderAllDynamic();
     updateUI();
     updateHomeMetaUI(offlineIncome);
+
+    if (offlineIncome > 0) {
+      showOfflineEarningsModal(offlineResult);
+    }
 
     /*
        Do not paint any CSS sprite sheet before its bitmap is decoded.
@@ -3249,26 +3852,40 @@
 
     document.addEventListener("visibilitychange", () => {
       if (document.hidden) {
-        processPassiveIncome();
-        saveGame();
+        recordSessionCloseTimestamp();
       } else {
-        processPassiveIncome();
+        const resumedOfflineResult = checkOfflineEarnings();
+
         regenerateEnergy();
-        saveGame();
         renderAllDynamic();
         updateUI();
+        updateHomeMetaUI(resumedOfflineResult.pendingAmount || 0);
+
+        if (Number(resumedOfflineResult.pendingAmount) > 0) {
+          showOfflineEarningsModal(resumedOfflineResult);
+        }
+
         scheduleSpriteRender(document);
       }
     });
 
-    window.addEventListener("pageshow", () => {
+    window.addEventListener("pageshow", (event) => {
       /* WKWebView can restore a frozen page from the back/foreground cache. */
+      if (event.persisted) {
+        const restoredOfflineResult = checkOfflineEarnings();
+        if (Number(restoredOfflineResult.pendingAmount) > 0) {
+          showOfflineEarningsModal(restoredOfflineResult);
+        }
+      }
       setTimeout(() => scheduleSpriteRender(document), 0);
     }, { passive: true });
 
+    window.addEventListener("pagehide", () => {
+      recordSessionCloseTimestamp();
+    }, { passive: true });
+
     window.addEventListener("beforeunload", () => {
-      processPassiveIncome();
-      saveGame();
+      recordSessionCloseTimestamp();
     });
 
     window.addEventListener("hustle:languageChanged", () => {
@@ -3289,6 +3906,15 @@
 
   window.resetGame = resetGame;
   window.setMaxLevel = setMaxLevel;
+
+  window.offlineEarningsSystem = {
+    check: checkOfflineEarnings,
+    claim: claimOfflineEarnings,
+    show: showOfflineEarningsModal,
+    hide: hideOfflineEarningsModal,
+    getPending: () => ({ ...getPendingOfflineEarnings() }),
+    capSeconds: OFFLINE_EARNINGS_CAP_SECONDS
+  };
 
   window.randomEventSystem = {
     spawnNow(eventId = null) {
@@ -3319,6 +3945,10 @@
       update: updateMissionProgress,
       canLevelUp: checkLevelUpEligibility,
       nextLevel: advanceToNextLevel,
+      grantLevelUpRewards,
+      getLevelUpEarningsMultiplier,
+      getLevelUpCaseReward,
+      getLevelUpBoostConfig,
       completeForTesting: completeCurrentMissionsForTesting,
       render: renderMissions
     },
