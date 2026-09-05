@@ -1,0 +1,38 @@
+URBAN TYCOON V19.2 — CITY BUSINESS CARD LAYOUT STATIC AUDIT
+
+Root cause found:
+- Original City business card grid reserved only 54px for the building image.
+- A later global sprite rule forced .district-business-image to
+  --sprite-business = 72px on desktop (66px/60px at mobile breakpoints).
+- The image therefore became physically wider than its grid column and invaded
+  the text region, where income / "Доход / с" were rendered.
+- The old income label also used a negative top margin, making the visual
+  collision worse.
+
+V19.2 changes:
+- Card markup split into four explicit regions:
+  1. district-business-media
+  2. district-business-copy
+  3. district-business-stats
+  4. district-business-actions
+- Card uses a strict two-column grid: building media + minmax(0,1fr) content.
+- City owns its own --city-business-art-size and overrides legacy
+  --sprite-business dimensions.
+- Image/sprite/canvas is capped to 100% of its media column.
+- overflow:hidden on media frame prevents any painting into the text region.
+- Name can use up to two lines.
+- Status chip is static-flow, not positioned.
+- Income label and numeric value live in a dedicated stats box.
+- Removed negative-margin behavior from the income label through final override.
+- Button owns its own action row and no longer depends on margin-top:auto.
+- <=520px uses one business card per row while preserving media/text columns.
+- <=360px reduces art size/padding without collapsing the text column.
+
+Validation:
+- node --check script.js: OK
+- node --check game.js: OK
+- node --check translations.js: OK
+- CSS brace balance: OK
+- V19.2 cache/version refs: OK
+
+No browser/Telegram visual screenshot test was performed.

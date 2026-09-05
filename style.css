@@ -12298,3 +12298,355 @@ body.ui-scale-responsive .bottom-navigation .nav-icon {
   }
 }
 
+
+/* ==========================================================
+   V19.2 — CITY BUSINESS CARD LAYOUT FIX
+   Dedicated building media / copy / stats / action regions.
+   Keep this block LAST.
+========================================================== */
+
+body.ui-scale-responsive .district-business-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  align-items: stretch !important;
+  gap: clamp(.48rem, .40rem + .25vw, .68rem) !important;
+  min-width: 0 !important;
+}
+
+/*
+  IMPORTANT:
+  Older CSS had grid-template-columns: 54px 1fr while a later sprite rule
+  forced .district-business-image to 72px. That 18px overflow was the main
+  reason the building covered "Доход / с" and the income text.
+
+  V19.2 owns the image column explicitly and never allows the sprite to be
+  larger than that column.
+*/
+body.ui-scale-responsive .district-business-card {
+  --city-business-art-size:
+    clamp(4.2rem, 3.8rem + 1.2vw, 4.85rem);
+
+  box-sizing: border-box !important;
+  position: relative !important;
+  isolation: isolate !important;
+
+  display: grid !important;
+  grid-template-columns:
+    var(--city-business-art-size)
+    minmax(0, 1fr) !important;
+  grid-template-areas: "media content" !important;
+  align-items: stretch !important;
+  gap: clamp(.50rem, .42rem + .24vw, .66rem) !important;
+
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: clamp(7.6rem, 7rem + 1.7vw, 8.7rem) !important;
+
+  padding: clamp(.52rem, .44rem + .24vw, .68rem) !important;
+  overflow: hidden !important;
+
+  border-radius: var(--ui-card-radius) !important;
+}
+
+/* ---------- Building-only column ---------- */
+
+body.ui-scale-responsive .district-business-media {
+  grid-area: media !important;
+  position: relative !important;
+  z-index: 1 !important;
+
+  display: grid !important;
+  place-items: center !important;
+
+  width: var(--city-business-art-size) !important;
+  min-width: var(--city-business-art-size) !important;
+  max-width: var(--city-business-art-size) !important;
+
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+body.ui-scale-responsive .district-business-image {
+  /*
+    Override the legacy global --sprite-business 72/66/60px width.
+    The image frame is now sized by the City card's own grid column.
+  */
+  box-sizing: border-box !important;
+
+  width: 100% !important;
+  height: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: 100% !important;
+  max-height: var(--city-business-art-size) !important;
+
+  aspect-ratio: 1 / 1 !important;
+
+  margin: 0 !important;
+  padding: clamp(.18rem, .14rem + .12vw, .28rem) !important;
+
+  overflow: hidden !important;
+  border-radius: clamp(.50rem, .43rem + .18vw, .62rem) !important;
+
+  display: grid !important;
+  place-items: center !important;
+}
+
+/*
+  Whatever spriteMarkup returns (img/canvas/sprite class), it can never
+  escape the media frame or paint over the text column.
+*/
+body.ui-scale-responsive .district-business-image > *,
+body.ui-scale-responsive .district-business-image .sprite-business,
+body.ui-scale-responsive .district-business-image img,
+body.ui-scale-responsive .district-business-image canvas {
+  position: relative !important;
+  inset: auto !important;
+
+  display: block !important;
+
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+
+  margin: auto !important;
+
+  object-fit: contain !important;
+  object-position: center !important;
+
+  transform: scale(.91) !important;
+  transform-origin: center center !important;
+  pointer-events: none !important;
+}
+
+body.ui-scale-responsive
+.district-business-image
+.sprite-business.business-edge-safe {
+  transform: scale(.80) !important;
+}
+
+/* ---------- Text-only column ---------- */
+
+body.ui-scale-responsive .district-business-content {
+  grid-area: content !important;
+  position: relative !important;
+  z-index: 2 !important;
+
+  display: grid !important;
+  grid-template-rows: auto auto minmax(var(--ui-control-h), auto) !important;
+  align-content: stretch !important;
+  gap: clamp(.36rem, .30rem + .18vw, .48rem) !important;
+
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+
+  padding: 0 !important;
+  margin: 0 !important;
+
+  overflow: hidden !important;
+}
+
+/* Name + ownership/availability */
+body.ui-scale-responsive .district-business-copy {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: clamp(.20rem, .17rem + .08vw, .28rem) !important;
+
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+body.ui-scale-responsive .district-business-name {
+  display: -webkit-box !important;
+
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+
+  margin: 0 !important;
+
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  overflow-wrap: anywhere !important;
+
+  -webkit-box-orient: vertical !important;
+  -webkit-line-clamp: 2 !important;
+
+  white-space: normal !important;
+
+  font-size: var(--ui-text-sm) !important;
+  font-weight: 900 !important;
+  line-height: 1.14 !important;
+}
+
+body.ui-scale-responsive .district-business-card .business-status {
+  box-sizing: border-box !important;
+  position: static !important;
+
+  display: inline-flex !important;
+  align-items: center !important;
+
+  width: auto !important;
+  max-width: 100% !important;
+  min-height: clamp(1.12rem, 1.04rem + .22vw, 1.28rem) !important;
+
+  margin: 0 !important;
+  padding:
+    clamp(.14rem, .11rem + .08vw, .19rem)
+    clamp(.28rem, .23rem + .13vw, .38rem) !important;
+
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+
+  font-size: var(--ui-text-2xs) !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+}
+
+/* Income has its own dedicated block: label ABOVE value. */
+body.ui-scale-responsive .district-business-stats {
+  box-sizing: border-box !important;
+
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  align-content: center !important;
+  gap: clamp(.12rem, .10rem + .06vw, .18rem) !important;
+
+  min-width: 0 !important;
+
+  margin: 0 !important;
+  padding:
+    clamp(.30rem, .25rem + .14vw, .40rem)
+    clamp(.36rem, .30rem + .16vw, .48rem) !important;
+
+  overflow: hidden !important;
+
+  border: 1px solid rgba(91, 255, 186, .10) !important;
+  border-radius: clamp(.42rem, .36rem + .16vw, .52rem) !important;
+  background: rgba(0, 230, 118, .035) !important;
+}
+
+body.ui-scale-responsive .district-business-income-label {
+  position: static !important;
+  display: block !important;
+
+  width: 100% !important;
+  max-width: 100% !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  color: #7795a6 !important;
+
+  font-size: var(--ui-text-2xs) !important;
+  font-weight: 750 !important;
+  line-height: 1.12 !important;
+
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+}
+
+/* The money value never shares a line/position with the building art. */
+body.ui-scale-responsive .district-business-income {
+  position: static !important;
+  display: block !important;
+
+  width: 100% !important;
+  max-width: 100% !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  color: #5bffba !important;
+
+  font-size: var(--ui-text-sm) !important;
+  font-weight: 950 !important;
+  line-height: 1.08 !important;
+
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+
+  font-variant-numeric: tabular-nums lining-nums !important;
+}
+
+/* ---------- Action-only row ---------- */
+
+body.ui-scale-responsive .district-business-actions {
+  display: flex !important;
+  align-items: flex-end !important;
+
+  width: 100% !important;
+  min-width: 0 !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+body.ui-scale-responsive .district-business-actions .city-business-button {
+  position: static !important;
+
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  min-height: var(--ui-control-h) !important;
+
+  margin: 0 !important;
+  padding:
+    var(--ui-space-1)
+    var(--ui-space-2) !important;
+
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+
+  font-size: var(--ui-text-xs) !important;
+  line-height: 1.12 !important;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 520px) {
+  body.ui-scale-responsive .district-business-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  body.ui-scale-responsive .district-business-card {
+    --city-business-art-size:
+      clamp(4.55rem, 18vw, 5.15rem);
+
+    grid-template-columns:
+      var(--city-business-art-size)
+      minmax(0, 1fr) !important;
+
+    min-height: clamp(7.35rem, 7rem + 1vw, 8rem) !important;
+  }
+}
+
+@media (max-width: 360px) {
+  body.ui-scale-responsive .district-business-card {
+    --city-business-art-size:
+      clamp(4.1rem, 20vw, 4.55rem);
+
+    gap: var(--ui-space-2) !important;
+    padding: var(--ui-space-2) !important;
+  }
+
+  body.ui-scale-responsive .district-business-content {
+    gap: var(--ui-space-1) !important;
+  }
+
+  body.ui-scale-responsive .district-business-stats {
+    padding:
+      .26rem
+      .34rem !important;
+  }
+}
+

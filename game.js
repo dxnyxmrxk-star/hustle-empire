@@ -84,7 +84,7 @@
      CSS/UI frame overlay rendered above it.
   ========================================================== */
 
-  const SPRITE_BUILD_VERSION = "19.1";
+  const SPRITE_BUILD_VERSION = "19.2";
 
   const REAL_GAME_ASSET_PATHS = Object.freeze([
     "assets/acc_epic.png",
@@ -4905,13 +4905,36 @@
 
       return `
         <article class="district-business-card ${stateClass}">
-          <div class="district-business-image">${spriteMarkup("sprite-business", spriteClass)}</div>
+          <div class="district-business-media" aria-hidden="true">
+            <div class="district-business-image media-frame media-frame-square">
+              ${spriteMarkup("sprite-business", spriteClass)}
+            </div>
+          </div>
+
           <div class="district-business-content">
-            <strong>${getBusinessDisplayName(businessId, cfg)}</strong>
-            <span class="business-status ${stateClass}">${statusText}</span>
-            <span class="district-business-income">${formatIncomePerSecond(previewIncome)}</span>
-            <small class="district-business-income-label">${tr("business.incomePerSecond")}</small>
-            ${button}
+            <div class="district-business-copy">
+              <strong class="district-business-name">
+                ${getBusinessDisplayName(businessId, cfg)}
+              </strong>
+
+              <span class="business-status ${stateClass}">
+                ${statusText}
+              </span>
+            </div>
+
+            <div class="district-business-stats">
+              <small class="district-business-income-label">
+                ${tr("business.incomePerSecond")}
+              </small>
+
+              <span class="district-business-income">
+                ${formatIncomePerSecond(previewIncome)}
+              </span>
+            </div>
+
+            <div class="district-business-actions">
+              ${button}
+            </div>
           </div>
         </article>`;
     }).join("");
@@ -8957,3 +8980,5 @@
 /* V18.9: coalesced tab rendering, idle screen warmup and instant nav shell switching. */
 
 /* V19.1: real-time local persistence + backup + Telegram CloudStorage mirror. */
+
+/* V19.2: City business cards split into dedicated media/copy/stats/actions regions. */
