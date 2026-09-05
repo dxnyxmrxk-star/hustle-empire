@@ -121,7 +121,7 @@
     premium_legendary: "case-gold"
   };
 
-  const SPRITE_BUILD_VERSION = "15.2";
+  const SPRITE_BUILD_VERSION = "15.3";
 
   /*
      V14.0 asset manifest.
@@ -180,7 +180,7 @@
      invalid URL. The loader advances to the next array item only on error.
   */
   /*
-     V15.2 — audited fallback paths.
+     V15.3 — audited fallback paths.
      Only physically existing alternative files are listed here.
      The primary file is supplied separately by OFFICIAL_SPRITE_ASSETS.
      For City Map the effective candidate array becomes:
@@ -660,11 +660,16 @@
 
 
   /*
-     V15.2 — ASSET AUDIT (PHYSICAL FILES ONLY)
+     V15.3 — ASSET AUDIT (PHYSICAL FILES ONLY)
      Exact case-sensitive paths expected by the current build.
      Run HustleAssetAudit() in DevTools to print the full list and resolved URL.
   */
-  const PROJECT_ASSET_AUDIT_PATHS = Object.freeze([
+  /*
+     V15.3 — EXACT IMAGE PATHS USED BY THE GAME
+     These are the 26 image files the current build may request.
+     Compare this list 1:1 with the GitHub assets/ folder.
+  */
+  const PROJECT_IMAGE_PATHS_26 = Object.freeze([
     "assets/avatar-small.svg",
     "assets/avatar.png",
     "assets/case_24h.png",
@@ -694,7 +699,7 @@
 ]);
 
   function getAssetAuditList() {
-    return PROJECT_ASSET_AUDIT_PATHS.map((path, index) => ({
+    return PROJECT_IMAGE_PATHS_26.map((path, index) => ({
       index: index + 1,
       path,
       fileName: path.split("/").pop(),
@@ -719,7 +724,8 @@
   }
 
   window.HustleAssetAudit = logAssetAudit;
-  window.HustleAssetPathsExact = PROJECT_ASSET_AUDIT_PATHS;
+  window.HustleAssetPathsExact = PROJECT_IMAGE_PATHS_26;
+  window.HustleImagePaths26 = PROJECT_IMAGE_PATHS_26;
 
   window.HustleAssetPaths = ASSET_PATHS;
   window.HustleSpriteAssets = OFFICIAL_SPRITE_ASSETS;
@@ -1177,7 +1183,7 @@
   const OFFLINE_LAST_CLAIM_STORAGE_KEY = "lastClaimTime";
 
   /* ==========================================================
-     V15.2 — DAILY RETENTION
+     V15.3 — DAILY RETENTION
      Daily Combo + Morse Cipher + 7-Day Check-in.
   ========================================================== */
   const DAILY_RETENTION_STORAGE_KEY = "hustleEmpireDailyRetentionV1";
@@ -1640,7 +1646,7 @@
   }
 
   /* ==========================================================
-     V15.2 — DAILY RETENTION SYSTEM
+     V15.3 — DAILY RETENTION SYSTEM
   ========================================================== */
 
   function getUtcDayKey(timestamp = Date.now()) {
