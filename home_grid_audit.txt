@@ -1,0 +1,46 @@
+URBAN TYCOON V19.5 — HOME GRID / OVERLAP STATIC AUDIT
+
+Root layout issue:
+- Home still forced LEFT / CHARACTER / MISSIONS into three columns on narrow
+  phones even after V19.3 increased typography.
+- Old widget/card rules existed across many historical CSS layers; although
+  later overrides helped, fixed icon/image widths plus larger text could still
+  compress the text column and visually collide with badges/background art.
+
+V19.5 structural changes:
+1. Static left widgets:
+   - added dedicated .home-widget-media wrapper around every icon
+   - strict grid: media | copy
+   - title/badge header can wrap naturally
+2. Missions:
+   - new .quest-card-main contains icon + mission text
+   - reward is a separate row, never sharing the text/progress grid
+3. Quick Jobs:
+   - new .quick-job-media region
+   - icon cannot escape its dedicated grid column
+4. Active Businesses:
+   - new .business-live-media region
+   - building image is capped to the media column
+   - new .business-live-stats separates income label/value
+5. Main Home:
+   - desktop remains left | center | missions
+   - <=560px becomes:
+       center center
+       left   missions
+   - <=390px becomes:
+       center
+       left
+       missions
+   This removes the three-column squeeze that caused the visual collisions.
+6. Every major panel uses isolation/min-width:0/overflow guards.
+
+Validation:
+- exactly 5 static Home icon media wrappers: OK
+- mission/quick-job/business structural wrappers: OK
+- node --check script.js: OK
+- node --check game.js: OK
+- node --check translations.js: OK
+- CSS brace balance: OK
+- V19.5 version/cache refs: OK
+
+No live browser/Telegram screenshot test was performed.

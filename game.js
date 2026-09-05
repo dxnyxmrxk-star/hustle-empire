@@ -84,7 +84,7 @@
      CSS/UI frame overlay rendered above it.
   ========================================================== */
 
-  const SPRITE_BUILD_VERSION = "19.4";
+  const SPRITE_BUILD_VERSION = "19.5";
 
   const REAL_GAME_ASSET_PATHS = Object.freeze([
     "assets/acc_epic.png",
@@ -4354,15 +4354,21 @@
 
       return `
         <article class="quick-job-card ${unlocked ? "" : "locked"}">
-          <div class="quick-job-icon">${cfg.icon}</div>
+          <div class="quick-job-media" aria-hidden="true">
+            <div class="quick-job-icon">${cfg.icon}</div>
+          </div>
+
           <div class="quick-job-content">
             <strong>${getHustleDisplayName(hustleId, cfg)}</strong>
+
             <div class="quick-job-rewards">
               <span class="quick-job-energy">⚡ ${cfg.energyCost}</span>
               <span class="quick-job-money">+$${formatNumber(cfg.rewardMoney)}</span>
               <span class="quick-job-xp">+${cfg.rewardXp} XP</span>
             </div>
+
             <button class="quick-job-button" type="button" data-hustle-run="${hustleId}" ${unlocked && enoughEnergy ? "" : "disabled"}>${label}</button>
+
             <small>${tr("hustles.completed")}: ${hs.runs}</small>
           </div>
         </article>`;
@@ -4823,12 +4829,25 @@
       const spriteClass = BUSINESS_SPRITE_CLASS[businessId] || "business-kiosk";
       return `
         <article class="business-live-card" data-business-card="${businessId}">
-          <div class="business-live-image image-fallback">${spriteMarkup("sprite-business", spriteClass)}</div>
+          <div class="business-live-media" aria-hidden="true">
+            <div class="business-live-image image-fallback">
+              ${spriteMarkup("sprite-business", spriteClass)}
+            </div>
+          </div>
+
           <div class="business-live-content">
-            <div class="business-live-top"><strong>${getBusinessDisplayName(businessId, cfg)}</strong><span class="business-level-badge">${tr("common.levelShort")} ${bs.level}</span></div>
-            <span class="business-income-second">${formatIncomePerSecond(getBusinessRevenuePerSecond(businessId))}</span>
-            <span class="business-income-label">${tr("business.incomePerSecond")}</span>
+            <div class="business-live-top">
+              <strong>${getBusinessDisplayName(businessId, cfg)}</strong>
+              <span class="business-level-badge">${tr("common.levelShort")} ${bs.level}</span>
+            </div>
+
+            <div class="business-live-stats">
+              <span class="business-income-label">${tr("business.incomePerSecond")}</span>
+              <span class="business-income-second">${formatIncomePerSecond(getBusinessRevenuePerSecond(businessId))}</span>
+            </div>
+
             <div class="business-income-progress"><span></span></div>
+
             <button class="business-upgrade-button" type="button" data-business-upgrade="${businessId}" ${state.money >= cost ? "" : "disabled"}>${tr("common.upgrade")} · ${formatCompactMoney(cost)}</button>
           </div>
         </article>`;
@@ -6290,13 +6309,15 @@
 
         return `
           <div class="quest-card ${completed ? "completed" : ""}" data-mission="${mission.id}">
-            <span class="quest-icon">${completed ? "✓" : (MISSION_ICONS[mission.type] || "•")}</span>
-            <div class="quest-info">
-              <strong>${missionTitle(mission)}</strong>
-              <div class="mini-progress">
-                <span style="width:${percent}%"></span>
+            <div class="quest-card-main">
+              <span class="quest-icon">${completed ? "✓" : (MISSION_ICONS[mission.type] || "•")}</span>
+              <div class="quest-info">
+                <strong>${missionTitle(mission)}</strong>
+                <div class="mini-progress">
+                  <span style="width:${percent}%"></span>
+                </div>
+                <small>${missionProgressText(mission, progress)}</small>
               </div>
-              <small>${missionProgressText(mission, progress)}</small>
             </div>
             <span class="quest-reward">${completed ? "✓ " : "+"}${formatCompactMoney(mission.reward)}</span>
           </div>`;
@@ -9098,3 +9119,5 @@
 /* V19.2: City business cards split into dedicated media/copy/stats/actions regions. */
 
 /* V19.4: Leaderboard is an isolated fullscreen modal with explicit close/restore flow. */
+
+/* V19.5: Home widgets/cards use explicit non-overlapping media/content/stat regions. */
