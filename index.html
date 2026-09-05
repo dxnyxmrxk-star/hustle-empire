@@ -1,21 +1,21 @@
 <!DOCTYPE html>
 
-<html lang="en" data-app-version="14.4">
+<html lang="en" data-app-version="15.0">
 <head>
 <meta charset="utf-8"/>
 <base href="./"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
 <meta content="#0b0f19" name="theme-color"/>
 <title>Hustle Empire</title>
-<link rel="preload" as="image" href="assets/avatar-small.svg?v=14.3"/>
-<link rel="preload" as="image" href="assets/character-01.svg?v=14.3"/>
-<link rel="preload" as="image" href="assets/sprite_city_map.png?v=14.3"/>
+<link rel="preload" as="image" href="assets/avatar-small.svg?v=15.0"/>
+<link rel="preload" as="image" href="assets/character-01.svg?v=15.0"/>
+<link rel="preload" as="image" href="assets/sprite_city_map.png?v=15.0"/>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<link href="style.css?v=14.3" rel="stylesheet"/>
-<script defer="" src="locales.js?v=14.3"></script>
-<script defer="" src="config.js?v=14.3"></script>
-<script defer="" src="script.js?v=14.3"></script>
-<script defer="" src="game.js?v=14.4"></script>
+<link href="style.css?v=15.0" rel="stylesheet"/>
+<script defer="" src="locales.js?v=15.0"></script>
+<script defer="" src="config.js?v=15.0"></script>
+<script defer="" src="script.js?v=15.0"></script>
+<script defer="" src="game.js?v=15.0"></script>
 
 <style id="level-up-rewards-v14-1">
   #level-boost-indicator[hidden],
@@ -217,7 +217,7 @@
 <header class="topbar">
 <div class="player-level">
 <div class="player-avatar image-fallback header-avatar">
-<img aria-label="Player" alt="Player" class="player-avatar-image player-avatar-sprite sprite-character direct-character-image" src="assets/avatar-small.svg?v=14.3" data-fallback-src="assets/avatar.png" draggable="false" decoding="async" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block;" />
+<img aria-label="Player" alt="Player" class="player-avatar-image player-avatar-sprite sprite-character direct-character-image" src="assets/avatar-small.svg?v=15.0" data-fallback-src="assets/avatar.png" draggable="false" decoding="async" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block;" />
 </div>
 <div class="player-level-content">
 <div class="level-row"><strong>LV 1</strong></div>
@@ -270,7 +270,7 @@
 </aside>
 <div class="home-center image-fallback">
 
-<img aria-label="Hustle Empire character" alt="Hustle Empire character" class="home-character home-character-sprite sprite-character char-level-1 direct-character-image" data-character-sprite="" data-character-stage="1" src="assets/character-01.svg?v=14.3" data-fallback-src="assets/character_novice.png" draggable="false" decoding="async" style="object-fit:contain;object-position:center bottom;display:block;" />
+<img aria-label="Hustle Empire character" alt="Hustle Empire character" class="home-character home-character-sprite sprite-character char-level-1 direct-character-image" data-character-sprite="" data-character-stage="1" src="assets/character-01.svg?v=15.0" data-fallback-src="assets/character_novice.png" draggable="false" decoding="async" style="object-fit:contain;object-position:center bottom;display:block;" />
 <div class="home-tap-zone">
 <div aria-hidden="true" class="tap-float-layer" id="tap-float-layer"></div>
 <button class="tap-button home-main-tap" type="button">
@@ -299,8 +299,109 @@
 </div>
 <div class="quick-jobs-grid" id="quick-jobs-list"></div>
 </section>
-<section class="home-businesses-panel">
-<div class="business-section-heading">
+
+<section class="daily-retention-panel" id="daily-retention-panel">
+  <div class="daily-retention-heading">
+    <div>
+      <span class="section-eyebrow">DAILY RETENTION</span>
+      <h2>Daily Challenges</h2>
+    </div>
+    <div class="daily-reset-badge">
+      <small>RESET</small>
+      <strong id="daily-reset-timer">24:00:00</strong>
+    </div>
+  </div>
+
+  <div class="daily-retention-grid">
+    <article class="daily-retention-card daily-combo-card">
+      <div class="daily-retention-card-head">
+        <div>
+          <span class="daily-feature-icon">🧩</span>
+          <div>
+            <small>DAILY COMBO</small>
+            <strong>Combo Giornaliera</strong>
+          </div>
+        </div>
+        <span class="daily-progress-pill" id="daily-combo-progress">0/3</span>
+      </div>
+
+      <p>Compra o potenzia i 3 target di oggi.</p>
+
+      <div class="daily-combo-slots" id="daily-combo-slots"></div>
+
+      <div class="daily-retention-reward" id="daily-combo-reward">
+        Maxi-premio
+      </div>
+    </article>
+
+    <article class="daily-retention-card daily-morse-card">
+      <div class="daily-retention-card-head">
+        <div>
+          <span class="daily-feature-icon">📡</span>
+          <div>
+            <small>DAILY CIPHER</small>
+            <strong>Cifra Morse</strong>
+          </div>
+        </div>
+      </div>
+
+      <p>Decifra la sequenza Morse nella cifra corretta.</p>
+
+      <div class="daily-morse-code" id="daily-morse-code">--...</div>
+
+      <div class="daily-morse-input-row">
+        <input
+          id="daily-morse-input"
+          class="daily-morse-input"
+          type="text"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          maxlength="1"
+          autocomplete="off"
+          aria-label="Risposta cifra Morse"
+          placeholder="0-9"
+        />
+        <button
+          id="daily-morse-submit"
+          data-daily-morse-submit
+          type="button"
+        >Decifra</button>
+      </div>
+
+      <div class="daily-retention-status" id="daily-morse-status">
+        Converti il Morse nella cifra corretta (0-9).
+      </div>
+    </article>
+
+    <article class="daily-retention-card daily-checkin-card">
+      <div class="daily-retention-card-head">
+        <div>
+          <span class="daily-feature-icon">🔥</span>
+          <div>
+            <small>7-DAY STREAK</small>
+            <strong>Daily Check-in</strong>
+          </div>
+        </div>
+        <span class="daily-progress-pill" id="daily-checkin-streak">0 giorni</span>
+      </div>
+
+      <div class="daily-checkin-grid" id="daily-checkin-grid"></div>
+
+      <button
+        class="daily-checkin-claim"
+        id="daily-checkin-claim"
+        data-daily-checkin-claim
+        type="button"
+      >Riscatta Giorno 1</button>
+
+      <div class="daily-retention-status" id="daily-checkin-status">
+        Salta un giorno e la streak riparte da 1.
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="home-businesses-panel"><div class="business-section-heading">
 <div><span class="section-eyebrow" data-i18n="home.empireManagement">Empire Management</span><h2 data-i18n="home.activeBusinesses">Active Businesses</h2></div>
 <div class="home-business-total"><small data-i18n="home.totalIncome">Total Income</small><strong id="home-total-income">$0.20/s</strong></div>
 </div>
@@ -311,7 +412,7 @@
 <section class="screen" data-screen="city">
 <div class="city-screen page-layout">
 <div class="city-map-wrapper image-fallback city-map-sprite-background">
-<img class="city-map-image" src="assets/sprite_city_map.png?v=14.3" data-fallback-src="assets/city-map.svg" alt="" aria-hidden="true" decoding="async" fetchpriority="high"/>
+<img class="city-map-image" src="assets/sprite_city_map.png?v=15.0" data-fallback-src="assets/city-map.svg" alt="" aria-hidden="true" decoding="async" fetchpriority="high"/>
 <button class="city-node poor selected" data-district="poor_block" type="button"><strong>POOR BLOCK</strong><span>LV 1-10</span><small>Starter District</small><i>✓</i></button>
 <button class="city-node center locked" data-district="city_center" type="button"><strong>CITY CENTER</strong><span>LV 11-20</span><small>City Hustles</small><i>🔒</i></button>
 <button class="city-node business locked" data-district="business_district" type="button"><strong>BUSINESS DISTRICT</strong><span>LV 21-30</span><small>Big Business</small><i>🔒</i></button>
@@ -406,7 +507,7 @@
 </aside>
 <div class="wardrobe-character image-fallback">
 
-<img aria-label="Character" alt="Character" class="wardrobe-character-image wardrobe-character-sprite sprite-character char-level-1 direct-character-image" data-character-sprite="" data-character-stage="1" src="assets/character-01.svg?v=14.3" data-fallback-src="assets/character_novice.png" draggable="false" decoding="async" style="object-fit:contain;object-position:center bottom;display:block;" />
+<img aria-label="Character" alt="Character" class="wardrobe-character-image wardrobe-character-sprite sprite-character char-level-1 direct-character-image" data-character-sprite="" data-character-stage="1" src="assets/character-01.svg?v=15.0" data-fallback-src="assets/character_novice.png" draggable="false" decoding="async" style="object-fit:contain;object-position:center bottom;display:block;" />
 </div>
 <aside class="outfit-panel">
 <section><h3 data-i18n="wardrobe.outfitProgress">Outfit Progress</h3><strong>🔒</strong><div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div><small data-i18n="wardrobe.unlockSlot">Buy LV 1 to unlock</small></section>
@@ -556,7 +657,7 @@
     <p class="level-up-modal-subtitle">Nuovo livello raggiunto. Le ricompense sono già nel tuo account.</p>
 
     <div class="level-up-case-wrap">
-      <img id="level-up-case-image" src="assets/case_street.png?v=14.3" alt="Street Case" decoding="async" draggable="false"/>
+      <img id="level-up-case-image" src="assets/case_street.png?v=15.0" alt="Street Case" decoding="async" draggable="false"/>
     </div>
     <strong id="level-up-case-name">Street Case</strong>
 
@@ -583,6 +684,6 @@
 <button class="modal-confirm" data-modal-close="" type="button">OK</button>
 </div>
 </div>
-<!-- HUSTLE_EMPIRE_INDEX_COMPLETE_V14_3_GITHUB_ASSET_PATHS -->
+<!-- HUSTLE_EMPIRE_INDEX_COMPLETE_V14_5_DAILY_RETENTION -->
 </body>
 </html>

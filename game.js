@@ -121,7 +121,7 @@
     premium_legendary: "case-gold"
   };
 
-  const SPRITE_BUILD_VERSION = "14.4";
+  const SPRITE_BUILD_VERSION = "15.0";
 
   /*
      V14.0 asset manifest.
@@ -179,13 +179,20 @@
      Never build a fallback as "pathA pathB": WebKit will treat that as one
      invalid URL. The loader advances to the next array item only on error.
   */
+  /*
+     V15.0 — every fallback list is a true array.
+     City map is tried in this exact order:
+       1) assets/sprite_city_map.png
+       2) assets/city-map.svg
+     Never concatenate these paths into one string.
+  */
   const SPRITE_ASSET_FALLBACKS = Object.freeze({
-    character: Object.freeze([]),
-    cityMap: Object.freeze(["assets/city-map.svg"]),
-    businesses: Object.freeze([]),
-    cases: Object.freeze([]),
-    workers: Object.freeze([]),
-    wardrobe: Object.freeze([])
+    character: Object.freeze(["assets/sprite_character_evolution.png"]),
+    cityMap: Object.freeze(["assets/sprite_city_map.png", "assets/city-map.svg"]),
+    businesses: Object.freeze(["assets/sprite_businesses.png"]),
+    cases: Object.freeze(["assets/sprite_cases.png"]),
+    workers: Object.freeze(["assets/sprite_cards_workers.png"]),
+    wardrobe: Object.freeze(["assets/sprite_wardrobe_items.png"])
   });
 
   /*
@@ -290,8 +297,9 @@
       if (typeof source !== "string") return;
 
       /*
-         Asset filenames in this project contain no literal spaces.
-         Splitting here safely repairs any legacy concatenated fallback value.
+         Legacy safety: if an old save/build hands us a whitespace-joined
+         string, split it into independent paths. Each candidate is always
+         loaded separately afterward.
       */
       source
         .trim()
@@ -299,6 +307,7 @@
         .filter(Boolean)
         .forEach((rawPath) => {
           const cleanPath = normalizeRelativeAssetPath(rawPath);
+
           if (cleanPath && !candidates.includes(cleanPath)) {
             candidates.push(cleanPath);
           }
@@ -326,69 +335,82 @@
      At no point are two paths assigned to image.src together.
   */
   function loadImageFromCandidates(candidateSources, options = {}) {
-    const candidates = normalizeAssetCandidates(candidateSources);
+    const fallbackArray = normalizeAssetCandidates(candidateSources);
 
     return new Promise((resolve) => {
-      let candidateIndex = 0;
+      let index = 0;
 
-      const tryNext = () => {
-        if (candidateIndex >= candidates.length) {
-          options.onAllFailed?.(candidates);
+      const loadNext = () => {
+        if (index >= fallbackArray.length) {
+          options.onAllFailed?.(fallbackArray);
+
           resolve({
             ok: false,
             image: null,
             path: "",
-            candidates
+            candidates: fallbackArray
           });
           return;
         }
 
-        const currentPath = candidates[candidateIndex++];
-        const image = new Image();
-        image.decoding = "async";
+        const currentPath = fallbackArray[index];
+        index += 1;
 
-        image.onload = async () => {
+        const element = new Image();
+        element.decoding = "async";
+
+        element.onload = async () => {
           try {
-            if (typeof image.decode === "function") {
-              await image.decode();
+            if (typeof element.decode === "function") {
+              await element.decode();
             }
           } catch (_) {
-            /* WebKit may reject decode() after a valid onload. */
+            /* Safari/WKWebView can reject decode() even after onload. */
           }
 
-          options.onSuccess?.(image, currentPath, candidates);
+          options.onSuccess?.(
+            element,
+            currentPath,
+            fallbackArray
+          );
 
           resolve({
             ok: true,
-            image,
+            image: element,
             path: currentPath,
-            candidates
+            candidates: fallbackArray
           });
         };
 
-        image.onerror = () => {
+        element.onerror = () => {
           console.warn(
-            `[Hustle Empire] Image failed: ${currentPath}. Trying next fallback...`
+            `[Hustle Empire] Image failed: ${currentPath}. Trying fallback ${index + 1}/${fallbackArray.length}.`
           );
-          tryNext();
+
+          /*
+             IMPORTANT:
+             We do NOT build "path1 path2".
+             The next call assigns exactly one next URL.
+          */
+          loadNext();
         };
 
-        image.src = resolveAssetUrl(currentPath);
+        element.src = resolveAssetUrl(currentPath);
       };
 
-      tryNext();
+      loadNext();
     });
   }
 
   function loadSpriteImage(key, primaryPath) {
-    const candidates = normalizeAssetCandidates(
+    const fallbackArray = normalizeAssetCandidates(
       primaryPath,
       SPRITE_ASSET_FALLBACKS[key]
     );
 
-    return loadImageFromCandidates(candidates, {
-      onSuccess(image, currentPath) {
-        SPRITE_IMAGES[key] = image;
+    return loadImageFromCandidates(fallbackArray, {
+      onSuccess(element) {
+        SPRITE_IMAGES[key] = element;
 
         document.documentElement.dataset[
           `sprite${key[0].toUpperCase()}${key.slice(1)}`
@@ -400,6 +422,7 @@
           `[Hustle Empire] Sprite failed to load: ${key}`,
           failedCandidates
         );
+
         document.documentElement.dataset.spriteError = key;
       }
     }).then((result) => ({
@@ -455,41 +478,44 @@
   function setDirectImageAsset(imageElement, primaryPath, fallbackPaths = []) {
     if (!(imageElement instanceof HTMLImageElement)) return false;
 
-    const candidates = normalizeAssetCandidates(
+    const fallbackArray = normalizeAssetCandidates(
       primaryPath,
       fallbackPaths
     );
 
-    if (!candidates.length) {
+    if (!fallbackArray.length) {
       imageElement.classList.add("asset-load-error");
       return false;
     }
 
-    imageElement.dataset.assetCandidates = JSON.stringify(candidates);
-    imageElement.dataset.assetCandidateIndex = "0";
+    let index = 0;
+
+    imageElement.dataset.assetCandidates =
+      JSON.stringify(fallbackArray);
+
     imageElement.classList.remove("asset-load-error");
 
-    let candidateIndex = 0;
-
-    const tryCandidate = () => {
-      if (candidateIndex >= candidates.length) {
+    const loadNext = () => {
+      if (index >= fallbackArray.length) {
         imageElement.onerror = null;
         imageElement.classList.add("asset-load-error");
+
         console.error(
-          "[Hustle Empire] Direct image failed. Candidates:",
-          candidates
+          "[Hustle Empire] Direct image failed:",
+          fallbackArray
         );
         return;
       }
 
-      const currentPath = candidates[candidateIndex++];
+      const currentPath = fallbackArray[index];
+      index += 1;
 
       imageElement.dataset.assetCandidateIndex =
-        String(candidateIndex - 1);
+        String(index - 1);
 
       /*
-         Critical: exactly ONE path is assigned here.
-         The next path is assigned only if this one fires onerror.
+         Exactly one URL is assigned here.
+         The next candidate is assigned only from onerror.
       */
       imageElement.src = resolveAssetUrl(currentPath);
     };
@@ -499,10 +525,10 @@
     };
 
     imageElement.onerror = () => {
-      tryCandidate();
+      loadNext();
     };
 
-    tryCandidate();
+    loadNext();
     return true;
   }
 
@@ -989,6 +1015,35 @@
   const OFFLINE_EARNINGS_CAP_SECONDS = 3 * 60 * 60;
   const OFFLINE_LAST_CLAIM_STORAGE_KEY = "lastClaimTime";
 
+  /* ==========================================================
+     V15.0 — DAILY RETENTION
+     Daily Combo + Morse Cipher + 7-Day Check-in.
+  ========================================================== */
+  const DAILY_RETENTION_STORAGE_KEY = "hustleEmpireDailyRetentionV1";
+
+  const DAILY_CHECKIN_REWARDS = Object.freeze([
+    Object.freeze({ day: 1, money: 1000, gems: 0, label: "$1K" }),
+    Object.freeze({ day: 2, money: 2500, gems: 0, label: "$2.5K" }),
+    Object.freeze({ day: 3, money: 0, gems: 10, label: "♦ 10" }),
+    Object.freeze({ day: 4, money: 5000, gems: 0, label: "$5K" }),
+    Object.freeze({ day: 5, money: 0, gems: 25, label: "♦ 25" }),
+    Object.freeze({ day: 6, money: 10000, gems: 50, label: "$10K + ♦50" }),
+    Object.freeze({ day: 7, money: 0, gems: 500, caseType: "boss", label: "♦ 500 + Rare Case" })
+  ]);
+
+  const MORSE_DIGITS = Object.freeze({
+    "0": "-----",
+    "1": ".----",
+    "2": "..---",
+    "3": "...--",
+    "4": "....-",
+    "5": ".....",
+    "6": "-....",
+    "7": "--...",
+    "8": "---..",
+    "9": "----."
+  });
+
   let selectedWardrobeSlot = EQUIPMENT_IDS[0] || "cap";
   let wardrobeView = "items";
   let selectedStyleSetId = STYLE_SET_IDS[0] || null;
@@ -1421,6 +1476,724 @@
     } catch (error) {
       console.warn("[Hustle Empire] Save failed:", error);
     }
+  }
+
+  /* ==========================================================
+     V15.0 — DAILY RETENTION SYSTEM
+  ========================================================== */
+
+  function getUtcDayKey(timestamp = Date.now()) {
+    const date = new Date(timestamp);
+    return [
+      date.getUTCFullYear(),
+      String(date.getUTCMonth() + 1).padStart(2, "0"),
+      String(date.getUTCDate()).padStart(2, "0")
+    ].join("-");
+  }
+
+  function getUtcDayOrdinal(timestamp = Date.now()) {
+    const date = new Date(timestamp);
+    return Math.floor(
+      Date.UTC(
+        date.getUTCFullYear(),
+        date.getUTCMonth(),
+        date.getUTCDate()
+      ) / 86400000
+    );
+  }
+
+  function getSecondsUntilDailyReset(timestamp = Date.now()) {
+    const date = new Date(timestamp);
+    const nextReset = Date.UTC(
+      date.getUTCFullYear(),
+      date.getUTCMonth(),
+      date.getUTCDate() + 1
+    );
+    return Math.max(0, Math.ceil((nextReset - timestamp) / 1000));
+  }
+
+  function formatDailyResetTimer(totalSeconds) {
+    const safe = Math.max(0, Math.floor(Number(totalSeconds) || 0));
+    const hours = Math.floor(safe / 3600);
+    const minutes = Math.floor((safe % 3600) / 60);
+    const seconds = safe % 60;
+
+    return [hours, minutes, seconds]
+      .map((value) => String(value).padStart(2, "0"))
+      .join(":");
+  }
+
+  function hashDailyString(value) {
+    let hash = 2166136261;
+    const input = String(value || "");
+
+    for (let index = 0; index < input.length; index += 1) {
+      hash ^= input.charCodeAt(index);
+      hash = Math.imul(hash, 16777619);
+    }
+
+    return hash >>> 0;
+  }
+
+  function createSeededRandom(seed) {
+    let value = Number(seed) >>> 0;
+
+    return () => {
+      value = (Math.imul(value, 1664525) + 1013904223) >>> 0;
+      return value / 4294967296;
+    };
+  }
+
+  function createEmptyDailyRetentionState() {
+    return {
+      version: 1,
+      lastAccessDay: "",
+      combo: {
+        dayKey: "",
+        targets: [],
+        completedSlots: [false, false, false],
+        rewardGranted: false,
+        rewardType: "",
+        rewardAmount: 0,
+        rewardText: ""
+      },
+      morse: {
+        dayKey: "",
+        digit: "",
+        code: "",
+        claimed: false,
+        attempts: 0,
+        rewardText: ""
+      },
+      checkIn: {
+        lastClaimDay: "",
+        streakDays: 0
+      }
+    };
+  }
+
+  function sanitizeDailyRetention(raw) {
+    const fresh = createEmptyDailyRetentionState();
+    const source = raw && typeof raw === "object" ? raw : {};
+
+    fresh.lastAccessDay =
+      typeof source.lastAccessDay === "string"
+        ? source.lastAccessDay
+        : "";
+
+    fresh.combo = {
+      dayKey:
+        typeof source.combo?.dayKey === "string"
+          ? source.combo.dayKey
+          : "",
+      targets:
+        Array.isArray(source.combo?.targets)
+          ? source.combo.targets
+              .slice(0, 3)
+              .map((target) => ({
+                type: target?.type === "card" ? "card" : "business",
+                id: String(target?.id || "")
+              }))
+              .filter((target) => target.id)
+          : [],
+      completedSlots: [0, 1, 2].map(
+        (index) => Boolean(source.combo?.completedSlots?.[index])
+      ),
+      rewardGranted: Boolean(source.combo?.rewardGranted),
+      rewardType:
+        source.combo?.rewardType === "gems"
+          ? "gems"
+          : source.combo?.rewardType === "money"
+            ? "money"
+            : "",
+      rewardAmount: Math.max(0, Number(source.combo?.rewardAmount) || 0),
+      rewardText: String(source.combo?.rewardText || "")
+    };
+
+    fresh.morse = {
+      dayKey:
+        typeof source.morse?.dayKey === "string"
+          ? source.morse.dayKey
+          : "",
+      digit: /^[0-9]$/.test(String(source.morse?.digit || ""))
+        ? String(source.morse.digit)
+        : "",
+      code: String(source.morse?.code || ""),
+      claimed: Boolean(source.morse?.claimed),
+      attempts: Math.max(0, Math.floor(Number(source.morse?.attempts) || 0)),
+      rewardText: String(source.morse?.rewardText || "")
+    };
+
+    fresh.checkIn = {
+      lastClaimDay:
+        typeof source.checkIn?.lastClaimDay === "string"
+          ? source.checkIn.lastClaimDay
+          : "",
+      streakDays: Math.max(
+        0,
+        Math.floor(Number(source.checkIn?.streakDays) || 0)
+      )
+    };
+
+    return fresh;
+  }
+
+  function loadDailyRetentionState() {
+    try {
+      const raw = localStorage.getItem(DAILY_RETENTION_STORAGE_KEY);
+      if (!raw) return createEmptyDailyRetentionState();
+      return sanitizeDailyRetention(JSON.parse(raw));
+    } catch (error) {
+      console.warn("[Hustle Empire] Daily retention load failed:", error);
+      return createEmptyDailyRetentionState();
+    }
+  }
+
+  let dailyRetention = loadDailyRetentionState();
+
+  function saveDailyRetentionState() {
+    try {
+      localStorage.setItem(
+        DAILY_RETENTION_STORAGE_KEY,
+        JSON.stringify(dailyRetention)
+      );
+    } catch (error) {
+      console.warn("[Hustle Empire] Daily retention save failed:", error);
+    }
+  }
+
+  function getDailyComboPool() {
+    const businessTargets = BUSINESS_IDS
+      .filter((businessId) => {
+        const cfg = BUSINESS_CONFIGS[businessId];
+        return cfg && Number(cfg.unlockLevel || 1) <= state.level;
+      })
+      .map((businessId) => ({
+        type: "business",
+        id: businessId
+      }));
+
+    const cardTargets = CARD_IDS
+      .filter((cardId) => Boolean(state.cards?.[cardId]?.unlocked))
+      .map((cardId) => ({
+        type: "card",
+        id: cardId
+      }));
+
+    const pool = [...businessTargets, ...cardTargets];
+
+    /*
+       Level 1 only has the starter kiosk. Cycling the same valid target keeps
+       the Daily Combo achievable instead of assigning locked content.
+    */
+    if (!pool.length) {
+      pool.push({ type: "business", id: "kiosk" });
+    }
+
+    return pool;
+  }
+
+  function buildDailyComboTargets(dayKey) {
+    const pool = getDailyComboPool();
+    const random = createSeededRandom(
+      hashDailyString(`${dayKey}|${state.level}|daily-combo`)
+    );
+
+    const shuffled = [...pool];
+
+    for (let index = shuffled.length - 1; index > 0; index -= 1) {
+      const targetIndex = Math.floor(random() * (index + 1));
+      [shuffled[index], shuffled[targetIndex]] = [
+        shuffled[targetIndex],
+        shuffled[index]
+      ];
+    }
+
+    const targets = [];
+
+    while (targets.length < 3) {
+      const source = shuffled[targets.length % shuffled.length];
+      targets.push({
+        type: source.type,
+        id: source.id
+      });
+    }
+
+    return targets;
+  }
+
+  function buildDailyComboReward(dayKey) {
+    const rewardSeed = hashDailyString(`${dayKey}|combo-reward`);
+    const useGems = rewardSeed % 4 === 0;
+
+    if (useGems) {
+      const amount = Math.max(18, 15 + state.level * 3);
+      return {
+        type: "gems",
+        amount,
+        text: `♦ ${formatNumber(amount)} Gems`
+      };
+    }
+
+    const amount = Math.max(1500, 750 + state.level * 750);
+    return {
+      type: "money",
+      amount,
+      text: formatCompactMoney(amount)
+    };
+  }
+
+  function buildDailyMorse(dayKey) {
+    const digit = String(hashDailyString(`${dayKey}|morse`) % 10);
+
+    return {
+      digit,
+      code: MORSE_DIGITS[digit]
+    };
+  }
+
+  function parseDayKeyOrdinal(dayKey) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(dayKey || ""))) {
+      return null;
+    }
+
+    const [year, month, day] = dayKey.split("-").map(Number);
+    return Math.floor(Date.UTC(year, month - 1, day) / 86400000);
+  }
+
+  function ensureDailyRetentionState() {
+    const now = Date.now();
+    const today = getUtcDayKey(now);
+    const todayOrdinal = getUtcDayOrdinal(now);
+    let changed = false;
+
+    if (dailyRetention.combo.dayKey !== today) {
+      const reward = buildDailyComboReward(today);
+
+      dailyRetention.combo = {
+        dayKey: today,
+        targets: buildDailyComboTargets(today),
+        completedSlots: [false, false, false],
+        rewardGranted: false,
+        rewardType: reward.type,
+        rewardAmount: reward.amount,
+        rewardText: reward.text
+      };
+      changed = true;
+    }
+
+    if (dailyRetention.morse.dayKey !== today) {
+      const morse = buildDailyMorse(today);
+
+      dailyRetention.morse = {
+        dayKey: today,
+        digit: morse.digit,
+        code: morse.code,
+        claimed: false,
+        attempts: 0,
+        rewardText: ""
+      };
+      changed = true;
+    }
+
+    const lastAccessOrdinal = parseDayKeyOrdinal(
+      dailyRetention.lastAccessDay
+    );
+
+    if (
+      lastAccessOrdinal !== null
+      &&
+      todayOrdinal - lastAccessOrdinal > 1
+      &&
+      dailyRetention.checkIn.streakDays > 0
+    ) {
+      dailyRetention.checkIn.streakDays = 0;
+      state.streak.days = 0;
+      changed = true;
+    }
+
+    if (dailyRetention.lastAccessDay !== today) {
+      dailyRetention.lastAccessDay = today;
+      changed = true;
+    }
+
+    if (changed) {
+      saveDailyRetentionState();
+      saveGame();
+    }
+
+    return changed;
+  }
+
+  function getDailyTargetName(target) {
+    if (!target) return "Unknown";
+
+    if (target.type === "card") {
+      const config = CARD_CONFIGS[target.id];
+      return config ? getLocalizedValue(config.name) : target.id;
+    }
+
+    const config = BUSINESS_CONFIGS[target.id];
+    return config ? getLocalizedValue(config.name) : target.id;
+  }
+
+  function grantDailyComboReward() {
+    ensureDailyRetentionState();
+
+    const combo = dailyRetention.combo;
+
+    if (
+      combo.rewardGranted
+      ||
+      combo.completedSlots.length !== 3
+      ||
+      !combo.completedSlots.every(Boolean)
+    ) {
+      return false;
+    }
+
+    if (combo.rewardType === "gems") {
+      state.gems += combo.rewardAmount;
+    } else {
+      state.money += combo.rewardAmount;
+    }
+
+    combo.rewardGranted = true;
+
+    saveDailyRetentionState();
+    saveGame();
+    updateUI();
+
+    emitGameEvent("dailyComboCompleted", {
+      targets: combo.targets,
+      rewardType: combo.rewardType,
+      rewardAmount: combo.rewardAmount
+    });
+
+    return true;
+  }
+
+  function trackDailyComboAction(type, id) {
+    ensureDailyRetentionState();
+
+    const combo = dailyRetention.combo;
+    const slotIndex = combo.targets.findIndex(
+      (target, index) =>
+        !combo.completedSlots[index]
+        &&
+        target.type === type
+        &&
+        target.id === id
+    );
+
+    if (slotIndex < 0) return false;
+
+    combo.completedSlots[slotIndex] = true;
+    saveDailyRetentionState();
+
+    const completedNow = combo.completedSlots.every(Boolean);
+
+    if (completedNow) {
+      grantDailyComboReward();
+    }
+
+    renderDailyRetentionUI();
+
+    emitGameEvent("dailyComboProgress", {
+      slotIndex,
+      target: combo.targets[slotIndex],
+      completedSlots: [...combo.completedSlots],
+      completed: completedNow
+    });
+
+    return true;
+  }
+
+  function getDailyMorseReward() {
+    return {
+      money: Math.max(750, state.level * 500),
+      gems: Math.max(5, 5 + Math.floor(state.level / 5) * 2)
+    };
+  }
+
+  function submitDailyMorseAnswer(answer) {
+    ensureDailyRetentionState();
+
+    const morse = dailyRetention.morse;
+
+    if (morse.claimed) {
+      renderDailyRetentionUI("morseAlreadyClaimed");
+      return false;
+    }
+
+    const normalized = String(answer || "")
+      .trim()
+      .replace(/\D/g, "")
+      .slice(0, 1);
+
+    morse.attempts += 1;
+
+    if (normalized !== morse.digit) {
+      saveDailyRetentionState();
+      renderDailyRetentionUI("morseWrong");
+      return false;
+    }
+
+    const reward = getDailyMorseReward();
+
+    state.money += reward.money;
+    state.gems += reward.gems;
+
+    morse.claimed = true;
+    morse.rewardText =
+      `${formatCompactMoney(reward.money)} + ♦ ${formatNumber(reward.gems)}`;
+
+    saveDailyRetentionState();
+    saveGame();
+    updateUI();
+    renderDailyRetentionUI("morseSuccess");
+
+    emitGameEvent("dailyMorseSolved", {
+      digit: morse.digit,
+      reward
+    });
+
+    return true;
+  }
+
+  function getNextCheckInRewardDay() {
+    const today = getUtcDayKey();
+    const checkIn = dailyRetention.checkIn;
+
+    if (checkIn.lastClaimDay === today && checkIn.streakDays > 0) {
+      return ((checkIn.streakDays - 1) % 7) + 1;
+    }
+
+    return (checkIn.streakDays % 7) + 1;
+  }
+
+  function claimDailyCheckIn() {
+    ensureDailyRetentionState();
+
+    const today = getUtcDayKey();
+    const todayOrdinal = getUtcDayOrdinal();
+    const checkIn = dailyRetention.checkIn;
+
+    if (checkIn.lastClaimDay === today) {
+      renderDailyRetentionUI("checkInAlreadyClaimed");
+      return false;
+    }
+
+    const previousClaimOrdinal = parseDayKeyOrdinal(
+      checkIn.lastClaimDay
+    );
+
+    if (
+      previousClaimOrdinal !== null
+      &&
+      todayOrdinal - previousClaimOrdinal === 1
+    ) {
+      checkIn.streakDays += 1;
+    } else {
+      checkIn.streakDays = 1;
+    }
+
+    checkIn.lastClaimDay = today;
+
+    const rewardDay = ((checkIn.streakDays - 1) % 7) + 1;
+    const reward = DAILY_CHECKIN_REWARDS[rewardDay - 1];
+
+    if (reward.money) {
+      state.money += reward.money;
+    }
+
+    if (reward.gems) {
+      state.gems += reward.gems;
+    }
+
+    if (reward.caseType) {
+      state.levelRewards.caseInventory[reward.caseType] =
+        Math.max(
+          0,
+          Number(state.levelRewards.caseInventory[reward.caseType]) || 0
+        )
+        + 1;
+    }
+
+    state.streak.days = checkIn.streakDays;
+
+    saveDailyRetentionState();
+    saveGame();
+    updateUI();
+    renderDailyRetentionUI("checkInSuccess");
+
+    emitGameEvent("dailyCheckInClaimed", {
+      streakDays: checkIn.streakDays,
+      rewardDay,
+      reward
+    });
+
+    return true;
+  }
+
+  function renderDailyComboUI() {
+    const comboSlots = document.getElementById("daily-combo-slots");
+    const comboProgress = document.getElementById("daily-combo-progress");
+    const comboReward = document.getElementById("daily-combo-reward");
+
+    if (!comboSlots || !comboProgress || !comboReward) return;
+
+    const combo = dailyRetention.combo;
+    const completedCount = combo.completedSlots.filter(Boolean).length;
+
+    comboSlots.innerHTML = combo.targets.map((target, index) => {
+      const completed = Boolean(combo.completedSlots[index]);
+      const icon = target.type === "card" ? "🃏" : "🏢";
+      const actionLabel =
+        target.type === "card"
+          ? "Upgrade card"
+          : "Buy / upgrade";
+
+      return `
+        <div class="daily-combo-slot ${completed ? "completed" : ""}">
+          <span class="daily-combo-slot-icon">${completed ? "✓" : icon}</span>
+          <div>
+            <small>${actionLabel}</small>
+            <strong>${getDailyTargetName(target)}</strong>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    comboProgress.textContent = `${completedCount}/3`;
+
+    comboReward.textContent = combo.rewardGranted
+      ? `✓ Premio riscattato: ${combo.rewardText}`
+      : `Maxi-premio: ${combo.rewardText}`;
+  }
+
+  function renderDailyMorseUI(status = "") {
+    const code = document.getElementById("daily-morse-code");
+    const input = document.getElementById("daily-morse-input");
+    const button = document.getElementById("daily-morse-submit");
+    const statusNode = document.getElementById("daily-morse-status");
+
+    if (!code || !input || !button || !statusNode) return;
+
+    const morse = dailyRetention.morse;
+
+    code.textContent = morse.code;
+
+    if (morse.claimed) {
+      input.value = morse.digit;
+      input.disabled = true;
+      button.disabled = true;
+      button.textContent = "Risolto ✓";
+      statusNode.textContent =
+        `Premio: ${morse.rewardText}`;
+      statusNode.className = "daily-retention-status success";
+      return;
+    }
+
+    input.disabled = false;
+    button.disabled = false;
+    button.textContent = "Decifra";
+
+    if (status === "morseWrong") {
+      statusNode.textContent = "Codice errato. Riprova.";
+      statusNode.className = "daily-retention-status error";
+    } else if (status === "morseSuccess") {
+      statusNode.textContent = "Corretto! Premio accreditato.";
+      statusNode.className = "daily-retention-status success";
+    } else {
+      statusNode.textContent =
+        "Converti il Morse nella cifra corretta (0-9).";
+      statusNode.className = "daily-retention-status";
+    }
+  }
+
+  function renderDailyCheckInUI(status = "") {
+    const grid = document.getElementById("daily-checkin-grid");
+    const button = document.getElementById("daily-checkin-claim");
+    const streakNode = document.getElementById("daily-checkin-streak");
+    const statusNode = document.getElementById("daily-checkin-status");
+
+    if (!grid || !button || !streakNode || !statusNode) return;
+
+    const today = getUtcDayKey();
+    const checkIn = dailyRetention.checkIn;
+    const claimedToday = checkIn.lastClaimDay === today;
+    const rewardDay = getNextCheckInRewardDay();
+
+    grid.innerHTML = DAILY_CHECKIN_REWARDS.map((reward) => {
+      const isCurrent = reward.day === rewardDay;
+      const isClaimed = claimedToday && isCurrent;
+
+      return `
+        <div class="daily-checkin-day ${isCurrent ? "current" : ""} ${isClaimed ? "claimed" : ""}">
+          <small>DAY ${reward.day}</small>
+          <strong>${reward.label}</strong>
+          <span>${isClaimed ? "✓" : ""}</span>
+        </div>
+      `;
+    }).join("");
+
+    streakNode.textContent = `${checkIn.streakDays} giorni`;
+
+    button.disabled = claimedToday;
+    button.textContent = claimedToday
+      ? "Riscattato oggi ✓"
+      : `Riscatta Giorno ${rewardDay}`;
+
+    if (status === "checkInSuccess") {
+      statusNode.textContent = "Check-in riscattato!";
+      statusNode.className = "daily-retention-status success";
+    } else if (status === "checkInAlreadyClaimed") {
+      statusNode.textContent = "Hai già riscattato il premio di oggi.";
+      statusNode.className = "daily-retention-status";
+    } else {
+      statusNode.textContent =
+        "Salta un giorno e la streak riparte da 1.";
+      statusNode.className = "daily-retention-status";
+    }
+  }
+
+  function renderDailyRetentionUI(status = "") {
+    ensureDailyRetentionState();
+
+    renderDailyComboUI();
+    renderDailyMorseUI(status);
+    renderDailyCheckInUI(status);
+
+    const resetTimer = document.getElementById("daily-reset-timer");
+
+    if (resetTimer) {
+      resetTimer.textContent = formatDailyResetTimer(
+        getSecondsUntilDailyReset()
+      );
+    }
+  }
+
+  function tickDailyRetentionSystem() {
+    const changed = ensureDailyRetentionState();
+
+    if (changed) {
+      renderDailyRetentionUI();
+      return;
+    }
+
+    const resetTimer = document.getElementById("daily-reset-timer");
+
+    if (resetTimer) {
+      resetTimer.textContent = formatDailyResetTimer(
+        getSecondsUntilDailyReset()
+      );
+    }
+  }
+
+  function initializeDailyRetention() {
+    ensureDailyRetentionState();
+    renderDailyRetentionUI();
   }
 
   /* ==========================================================
@@ -2278,6 +3051,7 @@
     state.money -= cost;
     bs.owned = true;
     bs.level = Number(cfg.startingLevel) || 1;
+    trackDailyComboAction("business", businessId);
     saveGame();
     updateUI();
     refreshBusinessPanels();
@@ -2297,6 +3071,7 @@
     state.money -= cost;
     bs.level += 1;
     updateMissionProgress("upgrades", 1, "businessUpgrade", { save: false, render: false });
+    trackDailyComboAction("business", businessId);
     saveGame();
     updateUI();
     refreshBusinessPanels();
@@ -2482,6 +3257,7 @@
 
     recomputeDerivedState();
     updateMissionProgress("upgrades", 1, "cardUpgrade", { save: false, render: false });
+    trackDailyComboAction("card", cardId);
     saveGame();
     updateUI();
     renderCollectionUI();
@@ -3746,6 +4522,21 @@
     bindTapControl();
 
     document.addEventListener("click", (event) => {
+      const dailyMorseSubmit = event.target.closest("[data-daily-morse-submit]");
+      if (dailyMorseSubmit) {
+        event.preventDefault();
+        const input = document.getElementById("daily-morse-input");
+        submitDailyMorseAnswer(input?.value || "");
+        return;
+      }
+
+      const dailyCheckInClaim = event.target.closest("[data-daily-checkin-claim]");
+      if (dailyCheckInClaim) {
+        event.preventDefault();
+        claimDailyCheckIn();
+        return;
+      }
+
       const offlineClaimButton = event.target.closest("[data-offline-earnings-claim]");
       if (offlineClaimButton) {
         event.preventDefault();
@@ -3866,6 +4657,17 @@
       const cardUpgrade = event.target.closest("[data-card-upgrade]");
       if (cardUpgrade) { event.preventDefault(); levelUpCard(cardUpgrade.dataset.cardUpgrade); return; }
     });
+
+    document.addEventListener("keydown", (event) => {
+      if (
+        event.key === "Enter"
+        &&
+        event.target?.matches?.("#daily-morse-input")
+      ) {
+        event.preventDefault();
+        submitDailyMorseAnswer(event.target.value);
+      }
+    });
   }
 
   function gameTick() {
@@ -3879,6 +4681,7 @@
     /* Keeps temporary boosts, their timer and energy UI visually in sync. */
     updateTapButton();
     updateLevelUpBoostUI();
+    tickDailyRetentionSystem();
 
     tickRandomEventSystem();
 
@@ -3927,6 +4730,7 @@
     renderWardrobeUI();
     renderAccessoryCatalog();
     renderRandomEvent();
+    renderDailyRetentionUI();
   }
 
   async function initGame() {
@@ -3944,6 +4748,7 @@
 
     recomputeDerivedState();
     regenerateEnergy();
+    ensureDailyRetentionState();
 
     const offlineResult = checkOfflineEarnings();
     const offlineIncome = Math.max(
@@ -4033,6 +4838,24 @@
 
   window.resetGame = resetGame;
   window.setMaxLevel = setMaxLevel;
+
+  window.dailyRetentionSystem = {
+    ensure: ensureDailyRetentionState,
+    render: renderDailyRetentionUI,
+    combo: {
+      getState: () => ({ ...dailyRetention.combo }),
+      track: trackDailyComboAction
+    },
+    morse: {
+      getState: () => ({ ...dailyRetention.morse }),
+      submit: submitDailyMorseAnswer
+    },
+    checkIn: {
+      getState: () => ({ ...dailyRetention.checkIn }),
+      claim: claimDailyCheckIn
+    },
+    resetInSeconds: getSecondsUntilDailyReset
+  };
 
   window.offlineEarningsSystem = {
     check: checkOfflineEarnings,
