@@ -1,27 +1,27 @@
 <!DOCTYPE html>
 
-<html lang="en" data-app-version="16.7">
+<html lang="en" data-app-version="17.3">
 <head>
 <meta charset="utf-8"/>
 <base href="./"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
 <meta content="#0b0f19" name="theme-color"/>
 <title>Hustle Empire</title>
-<link rel="preload" as="image" href="assets/avatar_face.png?v=16.7"/>
-<link rel="preload" as="image" href="assets/hero_lvl1.png?v=16.7"/>
-<link rel="preload" as="image" href="assets/city_map.png?v=16.7"/>
-<link rel="preload" as="image" href="assets/icon_money.png?v=16.7"/>
-<link rel="preload" as="image" href="assets/icon_energy.png?v=16.7"/>
-<link rel="preload" as="image" href="assets/icon_gems.png?v=16.7"/>
-<link rel="preload" as="image" href="assets/icon_xp.png?v=16.7"/>
+<link rel="preload" as="image" href="assets/avatar_face.png?v=17.3"/>
+<link rel="preload" as="image" href="assets/hero_lvl1.png?v=17.3"/>
+<link rel="preload" as="image" href="assets/city_map.png?v=17.3"/>
+<link rel="preload" as="image" href="assets/icon_money.png?v=17.3"/>
+<link rel="preload" as="image" href="assets/icon_energy.png?v=17.3"/>
+<link rel="preload" as="image" href="assets/icon_gems.png?v=17.3"/>
+<link rel="preload" as="image" href="assets/icon_xp.png?v=17.3"/>
 <link rel="icon" href="data:,"/>
 <link rel="shortcut icon" href="data:,"/>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<link href="style.css?v=16.7" rel="stylesheet"/>
-<script defer="" src="locales.js?v=16.7"></script>
-<script defer="" src="config.js?v=16.7"></script>
-<script defer="" src="script.js?v=16.7"></script>
-<script defer="" src="game.js?v=16.7"></script>
+<link href="style.css?v=17.3" rel="stylesheet"/>
+<script defer="" src="locales.js?v=17.3"></script>
+<script defer="" src="config.js?v=17.3"></script>
+<script defer="" src="script.js?v=17.3"></script>
+<script defer="" src="game.js?v=17.3"></script>
 
 <style id="level-up-rewards-v14-1">
   #level-boost-indicator[hidden],
@@ -225,24 +225,25 @@
 <header class="topbar topbar-compact">
 <div class="player-level">
 <div class="player-avatar image-fallback header-avatar">
-<img aria-label="Player" alt="Player" class="player-avatar-image avatar-face-image direct-character-image" src="assets/avatar_face.png?v=16.7" draggable="false" decoding="async" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block;border-radius:50%;" />
+<img aria-label="Player" alt="Player" class="player-avatar-image avatar-face-image direct-character-image" src="assets/avatar_face.png?v=17.3" draggable="false" decoding="async" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block;border-radius:50%;" />
 </div>
 <div class="player-level-content">
 <div class="level-row"><strong>LV 1</strong></div>
 <div class="xp-row">
-<img class="hud-icon hud-icon-xp" data-hud-icon="xp" src="assets/icon_xp.png?v=16.7" alt="XP" draggable="false" decoding="async"/>
+<img class="hud-icon hud-icon-xp" data-hud-icon="xp" src="assets/icon_xp.png?v=17.3" alt="XP" draggable="false" decoding="async"/>
 <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
 <span>0 / 100 XP</span>
 </div>
 </div>
 </div>
 <div class="topbar-resources">
-<div class="resource-card money-card"><img class="hud-icon hud-icon-money" data-hud-icon="money" src="assets/icon_money.png?v=16.7" alt="Money" draggable="false" decoding="async"/><strong>$0</strong></div>
-<div class="resource-card energy-card"><img class="hud-icon hud-icon-energy" data-hud-icon="energy" src="assets/icon_energy.png?v=16.7" alt="Energy" draggable="false" decoding="async"/><strong>120/120</strong></div>
-<div class="resource-card gem-card"><img class="hud-icon hud-icon-gems" data-hud-icon="gems" src="assets/icon_gems.png?v=16.7" alt="Gems" draggable="false" decoding="async"/><strong>0</strong></div>
+<div class="resource-card money-card"><img class="hud-icon hud-icon-money" data-hud-icon="money" src="assets/icon_money.png?v=17.3" alt="Money" draggable="false" decoding="async"/><strong>$0</strong></div>
+<div class="resource-card energy-card"><img class="hud-icon hud-icon-energy" data-hud-icon="energy" src="assets/icon_energy.png?v=17.3" alt="Energy" draggable="false" decoding="async"/><strong>120/120</strong></div>
+<div class="resource-card gem-card"><img class="hud-icon hud-icon-gems" data-hud-icon="gems" src="assets/icon_gems.png?v=17.3" alt="Gems" draggable="false" decoding="async"/><strong>0</strong></div>
 </div>
 <div class="topbar-actions">
 <button aria-label="Notifications" aria-controls="notifications-modal" aria-expanded="false" class="top-action notification-button" data-action="notifications" type="button">🔔<span class="badge">2</span></button>
+<button aria-label="Leaderboard" aria-controls="leaderboard-screen" class="top-action leaderboard-hud-button" data-nav="leaderboard" type="button" title="Leaderboard">🏆</button>
 <button aria-label="Menu" class="top-action" data-action="settings" type="button">☰</button>
 <button class="language-button" id="language-switch" type="button">RU</button>
 </div>
@@ -283,6 +284,26 @@
   </div>
 </button>
 
+<a
+  class="mini-feature home-left-widget social-tasks-launcher"
+  href="#social-tasks-modal"
+  role="button"
+  aria-label="Apri Daily Tasks & Rewards"
+  aria-controls="social-tasks-modal"
+  aria-expanded="false"
+  data-social-tasks-open
+>
+  <div class="mini-feature-icon social-tasks-launcher-icon">⭐</div>
+  <div class="mini-feature-copy social-tasks-launcher-copy">
+    <div class="mini-feature-heading home-widget-header">
+      <strong>Social Tasks</strong>
+      <span class="social-tasks-launcher-badge">NEW</span>
+    </div>
+    <span class="mini-feature-value">Daily Rewards</span>
+    <small>Completa task e riscuoti premi</small>
+  </div>
+</a>
+
 <button class="mini-feature home-left-widget daily-chest" data-action="daily-chest" type="button">
   <div class="mini-feature-icon">🎁</div>
   <div class="mini-feature-copy">
@@ -307,7 +328,7 @@
 </aside>
 <div class="home-center image-fallback">
 <div class="home-character-stage">
-<img aria-label="Hustle Empire character" alt="Hustle Empire character" class="home-character home-character-sprite direct-character-image character-real-image" data-character-sprite="" data-character-stage="1" src="assets/hero_lvl1.png?v=16.7" draggable="false" decoding="async" style="object-fit:contain;display:block;" />
+<img aria-label="Hustle Empire character" alt="Hustle Empire character" class="home-character home-character-sprite direct-character-image character-real-image" data-character-sprite="" data-character-stage="1" src="assets/hero_lvl1.png?v=17.3" draggable="false" decoding="async" style="object-fit:contain;display:block;" />
 </div>
 <div class="home-tap-zone">
 <div aria-hidden="true" class="tap-float-layer" id="tap-float-layer"></div>
@@ -349,7 +370,7 @@
 <section class="screen" data-screen="city">
 <div class="city-screen page-layout">
 <div class="city-map-wrapper image-fallback city-map-sprite-background">
-<img class="city-map-image" src="assets/city_map.png?v=16.7">
+<img class="city-map-image" src="assets/city_map.png?v=17.3">
 <button class="city-node poor selected" data-district="poor_block" type="button"><strong>POOR BLOCK</strong><span>LV 1-10</span><small>Starter District</small><i>✓</i></button>
 <button class="city-node center locked" data-district="city_center" type="button"><strong>CITY CENTER</strong><span>LV 11-20</span><small>City Hustles</small><i>🔒</i></button>
 <button class="city-node business locked" data-district="business_district" type="button"><strong>BUSINESS DISTRICT</strong><span>LV 21-30</span><small>Big Business</small><i>🔒</i></button>
@@ -444,7 +465,7 @@
 </aside>
 <div class="wardrobe-character image-fallback">
 
-<img aria-label="Character" alt="Character" class="wardrobe-character-image wardrobe-character-sprite direct-character-image character-real-image" data-character-sprite="" data-character-stage="1" src="assets/hero_lvl1.png?v=16.7" draggable="false" decoding="async" style="object-fit:contain;display:block;" />
+<img aria-label="Character" alt="Character" class="wardrobe-character-image wardrobe-character-sprite direct-character-image character-real-image" data-character-sprite="" data-character-stage="1" src="assets/hero_lvl1.png?v=17.3" draggable="false" decoding="async" style="object-fit:contain;display:block;" />
 </div>
 <aside class="outfit-panel">
 <section><h3 data-i18n="wardrobe.outfitProgress">Outfit Progress</h3><strong>🔒</strong><div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div><small data-i18n="wardrobe.unlockSlot">Buy LV 1 to unlock</small></section>
@@ -453,6 +474,210 @@
 </aside>
 </div>
 </section>
+<!-- LEADERBOARD -->
+<section class="screen" data-screen="leaderboard" id="leaderboard-screen">
+  <div class="leaderboard-screen page-layout">
+
+    <header class="leaderboard-hero">
+      <div class="leaderboard-title-block">
+        <span class="section-eyebrow">SEASON RANKING</span>
+        <h1>Leaderboard</h1>
+        <p>Scala la classifica aumentando il tuo income per second.</p>
+      </div>
+
+      <div class="leaderboard-season-card" aria-label="Countdown fine stagione">
+        <span class="leaderboard-season-label">Fine stagione tra</span>
+        <strong class="leaderboard-season-time" id="leaderboard-season-time">06g 14h 32m</strong>
+        <small>Ricompense distribuite alla chiusura</small>
+      </div>
+    </header>
+
+    <section class="leaderboard-support-grid" aria-label="Premi e offerta classifica">
+      <article class="leaderboard-rewards-card">
+        <div class="leaderboard-support-head">
+          <div>
+            <span class="section-eyebrow">SEASON REWARDS</span>
+            <h2>Premi di fine stagione</h2>
+          </div>
+          <span class="leaderboard-reward-status" id="leaderboard-reward-status">Fuori Top 10</span>
+        </div>
+
+        <div class="leaderboard-reward-tiers">
+          <div class="leaderboard-reward-tier reward-top1">
+            <span class="leaderboard-reward-rank">#1</span>
+            <img src="assets/icon_gems.png?v=17.3" alt="" aria-hidden="true" draggable="false">
+            <div><strong>1.000 Gemme</strong><small>+ Accessorio Leggendario</small></div>
+          </div>
+
+          <div class="leaderboard-reward-tier reward-top3">
+            <span class="leaderboard-reward-rank">TOP 3</span>
+            <img src="assets/watch.png?v=17.3" alt="" aria-hidden="true" draggable="false">
+            <div><strong>500 Gemme</strong><small>+ Accessorio Esclusivo</small></div>
+          </div>
+
+          <div class="leaderboard-reward-tier reward-top10">
+            <span class="leaderboard-reward-rank">TOP 10</span>
+            <img src="assets/acc_epic.png?v=17.3" alt="" aria-hidden="true" draggable="false">
+            <div><strong>150 Gemme</strong><small>+ Epic Accessory Case</small></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="leaderboard-flash-offer" id="leaderboard-flash-offer">
+        <div class="leaderboard-offer-icon" aria-hidden="true">
+          <img src="assets/icon_money.png?v=17.3" alt="" draggable="false">
+        </div>
+
+        <div class="leaderboard-offer-copy">
+          <div class="leaderboard-offer-title-row">
+            <span class="leaderboard-offer-kicker">⚡ OFFERTA LAMPO</span>
+            <strong class="leaderboard-offer-timer" id="leaderboard-offer-timer">05:59:59</strong>
+          </div>
+          <h2>Boost Guadagni x2</h2>
+          <p id="leaderboard-offer-gap">Raddoppia il tuo income per 30 minuti e scala la classifica.</p>
+          <small class="leaderboard-offer-status" id="leaderboard-offer-status">Valido sulla produzione attiva. Non aumenta i premi offline.</small>
+        </div>
+
+        <button class="leaderboard-offer-button" data-leaderboard-offer-buy type="button">
+          <img src="assets/icon_gems.png?v=17.3" alt="" aria-hidden="true" draggable="false">
+          <span>120</span>
+          <strong>ATTIVA x2</strong>
+        </button>
+      </article>
+    </section>
+
+    <section class="leaderboard-panel" aria-labelledby="leaderboard-list-title">
+      <div class="leaderboard-panel-head">
+        <div>
+          <span class="section-eyebrow">TOP TYCOONS</span>
+          <h2 id="leaderboard-list-title">Classifica globale</h2>
+        </div>
+        <span class="leaderboard-season-badge">STAGIONE 01</span>
+      </div>
+
+      <div class="leaderboard-columns" aria-hidden="true">
+        <span>#</span>
+        <span>Giocatore</span>
+        <span>Income / s</span>
+      </div>
+
+      <div class="leaderboard-list" role="list" aria-label="Classifica giocatori">
+
+        <article class="leaderboard-row top-1" role="listitem">
+          <span class="leaderboard-rank">1</span>
+          <div class="leaderboard-player">
+            <div class="leaderboard-avatar leaderboard-avatar-gold">NX</div>
+            <div class="leaderboard-player-copy">
+              <strong>NeonX</strong>
+              <small>LV 42</small>
+            </div>
+          </div>
+          <strong class="leaderboard-income">$128.4K/s</strong>
+        </article>
+
+        <article class="leaderboard-row top-2" role="listitem">
+          <span class="leaderboard-rank">2</span>
+          <div class="leaderboard-player">
+            <div class="leaderboard-avatar leaderboard-avatar-blue">AK</div>
+            <div class="leaderboard-player-copy">
+              <strong>ArcticKing</strong>
+              <small>LV 39</small>
+            </div>
+          </div>
+          <strong class="leaderboard-income">$104.8K/s</strong>
+        </article>
+
+        <article class="leaderboard-row top-3" role="listitem">
+          <span class="leaderboard-rank">3</span>
+          <div class="leaderboard-player">
+            <div class="leaderboard-avatar leaderboard-avatar-purple">VR</div>
+            <div class="leaderboard-player-copy">
+              <strong>VoidRunner</strong>
+              <small>LV 36</small>
+            </div>
+          </div>
+          <strong class="leaderboard-income">$89.2K/s</strong>
+        </article>
+
+        <article class="leaderboard-row" role="listitem">
+          <span class="leaderboard-rank">4</span>
+          <div class="leaderboard-player">
+            <div class="leaderboard-avatar leaderboard-avatar-green">CB</div>
+            <div class="leaderboard-player-copy">
+              <strong>CashBoss</strong>
+              <small>LV 34</small>
+            </div>
+          </div>
+          <strong class="leaderboard-income">$74.7K/s</strong>
+        </article>
+
+        <article class="leaderboard-row is-current" role="listitem" aria-current="true">
+          <span class="leaderboard-rank">5</span>
+          <div class="leaderboard-player">
+            <div class="leaderboard-avatar leaderboard-current-avatar">
+              <img src="assets/avatar_face.png?v=17.3" alt="Il tuo avatar" draggable="false" decoding="async">
+            </div>
+            <div class="leaderboard-player-copy">
+              <strong>Tu <span class="leaderboard-you-badge">YOU</span></strong>
+              <small>LV 1</small>
+            </div>
+          </div>
+          <strong class="leaderboard-income">$0.20/s</strong>
+        </article>
+
+        <article class="leaderboard-row" role="listitem">
+          <span class="leaderboard-rank">6</span>
+          <div class="leaderboard-player">
+            <div class="leaderboard-avatar leaderboard-avatar-orange">ST</div>
+            <div class="leaderboard-player-copy">
+              <strong>StreetTycoon</strong>
+              <small>LV 31</small>
+            </div>
+          </div>
+          <strong class="leaderboard-income">$61.3K/s</strong>
+        </article>
+
+        <article class="leaderboard-row" role="listitem">
+          <span class="leaderboard-rank">7</span>
+          <div class="leaderboard-player">
+            <div class="leaderboard-avatar leaderboard-avatar-cyan">MG</div>
+            <div class="leaderboard-player-copy">
+              <strong>MetroGhost</strong>
+              <small>LV 29</small>
+            </div>
+          </div>
+          <strong class="leaderboard-income">$55.9K/s</strong>
+        </article>
+
+        <article class="leaderboard-row" role="listitem">
+          <span class="leaderboard-rank">8</span>
+          <div class="leaderboard-player">
+            <div class="leaderboard-avatar leaderboard-avatar-red">RK</div>
+            <div class="leaderboard-player-copy">
+              <strong>RichKid</strong>
+              <small>LV 27</small>
+            </div>
+          </div>
+          <strong class="leaderboard-income">$48.5K/s</strong>
+        </article>
+
+      </div>
+    </section>
+
+    <aside class="leaderboard-current-card">
+      <div>
+        <span class="section-eyebrow">YOUR POSITION</span>
+        <strong>#5</strong>
+      </div>
+      <div class="leaderboard-current-stat">
+        <small>Income / s</small>
+        <strong>$0.20/s</strong>
+      </div>
+    </aside>
+
+  </div>
+</section>
+
 <!-- SHOP -->
 <section class="screen" data-screen="shop">
 <div class="shop-screen page-layout">
@@ -477,9 +702,9 @@
 </div>
 </section>
 <aside class="premium-shop-column">
-<button class="premium-product" data-action="shop-premium-case"><div class="premium-product-image"><img class="asset-direct-image shop-sprite-icon" src="assets/acc_epic.png?v=16.7" alt="" aria-hidden="true" draggable="false" /></div><div><strong data-i18n="shop.premiumCase">Premium Case</strong><span data-i18n="shop.premiumCaseDesc">Open a premium case</span><small>♦ 250</small></div></button>
-<button class="premium-product" data-action="shop-outfit"><div class="premium-product-image"><img class="asset-direct-image shop-sprite-icon" src="assets/jacket.png?v=16.7" alt="" aria-hidden="true" draggable="false" /></div><div><strong data-i18n="shop.outfitSkin">Outfit / Skin</strong><span data-i18n="shop.outfitSkinDesc">Unlock new outfits</span><small>♦ 400</small></div></button>
-<button class="premium-product" data-action="shop-bundle"><div class="premium-product-image bundle-sprite-stack"><img class="asset-direct-image shop-sprite-icon bundle-case-sprite" src="assets/acc_legendary.png?v=16.7" alt="" aria-hidden="true" draggable="false" /><img class="asset-direct-image shop-sprite-icon bundle-item-sprite" src="assets/watch.png?v=16.7" alt="" aria-hidden="true" draggable="false" /></div><div><strong data-i18n="shop.hustleBundle">Hustle Bundle</strong><span data-i18n="shop.hustleBundleDesc">Exceptional value!</span><small>♦ 1,000</small></div></button>
+<button class="premium-product" data-action="shop-premium-case"><div class="premium-product-image"><img class="asset-direct-image shop-sprite-icon" src="assets/acc_epic.png?v=17.3" alt="" aria-hidden="true" draggable="false" /></div><div><strong data-i18n="shop.premiumCase">Premium Case</strong><span data-i18n="shop.premiumCaseDesc">Open a premium case</span><small>♦ 250</small></div></button>
+<button class="premium-product" data-action="shop-outfit"><div class="premium-product-image"><img class="asset-direct-image shop-sprite-icon" src="assets/jacket.png?v=17.3" alt="" aria-hidden="true" draggable="false" /></div><div><strong data-i18n="shop.outfitSkin">Outfit / Skin</strong><span data-i18n="shop.outfitSkinDesc">Unlock new outfits</span><small>♦ 400</small></div></button>
+<button class="premium-product" data-action="shop-bundle"><div class="premium-product-image bundle-sprite-stack"><img class="asset-direct-image shop-sprite-icon bundle-case-sprite" src="assets/acc_legendary.png?v=17.3" alt="" aria-hidden="true" draggable="false" /><img class="asset-direct-image shop-sprite-icon bundle-item-sprite" src="assets/watch.png?v=17.3" alt="" aria-hidden="true" draggable="false" /></div><div><strong data-i18n="shop.hustleBundle">Hustle Bundle</strong><span data-i18n="shop.hustleBundleDesc">Exceptional value!</span><small>♦ 1,000</small></div></button>
 <div class="empire-pass"><div class="empire-crown">♛</div><div><strong data-i18n="shop.empirePass">Empire Pass</strong><span data-i18n="shop.empirePassDesc">Unlock your true potential</span></div><button data-action="buy-empire-pass" data-config-price="HUSTLE_PASS_MONTHLY" type="button">250 ★</button></div>
 </aside>
 </div>
@@ -507,7 +732,7 @@
 </div>
 <div class="reward-card-preview common" id="case-reward-card">
 <div class="reward-card-image card-art-shell">
-<div class="card-art-background" id="case-reward-card-art" style="background-image:url('assets/card_kiosk.png?v=16.7')"></div>
+<div class="card-art-background" id="case-reward-card-art" style="background-image:url('assets/card_kiosk.png?v=17.3')"></div>
 <div class="card-ui-frame" aria-hidden="true"></div>
 </div>
 <span id="case-reward-rarity">COMMON</span>
@@ -524,7 +749,7 @@
 <span class="section-eyebrow" data-i18n="accessoryCases.newItem">New Item</span>
 <div class="accessory-reward-item" id="accessory-reward-item">
 <div class="accessory-reward-image">
-<img class="asset-direct-image accessory-reward-sprite" id="accessory-reward-sprite" src="assets/hat.png?v=16.7" alt="" aria-hidden="true" draggable="false" /></div>
+<img class="asset-direct-image accessory-reward-sprite" id="accessory-reward-sprite" src="assets/hat.png?v=17.3" alt="" aria-hidden="true" draggable="false" /></div>
 <span class="accessory-reward-rarity" id="accessory-reward-rarity">RARE</span>
 <h2 id="accessory-reward-name">ITEM</h2>
 <small id="accessory-reward-slot">ACCESSORY</small>
@@ -744,7 +969,7 @@
     <p class="level-up-modal-subtitle">Nuovo livello raggiunto. Le ricompense sono già nel tuo account.</p>
 
     <div class="level-up-case-wrap">
-      <img id="level-up-case-image" src="assets/case_daily.png?v=16.7" alt="Street Case" decoding="async" draggable="false"/>
+      <img id="level-up-case-image" src="assets/case_daily.png?v=17.3" alt="Street Case" decoding="async" draggable="false"/>
     </div>
     <strong id="level-up-case-name">Street Case</strong>
 
@@ -760,6 +985,215 @@
     </button>
   </div>
 </div>
+
+
+
+<!-- SOCIAL TASKS / REWARDS -->
+<section
+  id="social-tasks-modal"
+  class="social-tasks-modal"
+  aria-labelledby="social-tasks-title"
+  aria-describedby="social-tasks-subtitle"
+  aria-hidden="true"
+  hidden
+>
+  <button
+    class="social-tasks-backdrop"
+    type="button"
+    aria-label="Chiudi Daily Tasks & Rewards"
+    data-social-tasks-close
+  ></button>
+
+  <div
+    class="social-tasks-dialog"
+    role="dialog"
+    aria-modal="true"
+    tabindex="-1"
+  >
+    <header class="social-tasks-header">
+      <div class="social-tasks-heading">
+        <span class="social-tasks-heading-icon" aria-hidden="true">⭐</span>
+
+        <div>
+          <span class="section-eyebrow">SOCIAL REWARDS</span>
+          <h2 id="social-tasks-title">Daily Tasks &amp; Rewards</h2>
+          <p id="social-tasks-subtitle">
+            Completa le attività social per ottenere ricompense extra.
+          </p>
+        </div>
+      </div>
+
+      <button
+        class="social-tasks-close"
+        type="button"
+        aria-label="Chiudi"
+        data-social-tasks-close
+      >×</button>
+    </header>
+
+    <div class="social-tasks-summary">
+      <div>
+        <small>PROGRESSO OGGI</small>
+        <strong>0 / 6</strong>
+      </div>
+
+      <div class="social-tasks-progress" aria-hidden="true">
+        <span style="width: 0%"></span>
+      </div>
+
+      <span class="social-tasks-reset">Reset 24h</span>
+    </div>
+
+    <div class="social-tasks-list" role="list">
+
+      <section class="social-task-section" aria-labelledby="daily-task-heading">
+        <div class="social-task-section-heading">
+          <span id="daily-task-heading">Giornaliera</span>
+          <small>Si resetta ogni 24h</small>
+        </div>
+
+        <button
+          class="social-task-row social-task-daily is-claimable"
+          type="button"
+          data-social-task="daily_reward"
+          role="listitem"
+        >
+          <span class="social-task-icon social-task-icon-daily" aria-hidden="true">🎁</span>
+
+          <span class="social-task-copy">
+            <strong>Daily Reward</strong>
+            <small>Accedi ogni giorno e ritira il premio</small>
+          </span>
+
+          <span class="social-task-reward">
+            <span class="social-task-reward-icon" aria-hidden="true">💎</span>
+            +50
+          </span>
+
+          <span class="social-task-status social-task-status-claim" aria-label="Ricompensa disponibile">CLAIM</span>
+        </button>
+      </section>
+
+      <section class="social-task-section" aria-labelledby="social-task-heading">
+        <div class="social-task-section-heading">
+          <span id="social-task-heading">Social &amp; Community</span>
+          <small>Completa una volta</small>
+        </div>
+
+        <button
+          class="social-task-row"
+          type="button"
+          data-social-task="telegram_channel"
+          role="listitem"
+        >
+          <span class="social-task-icon social-task-icon-telegram" aria-hidden="true">➤</span>
+
+          <span class="social-task-copy">
+            <strong>Unisciti al canale Telegram</strong>
+            <small>Urban Tycoon Official</small>
+          </span>
+
+          <span class="social-task-reward">
+            <span class="social-task-reward-icon" aria-hidden="true">💰</span>
+            +1.000
+          </span>
+
+          <span class="social-task-status" aria-hidden="true">›</span>
+        </button>
+
+        <button
+          class="social-task-row"
+          type="button"
+          data-social-task="x_follow"
+          role="listitem"
+        >
+          <span class="social-task-icon social-task-icon-x" aria-hidden="true">𝕏</span>
+
+          <span class="social-task-copy">
+            <strong>Segui Urban Tycoon su X</strong>
+            <small>Segui il profilo ufficiale</small>
+          </span>
+
+          <span class="social-task-reward">
+            <span class="social-task-reward-icon" aria-hidden="true">💎</span>
+            +75
+          </span>
+
+          <span class="social-task-status" aria-hidden="true">›</span>
+        </button>
+
+        <button
+          class="social-task-row"
+          type="button"
+          data-social-task="invite_3_friends"
+          role="listitem"
+        >
+          <span class="social-task-icon social-task-icon-friends" aria-hidden="true">👥</span>
+
+          <span class="social-task-copy">
+            <strong>Invita 3 amici</strong>
+            <small>0 / 3 amici invitati</small>
+          </span>
+
+          <span class="social-task-reward">
+            <span class="social-task-reward-icon" aria-hidden="true">💎</span>
+            +150
+          </span>
+
+          <span class="social-task-status" aria-hidden="true">›</span>
+        </button>
+
+        <button
+          class="social-task-row"
+          type="button"
+          data-social-task="open_community"
+          role="listitem"
+        >
+          <span class="social-task-icon social-task-icon-star" aria-hidden="true">⭐</span>
+
+          <span class="social-task-copy">
+            <strong>Visita la Community</strong>
+            <small>Apri la community ufficiale</small>
+          </span>
+
+          <span class="social-task-reward">
+            <span class="social-task-reward-icon" aria-hidden="true">💰</span>
+            +500
+          </span>
+
+          <span class="social-task-status" aria-hidden="true">›</span>
+        </button>
+
+        <button
+          class="social-task-row"
+          type="button"
+          data-social-task="invite_10_friends"
+          role="listitem"
+        >
+          <span class="social-task-icon social-task-icon-friends" aria-hidden="true">🎯</span>
+
+          <span class="social-task-copy">
+            <strong>Invita 10 amici</strong>
+            <small>0 / 10 amici invitati</small>
+          </span>
+
+          <span class="social-task-reward">
+            <span class="social-task-reward-icon" aria-hidden="true">💎</span>
+            +400
+          </span>
+
+          <span class="social-task-status" aria-hidden="true">›</span>
+        </button>
+      </section>
+
+    </div>
+
+    <footer class="social-tasks-footer">
+      <span>Nuove missioni disponibili ogni giorno.</span>
+      <button class="social-tasks-done" type="button" data-social-tasks-close>Chiudi</button>
+    </footer>
+  </div>
+</section>
 
 
 <div id="notifications-modal" hidden aria-hidden="true">

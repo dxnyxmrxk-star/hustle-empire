@@ -52,7 +52,7 @@
      CSS/UI frame overlay rendered above it.
   ========================================================== */
 
-  const SPRITE_BUILD_VERSION = "16.7";
+  const SPRITE_BUILD_VERSION = "17.3";
 
   const REAL_GAME_ASSET_PATHS = Object.freeze([
     "assets/acc_epic.png",
@@ -1474,6 +1474,176 @@
     window.dispatchEvent(new CustomEvent(`hustle:${name}`, { detail }));
   }
 
+
+  /* ==========================================================
+     V17.3 — SOCIAL TASKS SYSTEM
+     Local/mock interaction layer. External social verification must
+     eventually move server-side before real rewards are trusted.
+  ========================================================== */
+
+  const SOCIAL_TASK_STATUS = Object.freeze({
+    PENDING: "pending",
+    VERIFYING: "verifying",
+    CLAIMABLE: "claimable",
+    CLAIMED: "claimed"
+  });
+
+  const SOCIAL_TASK_CONFIGS = Object.freeze({
+    daily_reward: Object.freeze({
+      id: "daily_reward",
+      kind: "daily",
+      reward: Object.freeze({ gems: 50, money: 0 }),
+      target: 1,
+      verifyDelayMs: 0
+    }),
+
+    telegram_channel: Object.freeze({
+      id: "telegram_channel",
+      kind: "external",
+      reward: Object.freeze({ gems: 0, money: 1000 }),
+      target: 1,
+      verifyDelayMs: 2200
+    }),
+
+    x_follow: Object.freeze({
+      id: "x_follow",
+      kind: "external",
+      reward: Object.freeze({ gems: 75, money: 0 }),
+      target: 1,
+      verifyDelayMs: 2200
+    }),
+
+    invite_3_friends: Object.freeze({
+      id: "invite_3_friends",
+      kind: "invite",
+      reward: Object.freeze({ gems: 150, money: 0 }),
+      target: 3,
+      verifyDelayMs: 0
+    }),
+
+    open_community: Object.freeze({
+      id: "open_community",
+      kind: "external",
+      reward: Object.freeze({ gems: 0, money: 500 }),
+      target: 1,
+      verifyDelayMs: 1800
+    }),
+
+    invite_10_friends: Object.freeze({
+      id: "invite_10_friends",
+      kind: "invite",
+      reward: Object.freeze({ gems: 400, money: 0 }),
+      target: 10,
+      verifyDelayMs: 0
+    })
+  });
+
+  const SOCIAL_TASK_IDS = Object.freeze(Object.keys(SOCIAL_TASK_CONFIGS));
+
+  /*
+     Keep blank until the real public URLs are known.
+     The task still works in local simulation mode.
+     They can also be changed at runtime with:
+     HustleGame.socialTasks.setActionLink(taskId, url)
+  */
+  const socialTaskActionLinks = {
+    telegram_channel: "",
+    x_follow: "",
+    open_community: ""
+  };
+
+  function createDefaultSocialTasksState(timestamp = Date.now()) {
+    return {
+      dayKey: getUtcDayKey(timestamp),
+      tasks: Object.fromEntries(
+        SOCIAL_TASK_IDS.map((taskId) => {
+          const cfg = SOCIAL_TASK_CONFIGS[taskId];
+
+          return [
+            taskId,
+            {
+              status:
+                cfg.kind === "daily"
+                  ? SOCIAL_TASK_STATUS.CLAIMABLE
+                  : SOCIAL_TASK_STATUS.PENDING,
+              progress: 0,
+              verifyAt: 0,
+              claimedAt: 0
+            }
+          ];
+        })
+      )
+    };
+  }
+
+  function sanitizeSocialTasks(socialTasks, timestamp = Date.now()) {
+    const now = Number(timestamp) || Date.now();
+    const fresh = createDefaultSocialTasksState(now);
+    const validStatuses = new Set(Object.values(SOCIAL_TASK_STATUS));
+
+    const out = {
+      dayKey: String(socialTasks?.dayKey || fresh.dayKey),
+      tasks: {}
+    };
+
+    SOCIAL_TASK_IDS.forEach((taskId) => {
+      const cfg = SOCIAL_TASK_CONFIGS[taskId];
+      const src = socialTasks?.tasks?.[taskId] || {};
+      const target = Math.max(1, Number(cfg.target) || 1);
+
+      let progress = Math.max(
+        0,
+        Math.min(target, Math.floor(Number(src.progress) || 0))
+      );
+
+      let status = validStatuses.has(src.status)
+        ? src.status
+        : fresh.tasks[taskId].status;
+
+      let verifyAt = Math.max(0, Number(src.verifyAt) || 0);
+      const claimedAt = Math.max(0, Number(src.claimedAt) || 0);
+
+      if (
+        status === SOCIAL_TASK_STATUS.VERIFYING
+        && verifyAt > 0
+        && verifyAt <= now
+      ) {
+        status = SOCIAL_TASK_STATUS.CLAIMABLE;
+        progress = target;
+        verifyAt = 0;
+      }
+
+      if (
+        cfg.kind === "invite"
+        && progress >= target
+        && status !== SOCIAL_TASK_STATUS.CLAIMED
+      ) {
+        status = SOCIAL_TASK_STATUS.CLAIMABLE;
+      }
+
+      out.tasks[taskId] = {
+        status,
+        progress,
+        verifyAt,
+        claimedAt
+      };
+    });
+
+    const currentDayKey = getUtcDayKey(now);
+
+    if (out.dayKey !== currentDayKey) {
+      out.dayKey = currentDayKey;
+      out.tasks.daily_reward = {
+        status: SOCIAL_TASK_STATUS.CLAIMABLE,
+        progress: 0,
+        verifyAt: 0,
+        claimedAt: 0
+      };
+    }
+
+    return out;
+  }
+
   /* ==========================================================
      DEFAULT STATE
   ========================================================== */
@@ -1572,6 +1742,7 @@
     accessoryCases: createDefaultAccessoryCasesState(),
     randomEvents: createDefaultRandomEventsState(),
     levelRewards: createDefaultLevelRewardsState(),
+    socialTasks: createDefaultSocialTasksState(),
 
     /*
        Pending reward is persisted so closing Telegram before pressing
@@ -1797,6 +1968,7 @@
     s.randomEvents = sanitizeRandomEvents(s.randomEvents);
     s.levelRewards = sanitizeLevelRewards(s.levelRewards, s.level);
     s.offlineEarnings = sanitizeOfflineEarnings(s.offlineEarnings);
+    s.socialTasks = sanitizeSocialTasks(s.socialTasks);
 
     s.missions = sanitizeMissions(s.missions, s.level);
 
@@ -2743,8 +2915,15 @@
        Level-up boost stacks with cards/outfits and with the random-event tap
        multiplier. globalIncomeMultiplier feeds all Business income.
     */
-    stats.globalIncomeMultiplier *= levelUpBoostMultiplier;
+    const includeLeaderboardBoost = options.includeLeaderboardBoost !== false;
+    const leaderboardBoostMultiplier = includeLeaderboardBoost
+      ? getLeaderboardFlashBoostMultiplier()
+      : 1;
+
+    stats.globalIncomeMultiplier *=
+      levelUpBoostMultiplier * leaderboardBoostMultiplier;
     stats.levelUpBoostMultiplier = levelUpBoostMultiplier;
+    stats.leaderboardBoostMultiplier = leaderboardBoostMultiplier;
 
     stats.tapPower = Math.max(
       1,
@@ -3225,22 +3404,57 @@
        from extending a 3/5/10-minute boost over an entire offline interval.
     */
     const baseIncomePerMs =
-      getTotalPassiveIncomePerHour({ includeLevelUpBoost: false }) / 3600000;
+      getTotalPassiveIncomePerHour({
+        includeLevelUpBoost: false,
+        includeLeaderboardBoost: false
+      }) / 3600000;
 
-    const boost = state.levelRewards?.activeBoost;
-    const boostMultiplier = Math.max(1, Number(boost?.multiplier) || 1);
-    const boostStartedAt = Math.max(0, Number(boost?.startedAt) || 0);
-    const boostEndsAt = Math.max(0, Number(boost?.endsAt) || 0);
+    const levelBoost = state.levelRewards?.activeBoost || {};
+    const flashBoost = getLeaderboardFlashBoostState(now);
 
-    const boostedStart = Math.max(last, boostStartedAt);
-    const boostedEnd = Math.min(now, boostEndsAt);
-    const boostedMs = Math.max(0, boostedEnd - boostedStart);
-    const normalMs = Math.max(0, elapsed - boostedMs);
+    const temporaryBoosts = [
+      {
+        multiplier: Math.max(1, Number(levelBoost.multiplier) || 1),
+        startedAt: Math.max(0, Number(levelBoost.startedAt) || 0),
+        endsAt: Math.max(0, Number(levelBoost.endsAt) || 0)
+      },
+      {
+        multiplier: flashBoost.multiplier,
+        startedAt: flashBoost.startedAt,
+        endsAt: flashBoost.endsAt
+      }
+    ];
 
-    const earned =
-      baseIncomePerMs * normalMs
-      +
-      baseIncomePerMs * boostedMs * boostMultiplier;
+    const boundaries = new Set([last, now]);
+    temporaryBoosts.forEach((boost) => {
+      if (boost.startedAt > last && boost.startedAt < now) {
+        boundaries.add(boost.startedAt);
+      }
+      if (boost.endsAt > last && boost.endsAt < now) {
+        boundaries.add(boost.endsAt);
+      }
+    });
+
+    const points = [...boundaries].sort((a, b) => a - b);
+    let earned = 0;
+
+    for (let index = 0; index < points.length - 1; index += 1) {
+      const segmentStart = points[index];
+      const segmentEnd = points[index + 1];
+      const segmentMs = Math.max(0, segmentEnd - segmentStart);
+      if (!segmentMs) continue;
+
+      const sampleTime = segmentStart + segmentMs / 2;
+      const segmentMultiplier = temporaryBoosts.reduce((multiplier, boost) => {
+        const active =
+          boost.multiplier > 1
+          && boost.startedAt <= sampleTime
+          && boost.endsAt > sampleTime;
+        return active ? multiplier * boost.multiplier : multiplier;
+      }, 1);
+
+      earned += baseIncomePerMs * segmentMs * segmentMultiplier;
+    }
 
     state.money += earned;
     registerMoneyEarned(earned, "passiveIncome", { save: false, render: false });
@@ -3349,7 +3563,7 @@
 
     const incomePerSecond = Math.max(
       0,
-      getTotalPassiveIncomePerSecond({ includeLevelUpBoost: false })
+      getTotalPassiveIncomePerSecond({ includeLevelUpBoost: false, includeLeaderboardBoost: false })
     );
 
     const pendingAmount = Math.max(
@@ -4988,6 +5202,1151 @@
     });
   }
 
+
+  /* ==========================================================
+     V16.9 — LEADERBOARD DATA / RANKING
+     Local mock ranking for UI testing.
+     Default metric: effective passive Income / s.
+     Can also rank by a deterministic local Prestige score.
+  ========================================================== */
+
+  const LEADERBOARD_CURRENT_PLAYER_ID = "current-player";
+  const LEADERBOARD_SEASON_STORAGE_KEY = "urbanTycoonLeaderboardSeasonEndV1";
+  const LEADERBOARD_DEFAULT_SEASON_MS = 7 * 24 * 60 * 60 * 1000;
+  const LEADERBOARD_ALLOWED_SORT_MODES = Object.freeze(["income", "prestige"]);
+
+  const LEADERBOARD_FLASH_OFFER = Object.freeze({
+    gemCost: 120,
+    multiplier: 2,
+    boostDurationMs: 30 * 60 * 1000,
+    offerDurationMs: 6 * 60 * 60 * 1000
+  });
+  const LEADERBOARD_OFFER_END_STORAGE_KEY = "urbanTycoonLeaderboardOfferEndV1";
+  const LEADERBOARD_OFFER_SEASON_STORAGE_KEY = "urbanTycoonLeaderboardOfferSeasonV1";
+  const LEADERBOARD_BOOST_START_STORAGE_KEY = "urbanTycoonLeaderboardBoostStartV1";
+  const LEADERBOARD_BOOST_END_STORAGE_KEY = "urbanTycoonLeaderboardBoostEndV1";
+
+  let leaderboardSortMode = "income";
+  let leaderboardLastRenderSignature = "";
+
+  /*
+     Mock players deliberately span a wide income range so that upgrades to
+     the local player visibly change their rank while testing the UI.
+     The real Telegram/backend leaderboard can later replace this array
+     without changing renderLeaderboard().
+  */
+  const LEADERBOARD_MOCK_PLAYERS = Object.freeze([
+    Object.freeze({ id: "p01", username: "NeonX",        level: 42, incomePerSecond: 128400, prestige: 96500, avatarInitials: "NX", avatarClass: "leaderboard-avatar-gold" }),
+    Object.freeze({ id: "p02", username: "ArcticKing",   level: 39, incomePerSecond: 104800, prestige: 88100, avatarInitials: "AK", avatarClass: "leaderboard-avatar-blue" }),
+    Object.freeze({ id: "p03", username: "VoidRunner",   level: 36, incomePerSecond: 89200,  prestige: 81600, avatarInitials: "VR", avatarClass: "leaderboard-avatar-purple" }),
+    Object.freeze({ id: "p04", username: "CashBoss",     level: 34, incomePerSecond: 74700,  prestige: 75400, avatarInitials: "CB", avatarClass: "leaderboard-avatar-green" }),
+    Object.freeze({ id: "p05", username: "StreetTycoon", level: 31, incomePerSecond: 61300,  prestige: 69800, avatarInitials: "ST", avatarClass: "leaderboard-avatar-orange" }),
+    Object.freeze({ id: "p06", username: "MetroGhost",   level: 29, incomePerSecond: 55900,  prestige: 64100, avatarInitials: "MG", avatarClass: "leaderboard-avatar-cyan" }),
+    Object.freeze({ id: "p07", username: "RichKid",      level: 27, incomePerSecond: 48500,  prestige: 59200, avatarInitials: "RK", avatarClass: "leaderboard-avatar-red" }),
+    Object.freeze({ id: "p08", username: "NightDealer",  level: 24, incomePerSecond: 22750,  prestige: 51100, avatarInitials: "ND", avatarClass: "leaderboard-avatar-purple" }),
+    Object.freeze({ id: "p09", username: "UrbanWolf",    level: 21, incomePerSecond: 10300,  prestige: 43200, avatarInitials: "UW", avatarClass: "leaderboard-avatar-blue" }),
+    Object.freeze({ id: "p10", username: "PixelMogul",   level: 18, incomePerSecond: 4180,   prestige: 35100, avatarInitials: "PM", avatarClass: "leaderboard-avatar-green" }),
+    Object.freeze({ id: "p11", username: "NovaHustle",   level: 15, incomePerSecond: 1860,   prestige: 28600, avatarInitials: "NH", avatarClass: "leaderboard-avatar-cyan" }),
+    Object.freeze({ id: "p12", username: "GoldRush",     level: 12, incomePerSecond: 735,    prestige: 21800, avatarInitials: "GR", avatarClass: "leaderboard-avatar-gold" }),
+    Object.freeze({ id: "p13", username: "BlockBaron",   level: 9,  incomePerSecond: 122,    prestige: 14300, avatarInitials: "BB", avatarClass: "leaderboard-avatar-orange" }),
+    Object.freeze({ id: "p14", username: "MiniMogul",    level: 6,  incomePerSecond: 3.20,   prestige: 7200,  avatarInitials: "MM", avatarClass: "leaderboard-avatar-blue" }),
+    Object.freeze({ id: "p15", username: "RookieEmpire", level: 2,  incomePerSecond: 0.08,   prestige: 1250,  avatarInitials: "RE", avatarClass: "leaderboard-avatar-green" })
+  ]);
+
+  function readLeaderboardStorageNumber(key) {
+    try {
+      const value = Number(localStorage.getItem(key));
+      return Number.isFinite(value) ? value : 0;
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  function writeLeaderboardStorageNumber(key, value) {
+    try {
+      localStorage.setItem(key, String(Math.max(0, Number(value) || 0)));
+    } catch (_) {}
+  }
+
+  function getLeaderboardFlashOfferEnd(now = Date.now()) {
+    const seasonEnd = getLeaderboardSeasonEnd();
+    const savedSeason = readLeaderboardStorageNumber(
+      LEADERBOARD_OFFER_SEASON_STORAGE_KEY
+    );
+    const savedEnd = readLeaderboardStorageNumber(
+      LEADERBOARD_OFFER_END_STORAGE_KEY
+    );
+
+    if (savedSeason === seasonEnd && savedEnd > 0) {
+      return savedEnd;
+    }
+
+    const offerEnd = Math.min(
+      seasonEnd,
+      now + LEADERBOARD_FLASH_OFFER.offerDurationMs
+    );
+
+    writeLeaderboardStorageNumber(
+      LEADERBOARD_OFFER_SEASON_STORAGE_KEY,
+      seasonEnd
+    );
+    writeLeaderboardStorageNumber(
+      LEADERBOARD_OFFER_END_STORAGE_KEY,
+      offerEnd
+    );
+
+    return offerEnd;
+  }
+
+  function getLeaderboardFlashBoostState(now = Date.now()) {
+    const startedAt = readLeaderboardStorageNumber(
+      LEADERBOARD_BOOST_START_STORAGE_KEY
+    );
+    const endsAt = readLeaderboardStorageNumber(
+      LEADERBOARD_BOOST_END_STORAGE_KEY
+    );
+
+    return {
+      multiplier: LEADERBOARD_FLASH_OFFER.multiplier,
+      startedAt,
+      endsAt,
+      active: startedAt > 0 && endsAt > now
+    };
+  }
+
+  function getLeaderboardFlashBoostMultiplier(now = Date.now()) {
+    const boost = getLeaderboardFlashBoostState(now);
+    return boost.active ? boost.multiplier : 1;
+  }
+
+  function formatLeaderboardClock(milliseconds) {
+    const totalSeconds = Math.max(
+      0,
+      Math.ceil((Number(milliseconds) || 0) / 1000)
+    );
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  }
+
+  function getLeaderboardRewardTier(rank) {
+    const safeRank = Math.max(1, Math.floor(Number(rank) || 999999));
+    if (safeRank === 1) {
+      return { key: "top1", label: "#1 · Premio massimo" };
+    }
+    if (safeRank <= 3) {
+      return { key: "top3", label: `Top 3 · #${safeRank}` };
+    }
+    if (safeRank <= 10) {
+      return { key: "top10", label: `Top 10 · #${safeRank}` };
+    }
+    return { key: "none", label: `#${safeRank} · Fuori Top 10` };
+  }
+
+  function getLeaderboardGapToNextPlayer(snapshot) {
+    const current = snapshot?.current;
+    if (!current) return null;
+    if (current.rank <= 1) {
+      return {
+        targetRank: 1,
+        gap: 0,
+        label: "Sei già al #1: difendi il primo posto."
+      };
+    }
+
+    const next = snapshot.players[current.rank - 2];
+    if (!next) return null;
+
+    const gap = Math.max(
+      0,
+      getLeaderboardMetricValue(next, snapshot.mode)
+        - getLeaderboardMetricValue(current, snapshot.mode)
+    );
+
+    return {
+      targetRank: next.rank,
+      gap,
+      label: snapshot.mode === "prestige"
+        ? `Ti mancano ${formatCompactCount(Math.ceil(gap))} prestigio per il #${next.rank}.`
+        : `Ti mancano ${formatIncomePerSecond(gap)} per il #${next.rank}.`
+    };
+  }
+
+  function renderLeaderboardRewardsAndOffer(snapshot = null) {
+    const safeSnapshot = snapshot || getLeaderboardSnapshot();
+    const now = Date.now();
+    const current = safeSnapshot.current;
+
+    const rewardStatus = document.getElementById(
+      "leaderboard-reward-status"
+    );
+    if (rewardStatus && current) {
+      const tier = getLeaderboardRewardTier(current.rank);
+      rewardStatus.textContent = tier.label;
+      rewardStatus.classList.remove(
+        "is-top1",
+        "is-top3",
+        "is-top10"
+      );
+      if (tier.key !== "none") {
+        rewardStatus.classList.add(`is-${tier.key}`);
+      }
+    }
+
+    const offerCard = document.getElementById("leaderboard-flash-offer");
+    const offerTimer = document.getElementById("leaderboard-offer-timer");
+    const offerStatus = document.getElementById("leaderboard-offer-status");
+    const offerGap = document.getElementById("leaderboard-offer-gap");
+    const offerButton = document.querySelector(
+      "[data-leaderboard-offer-buy]"
+    );
+
+    if (!offerCard || !offerButton) return;
+
+    const offerEnd = getLeaderboardFlashOfferEnd(now);
+    const offerRemaining = Math.max(0, offerEnd - now);
+    const boost = getLeaderboardFlashBoostState(now);
+    const available = offerRemaining > 0;
+    const gap = getLeaderboardGapToNextPlayer(safeSnapshot);
+
+    offerCard.classList.toggle("is-active", boost.active);
+    offerCard.classList.toggle("is-expired", !available);
+
+    if (offerTimer) {
+      offerTimer.textContent = boost.active
+        ? formatLeaderboardClock(boost.endsAt - now)
+        : formatLeaderboardClock(offerRemaining);
+      offerTimer.title = boost.active
+        ? "Tempo boost rimanente"
+        : "Tempo offerta rimanente";
+    }
+
+    if (offerGap && gap) {
+      offerGap.textContent = gap.label;
+    }
+
+    const gemImg = `<img src="${resolveAssetUrl(ASSET_PATHS.hud.gems)}" alt="" aria-hidden="true" draggable="false">`;
+
+    if (boost.active) {
+      offerButton.disabled = true;
+      offerButton.innerHTML = `${gemImg}<span>x${boost.multiplier}</span><strong>BOOST ATTIVO</strong>`;
+      if (offerStatus) {
+        offerStatus.textContent = `Income x${boost.multiplier} attivo · termina tra ${formatLeaderboardClock(boost.endsAt - now)}`;
+      }
+      return;
+    }
+
+    if (!available) {
+      offerButton.disabled = true;
+      offerButton.innerHTML = `${gemImg}<span>—</span><strong>SCADUTA</strong>`;
+      if (offerStatus) {
+        offerStatus.textContent = "Offerta terminata per questa stagione.";
+      }
+      return;
+    }
+
+    offerButton.disabled = false;
+    offerButton.innerHTML = `${gemImg}<span>${LEADERBOARD_FLASH_OFFER.gemCost}</span><strong>ATTIVA x2</strong>`;
+
+    if (offerStatus) {
+      offerStatus.textContent = state.gems >= LEADERBOARD_FLASH_OFFER.gemCost
+        ? "x2 Income per 30 minuti · non aumenta i premi offline."
+        : `Servono ${LEADERBOARD_FLASH_OFFER.gemCost} Gemme · tocca per aprire lo Shop.`;
+    }
+  }
+
+  function purchaseLeaderboardFlashOffer() {
+    const now = Date.now();
+    const offerEnd = getLeaderboardFlashOfferEnd(now);
+    const currentBoost = getLeaderboardFlashBoostState(now);
+
+    if (currentBoost.active) {
+      renderLeaderboardRewardsAndOffer();
+      return false;
+    }
+
+    if (offerEnd <= now) {
+      emitGameEvent("leaderboardFlashOfferExpired", {
+        offerEnd
+      });
+      renderLeaderboardRewardsAndOffer();
+      return false;
+    }
+
+    if (state.gems < LEADERBOARD_FLASH_OFFER.gemCost) {
+      emitGameEvent("notEnoughGems", {
+        current: state.gems,
+        required: LEADERBOARD_FLASH_OFFER.gemCost,
+        source: "leaderboardFlashOffer"
+      });
+
+      const shopButton = document.querySelector(
+        '.nav-item[data-nav="shop"]'
+      );
+      shopButton?.click();
+      return false;
+    }
+
+    processPassiveIncome();
+
+    state.gems -= LEADERBOARD_FLASH_OFFER.gemCost;
+    const endsAt = Math.min(
+      getLeaderboardSeasonEnd(),
+      now + LEADERBOARD_FLASH_OFFER.boostDurationMs
+    );
+
+    writeLeaderboardStorageNumber(
+      LEADERBOARD_BOOST_START_STORAGE_KEY,
+      now
+    );
+    writeLeaderboardStorageNumber(
+      LEADERBOARD_BOOST_END_STORAGE_KEY,
+      endsAt
+    );
+
+    saveGame();
+    updatePlayerResources();
+    renderLeaderboard({ force: true });
+
+    emitGameEvent("leaderboardFlashOfferPurchased", {
+      costGems: LEADERBOARD_FLASH_OFFER.gemCost,
+      multiplier: LEADERBOARD_FLASH_OFFER.multiplier,
+      startedAt: now,
+      endsAt
+    });
+
+    return true;
+  }
+
+  function getTelegramLeaderboardIdentity() {
+    const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
+    if (!user) {
+      return {
+        username: "Tu",
+        avatarUrl: ASSET_PATHS.avatar
+      };
+    }
+
+    const displayName =
+      user.username
+        ? `@${user.username}`
+        : [user.first_name, user.last_name].filter(Boolean).join(" ").trim();
+
+    return {
+      username: displayName || "Tu",
+      avatarUrl: user.photo_url || ASSET_PATHS.avatar
+    };
+  }
+
+  function calculateLocalPrestigeScore(targetState = state) {
+    const levelScore = Math.max(1, Number(targetState.level) || 1) * 1000;
+
+    const businessScore = BUSINESS_IDS.reduce((sum, id) => {
+      const business = targetState.businesses?.[id];
+      if (!business?.owned) return sum;
+      return sum + Math.max(1, Number(business.level) || 1) * 180;
+    }, 0);
+
+    const cardScore = CARD_IDS.reduce((sum, id) => {
+      const card = targetState.cards?.[id];
+      if (!card?.unlocked) return sum;
+      return sum + Math.max(1, Number(card.level) || 1) * 120;
+    }, 0);
+
+    const wardrobeScore = EQUIPMENT_IDS.reduce((sum, id) => {
+      const item = targetState.equipment?.[id];
+      if (!item?.unlocked) return sum;
+      return sum + Math.max(1, Number(item.level) || 1) * 90;
+    }, 0);
+
+    return Math.max(
+      0,
+      Math.floor(levelScore + businessScore + cardScore + wardrobeScore)
+    );
+  }
+
+  function getCurrentLeaderboardPlayer() {
+    const identity = getTelegramLeaderboardIdentity();
+
+    return {
+      id: LEADERBOARD_CURRENT_PLAYER_ID,
+      username: identity.username,
+      level: Math.max(1, Math.floor(Number(state.level) || 1)),
+      /*
+         This is the actual current effective passive rate. Active level-up
+         income boosts are included, so the ranking reacts immediately.
+      */
+      incomePerSecond: Math.max(0, getTotalPassiveIncomePerSecond()),
+      prestige: calculateLocalPrestigeScore(state),
+      avatarUrl: identity.avatarUrl,
+      isCurrent: true
+    };
+  }
+
+  function getLeaderboardMetricValue(player, mode = leaderboardSortMode) {
+    if (mode === "prestige") {
+      return Math.max(0, Number(player?.prestige) || 0);
+    }
+    return Math.max(0, Number(player?.incomePerSecond) || 0);
+  }
+
+  function sortLeaderboardPlayers(players, mode = leaderboardSortMode) {
+    const safeMode = LEADERBOARD_ALLOWED_SORT_MODES.includes(mode)
+      ? mode
+      : "income";
+
+    return [...players].sort((a, b) => {
+      const primary =
+        getLeaderboardMetricValue(b, safeMode)
+        - getLeaderboardMetricValue(a, safeMode);
+
+      if (primary !== 0) return primary;
+
+      /*
+         Stable deterministic tie-breakers:
+         1. Income / s
+         2. Prestige
+         3. Username
+      */
+      const incomeTie =
+        (Number(b.incomePerSecond) || 0)
+        - (Number(a.incomePerSecond) || 0);
+      if (incomeTie !== 0) return incomeTie;
+
+      const prestigeTie =
+        (Number(b.prestige) || 0)
+        - (Number(a.prestige) || 0);
+      if (prestigeTie !== 0) return prestigeTie;
+
+      return String(a.username || "").localeCompare(String(b.username || ""));
+    });
+  }
+
+  function getLeaderboardSnapshot(mode = leaderboardSortMode) {
+    const safeMode = LEADERBOARD_ALLOWED_SORT_MODES.includes(mode)
+      ? mode
+      : "income";
+
+    const players = [
+      ...LEADERBOARD_MOCK_PLAYERS.map((player) => ({ ...player })),
+      getCurrentLeaderboardPlayer()
+    ];
+
+    const ranked = sortLeaderboardPlayers(players, safeMode)
+      .map((player, index) => ({
+        ...player,
+        rank: index + 1
+      }));
+
+    const current =
+      ranked.find((player) => player.id === LEADERBOARD_CURRENT_PLAYER_ID)
+      || null;
+
+    return {
+      mode: safeMode,
+      players: ranked,
+      current,
+      totalPlayers: ranked.length
+    };
+  }
+
+  function getLeaderboardSeasonEnd() {
+    const now = Date.now();
+    const saved = Number(localStorage.getItem(LEADERBOARD_SEASON_STORAGE_KEY));
+
+    if (Number.isFinite(saved) && saved > now) {
+      return saved;
+    }
+
+    const nextEnd = now + LEADERBOARD_DEFAULT_SEASON_MS;
+    localStorage.setItem(
+      LEADERBOARD_SEASON_STORAGE_KEY,
+      String(nextEnd)
+    );
+    return nextEnd;
+  }
+
+  function formatLeaderboardSeasonCountdown(milliseconds) {
+    const totalMinutes = Math.max(
+      0,
+      Math.floor((Number(milliseconds) || 0) / 60000)
+    );
+
+    const days = Math.floor(totalMinutes / 1440);
+    const hours = Math.floor((totalMinutes % 1440) / 60);
+    const minutes = totalMinutes % 60;
+
+    return `${String(days).padStart(2, "0")}g ${String(hours).padStart(2, "0")}h ${String(minutes).padStart(2, "0")}m`;
+  }
+
+  function updateLeaderboardSeasonCountdown() {
+    const timer = document.getElementById("leaderboard-season-time");
+    if (!timer) return;
+
+    const seasonEnd = getLeaderboardSeasonEnd();
+    timer.textContent = formatLeaderboardSeasonCountdown(
+      seasonEnd - Date.now()
+    );
+    timer.title = new Date(seasonEnd).toLocaleString();
+  }
+
+  function createLeaderboardAvatar(player) {
+    const avatar = document.createElement("div");
+    avatar.className = [
+      "leaderboard-avatar",
+      player.isCurrent
+        ? "leaderboard-current-avatar"
+        : (player.avatarClass || "leaderboard-avatar-blue")
+    ].join(" ");
+
+    if (player.avatarUrl) {
+      const image = document.createElement("img");
+      image.src = resolveAssetUrl(player.avatarUrl);
+      image.alt = player.isCurrent
+        ? "Il tuo avatar"
+        : `Avatar di ${player.username}`;
+      image.draggable = false;
+      image.decoding = "async";
+      avatar.appendChild(image);
+    } else {
+      avatar.textContent =
+        player.avatarInitials
+        || String(player.username || "?")
+          .split(/\s+/)
+          .map((part) => part[0] || "")
+          .join("")
+          .slice(0, 2)
+          .toUpperCase();
+    }
+
+    return avatar;
+  }
+
+  function createLeaderboardRow(player, mode) {
+    const row = document.createElement("article");
+    row.className = "leaderboard-row";
+    row.setAttribute("role", "listitem");
+    row.dataset.playerId = player.id;
+
+    if (player.rank <= 3) {
+      row.classList.add(`top-${player.rank}`);
+    }
+
+    if (player.isCurrent) {
+      row.classList.add("is-current");
+      row.setAttribute("aria-current", "true");
+    }
+
+    const rank = document.createElement("span");
+    rank.className = "leaderboard-rank";
+    rank.textContent = String(player.rank);
+
+    const playerWrap = document.createElement("div");
+    playerWrap.className = "leaderboard-player";
+    playerWrap.appendChild(createLeaderboardAvatar(player));
+
+    const copy = document.createElement("div");
+    copy.className = "leaderboard-player-copy";
+
+    const name = document.createElement("strong");
+    const nameText = document.createElement("span");
+    nameText.textContent = player.username || "Player";
+    name.appendChild(nameText);
+
+    if (player.isCurrent) {
+      const you = document.createElement("span");
+      you.className = "leaderboard-you-badge";
+      you.textContent = "YOU";
+      name.appendChild(you);
+    }
+
+    const level = document.createElement("small");
+    level.textContent = `LV ${Math.max(1, Math.floor(Number(player.level) || 1))}`;
+
+    copy.append(name, level);
+    playerWrap.appendChild(copy);
+
+    const metric = document.createElement("strong");
+    metric.className = "leaderboard-income";
+    metric.textContent = mode === "prestige"
+      ? formatCompactCount(player.prestige)
+      : formatIncomePerSecond(player.incomePerSecond);
+
+    row.append(rank, playerWrap, metric);
+    return row;
+  }
+
+  function getLeaderboardRenderSignature(snapshot) {
+    const current = snapshot.current;
+    return [
+      snapshot.mode,
+      current?.rank || 0,
+      Number(current?.incomePerSecond || 0).toFixed(4),
+      current?.prestige || 0,
+      current?.level || 1,
+      current?.username || "",
+      snapshot.players.length
+    ].join("|");
+  }
+
+  function renderLeaderboard(options = {}) {
+    updateLeaderboardSeasonCountdown();
+
+    const list = document.querySelector(".leaderboard-list");
+    if (!list) return null;
+
+    const snapshot = getLeaderboardSnapshot(
+      options.mode || leaderboardSortMode
+    );
+
+    const signature = getLeaderboardRenderSignature(snapshot);
+    const force = Boolean(options.force);
+
+    if (force || signature !== leaderboardLastRenderSignature) {
+      const fragment = document.createDocumentFragment();
+
+      snapshot.players.forEach((player) => {
+        fragment.appendChild(
+          createLeaderboardRow(player, snapshot.mode)
+        );
+      });
+
+      list.replaceChildren(fragment);
+      leaderboardLastRenderSignature = signature;
+    }
+
+    const currentRank =
+      document.querySelector(
+        ".leaderboard-current-card > div:first-child > strong"
+      );
+
+    const currentStatLabel =
+      document.querySelector(".leaderboard-current-stat small");
+
+    const currentStatValue =
+      document.querySelector(".leaderboard-current-stat strong");
+
+    const metricHeader =
+      document.querySelector(".leaderboard-columns span:last-child");
+
+    if (snapshot.current) {
+      if (currentRank) {
+        currentRank.textContent =
+          `#${snapshot.current.rank}`;
+        currentRank.title =
+          `${snapshot.current.rank} / ${snapshot.totalPlayers}`;
+      }
+
+      if (currentStatLabel) {
+        currentStatLabel.textContent =
+          snapshot.mode === "prestige"
+            ? "Prestigio"
+            : "Income / s";
+      }
+
+      if (currentStatValue) {
+        currentStatValue.textContent =
+          snapshot.mode === "prestige"
+            ? formatCompactCount(snapshot.current.prestige)
+            : formatIncomePerSecond(snapshot.current.incomePerSecond);
+      }
+    }
+
+    if (metricHeader) {
+      metricHeader.textContent =
+        snapshot.mode === "prestige"
+          ? "Prestigio"
+          : "Income / s";
+    }
+
+    renderLeaderboardRewardsAndOffer(snapshot);
+    return snapshot;
+  }
+
+  function setLeaderboardSortMode(mode) {
+    if (!LEADERBOARD_ALLOWED_SORT_MODES.includes(mode)) {
+      return false;
+    }
+
+    leaderboardSortMode = mode;
+    leaderboardLastRenderSignature = "";
+    renderLeaderboard({ force: true });
+    return true;
+  }
+
+
+  /* ==========================================================
+     V17.3 — SOCIAL TASKS RUNTIME
+  ========================================================== */
+
+  let socialTasksReturnFocus = null;
+
+  function ensureSocialTasksState(timestamp = Date.now()) {
+    const next = sanitizeSocialTasks(state.socialTasks, timestamp);
+
+    const previousDayKey = state.socialTasks?.dayKey || "";
+    const changedDay = previousDayKey !== next.dayKey;
+
+    state.socialTasks = next;
+
+    if (changedDay) {
+      saveGame();
+    }
+
+    return state.socialTasks;
+  }
+
+  function getSocialTaskState(taskId) {
+    ensureSocialTasksState();
+    return state.socialTasks?.tasks?.[taskId] || null;
+  }
+
+  function setSocialTaskActionLink(taskId, url) {
+    if (!(taskId in socialTaskActionLinks)) return false;
+
+    const value = String(url || "").trim();
+
+    if (!value) {
+      socialTaskActionLinks[taskId] = "";
+      return true;
+    }
+
+    try {
+      const parsed = new URL(value, window.location.href);
+      if (!["https:", "http:", "tg:"].includes(parsed.protocol)) {
+        return false;
+      }
+      socialTaskActionLinks[taskId] = parsed.href;
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function openSocialTaskExternalLink(taskId) {
+    const rawUrl = String(socialTaskActionLinks[taskId] || "").trim();
+    if (!rawUrl) return false;
+
+    try {
+      const url = new URL(rawUrl, window.location.href).href;
+      const parsed = new URL(url);
+
+      if (!["https:", "http:", "tg:"].includes(parsed.protocol)) {
+        return false;
+      }
+
+      const telegram = window.Telegram?.WebApp;
+
+      if (
+        telegram?.openTelegramLink
+        && (
+          parsed.protocol === "tg:"
+          || parsed.hostname === "t.me"
+          || parsed.hostname.endsWith(".t.me")
+        )
+      ) {
+        telegram.openTelegramLink(url);
+        return true;
+      }
+
+      if (telegram?.openLink && parsed.protocol !== "tg:") {
+        telegram.openLink(url);
+        return true;
+      }
+
+      window.open(url, "_blank", "noopener,noreferrer");
+      return true;
+    } catch (error) {
+      console.warn("[Hustle Empire] Social task URL failed:", error);
+      return false;
+    }
+  }
+
+  function openSocialTaskInviteShare() {
+    const inviteUrl = window.location.href.split("#")[0];
+    const shareText = "Gioca con me a Urban Tycoon!";
+    const shareUrl =
+      `https://t.me/share/url?url=${encodeURIComponent(inviteUrl)}&text=${encodeURIComponent(shareText)}`;
+
+    try {
+      if (window.Telegram?.WebApp?.openTelegramLink) {
+        window.Telegram.WebApp.openTelegramLink(shareUrl);
+        return true;
+      }
+
+      window.open(shareUrl, "_blank", "noopener,noreferrer");
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function getSocialTaskSubtitle(taskId, taskState) {
+    const cfg = SOCIAL_TASK_CONFIGS[taskId];
+
+    if (taskState.status === SOCIAL_TASK_STATUS.CLAIMED) {
+      return "Ricompensa riscattata";
+    }
+
+    if (taskState.status === SOCIAL_TASK_STATUS.CLAIMABLE) {
+      return "Ricompensa pronta da riscattare";
+    }
+
+    if (taskState.status === SOCIAL_TASK_STATUS.VERIFYING) {
+      return "Verifica in corso...";
+    }
+
+    if (cfg.kind === "invite") {
+      return `${taskState.progress} / ${cfg.target} amici invitati`;
+    }
+
+    if (taskId === "telegram_channel") {
+      return "Urban Tycoon Official";
+    }
+
+    if (taskId === "x_follow") {
+      return "Segui il profilo ufficiale";
+    }
+
+    if (taskId === "open_community") {
+      return "Apri la community ufficiale";
+    }
+
+    return "Completa il task";
+  }
+
+  function renderSocialTasksUI() {
+    const socialState = ensureSocialTasksState();
+
+    let claimed = 0;
+    let claimable = 0;
+
+    SOCIAL_TASK_IDS.forEach((taskId) => {
+      const cfg = SOCIAL_TASK_CONFIGS[taskId];
+      const taskState = socialState.tasks[taskId];
+      const row = document.querySelector(`[data-social-task="${taskId}"]`);
+
+      if (!row || !taskState) return;
+
+      const status = row.querySelector(".social-task-status");
+      const subtitle = row.querySelector(".social-task-copy small");
+
+      row.classList.toggle(
+        "is-completed",
+        taskState.status === SOCIAL_TASK_STATUS.CLAIMED
+      );
+      row.classList.toggle(
+        "is-verifying",
+        taskState.status === SOCIAL_TASK_STATUS.VERIFYING
+      );
+      row.classList.toggle(
+        "is-claimable",
+        taskState.status === SOCIAL_TASK_STATUS.CLAIMABLE
+      );
+
+      row.disabled = taskState.status === SOCIAL_TASK_STATUS.CLAIMED;
+      row.setAttribute(
+        "aria-busy",
+        taskState.status === SOCIAL_TASK_STATUS.VERIFYING ? "true" : "false"
+      );
+
+      if (subtitle) {
+        subtitle.textContent = getSocialTaskSubtitle(taskId, taskState);
+      }
+
+      if (status) {
+        status.classList.remove(
+          "social-task-status-complete",
+          "social-task-status-claim",
+          "social-task-status-verifying"
+        );
+
+        if (taskState.status === SOCIAL_TASK_STATUS.CLAIMED) {
+          status.textContent = "✓";
+          status.setAttribute("aria-label", "Completato");
+          status.classList.add("social-task-status-complete");
+        } else if (taskState.status === SOCIAL_TASK_STATUS.CLAIMABLE) {
+          status.textContent = "CLAIM";
+          status.setAttribute("aria-label", "Ricompensa disponibile");
+          status.classList.add("social-task-status-claim");
+        } else if (taskState.status === SOCIAL_TASK_STATUS.VERIFYING) {
+          status.textContent = "…";
+          status.setAttribute("aria-label", "Verifica in corso");
+          status.classList.add("social-task-status-verifying");
+        } else {
+          status.textContent = "›";
+          status.setAttribute("aria-label", "Da completare");
+        }
+      }
+
+      if (taskState.status === SOCIAL_TASK_STATUS.CLAIMED) claimed += 1;
+      if (taskState.status === SOCIAL_TASK_STATUS.CLAIMABLE) claimable += 1;
+
+      /*
+         Keep invite progress consistent even if test/admin code modifies
+         the saved state directly.
+      */
+      if (
+        cfg.kind === "invite"
+        && taskState.progress >= cfg.target
+        && taskState.status === SOCIAL_TASK_STATUS.PENDING
+      ) {
+        taskState.status = SOCIAL_TASK_STATUS.CLAIMABLE;
+      }
+    });
+
+    const summary = document.querySelector(".social-tasks-summary strong");
+    if (summary) {
+      summary.textContent = `${claimed} / ${SOCIAL_TASK_IDS.length}`;
+    }
+
+    const progress = document.querySelector(".social-tasks-progress span");
+    if (progress) {
+      progress.style.width =
+        `${Math.round((claimed / SOCIAL_TASK_IDS.length) * 100)}%`;
+    }
+
+    const reset = document.querySelector(".social-tasks-reset");
+    if (reset) {
+      const seconds = getSecondsUntilDailyReset();
+      const hours = Math.floor(seconds / 3600);
+      const minutes = Math.floor((seconds % 3600) / 60);
+      reset.textContent = `Reset ${hours}h ${String(minutes).padStart(2, "0")}m`;
+    }
+
+    const launcherBadge = document.querySelector(".social-tasks-launcher-badge");
+    if (launcherBadge) {
+      launcherBadge.classList.toggle("has-claim", claimable > 0);
+      launcherBadge.textContent = claimable > 0
+        ? String(claimable)
+        : (claimed === SOCIAL_TASK_IDS.length ? "DONE" : "NEW");
+    }
+
+    return {
+      claimed,
+      claimable,
+      total: SOCIAL_TASK_IDS.length
+    };
+  }
+
+  function openSocialTasksModal(trigger = null) {
+    const modal = document.getElementById("social-tasks-modal");
+    if (!modal) return false;
+
+    socialTasksReturnFocus = trigger || document.activeElement;
+
+    renderSocialTasksUI();
+
+    modal.hidden = false;
+    modal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("social-tasks-modal-open");
+
+    const launcher = document.querySelector("[data-social-tasks-open]");
+    launcher?.setAttribute("aria-expanded", "true");
+
+    requestAnimationFrame(() => {
+      modal.classList.add("is-open");
+      modal.querySelector(".social-tasks-dialog")?.focus?.({
+        preventScroll: true
+      });
+    });
+
+    return true;
+  }
+
+  function closeSocialTasksModal() {
+    const modal = document.getElementById("social-tasks-modal");
+    if (!modal || modal.hidden) return false;
+
+    modal.classList.remove("is-open");
+    modal.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("social-tasks-modal-open");
+
+    const launcher = document.querySelector("[data-social-tasks-open]");
+    launcher?.setAttribute("aria-expanded", "false");
+
+    window.setTimeout(() => {
+      modal.hidden = true;
+    }, 180);
+
+    const focusTarget = socialTasksReturnFocus;
+    socialTasksReturnFocus = null;
+
+    requestAnimationFrame(() => {
+      focusTarget?.focus?.({ preventScroll: true });
+    });
+
+    return true;
+  }
+
+  function beginSocialTaskVerification(taskId) {
+    const cfg = SOCIAL_TASK_CONFIGS[taskId];
+    const taskState = getSocialTaskState(taskId);
+
+    if (!cfg || !taskState) return false;
+    if (taskState.status !== SOCIAL_TASK_STATUS.PENDING) return false;
+
+    openSocialTaskExternalLink(taskId);
+
+    taskState.status = SOCIAL_TASK_STATUS.VERIFYING;
+    taskState.verifyAt = Date.now() + Math.max(700, cfg.verifyDelayMs || 1800);
+
+    saveGame();
+    renderSocialTasksUI();
+
+    emitGameEvent("socialTaskVerificationStarted", {
+      taskId,
+      verifyAt: taskState.verifyAt
+    });
+
+    return true;
+  }
+
+  function simulateSocialInvite(taskId, amount = 1) {
+    const cfg = SOCIAL_TASK_CONFIGS[taskId];
+    const taskState = getSocialTaskState(taskId);
+
+    if (!cfg || cfg.kind !== "invite" || !taskState) return false;
+    if (
+      taskState.status === SOCIAL_TASK_STATUS.CLAIMED
+      || taskState.status === SOCIAL_TASK_STATUS.CLAIMABLE
+    ) {
+      return false;
+    }
+
+    openSocialTaskInviteShare();
+
+    taskState.progress = Math.min(
+      cfg.target,
+      Math.max(0, Number(taskState.progress) || 0)
+        + Math.max(1, Math.floor(Number(amount) || 1))
+    );
+
+    if (taskState.progress >= cfg.target) {
+      taskState.status = SOCIAL_TASK_STATUS.CLAIMABLE;
+    }
+
+    saveGame();
+    renderSocialTasksUI();
+
+    emitGameEvent("socialInviteSimulated", {
+      taskId,
+      progress: taskState.progress,
+      target: cfg.target
+    });
+
+    return true;
+  }
+
+  function claimSocialTaskReward(taskId) {
+    const cfg = SOCIAL_TASK_CONFIGS[taskId];
+    const taskState = getSocialTaskState(taskId);
+
+    if (!cfg || !taskState) return false;
+    if (taskState.status !== SOCIAL_TASK_STATUS.CLAIMABLE) return false;
+
+    processPassiveIncome();
+
+    const money = Math.max(0, Number(cfg.reward?.money) || 0);
+    const gems = Math.max(0, Number(cfg.reward?.gems) || 0);
+
+    state.money += money;
+    state.gems += gems;
+
+    taskState.status = SOCIAL_TASK_STATUS.CLAIMED;
+    taskState.progress = Math.max(taskState.progress, cfg.target);
+    taskState.verifyAt = 0;
+    taskState.claimedAt = Date.now();
+
+    saveGame();
+    updatePlayerResources();
+    renderSocialTasksUI();
+    renderNotificationsUI();
+
+    try {
+      window.Telegram?.WebApp?.HapticFeedback
+        ?.notificationOccurred?.("success");
+    } catch (_) {}
+
+    emitGameEvent("socialTaskClaimed", {
+      taskId,
+      reward: { money, gems },
+      balances: {
+        money: state.money,
+        gems: state.gems
+      }
+    });
+
+    return true;
+  }
+
+  function handleSocialTaskInteraction(taskId) {
+    const cfg = SOCIAL_TASK_CONFIGS[taskId];
+    const taskState = getSocialTaskState(taskId);
+
+    if (!cfg || !taskState) return false;
+
+    if (taskState.status === SOCIAL_TASK_STATUS.CLAIMED) {
+      return false;
+    }
+
+    if (taskState.status === SOCIAL_TASK_STATUS.CLAIMABLE) {
+      return claimSocialTaskReward(taskId);
+    }
+
+    if (taskState.status === SOCIAL_TASK_STATUS.VERIFYING) {
+      tickSocialTasksSystem();
+      return false;
+    }
+
+    if (cfg.kind === "daily") {
+      taskState.status = SOCIAL_TASK_STATUS.CLAIMABLE;
+      saveGame();
+      renderSocialTasksUI();
+      return claimSocialTaskReward(taskId);
+    }
+
+    if (cfg.kind === "invite") {
+      return simulateSocialInvite(taskId, 1);
+    }
+
+    return beginSocialTaskVerification(taskId);
+  }
+
+  function tickSocialTasksSystem(timestamp = Date.now()) {
+    const socialState = ensureSocialTasksState(timestamp);
+    let changed = false;
+
+    SOCIAL_TASK_IDS.forEach((taskId) => {
+      const taskState = socialState.tasks[taskId];
+      const cfg = SOCIAL_TASK_CONFIGS[taskId];
+
+      if (
+        taskState.status === SOCIAL_TASK_STATUS.VERIFYING
+        && taskState.verifyAt > 0
+        && taskState.verifyAt <= timestamp
+      ) {
+        taskState.status = SOCIAL_TASK_STATUS.CLAIMABLE;
+        taskState.progress = Math.max(taskState.progress, cfg.target);
+        taskState.verifyAt = 0;
+        changed = true;
+      }
+    });
+
+    if (changed) {
+      saveGame();
+      renderSocialTasksUI();
+
+      try {
+        window.Telegram?.WebApp?.HapticFeedback
+          ?.notificationOccurred?.("success");
+      } catch (_) {}
+    }
+
+    return changed;
+  }
+
   /* ==========================================================
      V16.3 — NOTIFICATIONS POPUP
      Dedicated modal with safe backdrop/focus cleanup.
@@ -5174,6 +6533,26 @@
     bindTapControl();
 
     document.addEventListener("click", (event) => {
+      const socialTasksOpen = event.target.closest("[data-social-tasks-open]");
+      if (socialTasksOpen) {
+        event.preventDefault();
+        openSocialTasksModal(socialTasksOpen);
+        return;
+      }
+
+      if (event.target.closest("[data-social-tasks-close]")) {
+        event.preventDefault();
+        closeSocialTasksModal();
+        return;
+      }
+
+      const socialTaskButton = event.target.closest("[data-social-task]");
+      if (socialTaskButton) {
+        event.preventDefault();
+        handleSocialTaskInteraction(socialTaskButton.dataset.socialTask);
+        return;
+      }
+
       const notificationsButton = event.target.closest('[data-action="notifications"]');
       if (notificationsButton) {
         event.preventDefault();
@@ -5184,6 +6563,12 @@
       if (event.target.closest("[data-notifications-close]")) {
         event.preventDefault();
         closeNotificationsModal();
+        return;
+      }
+
+      if (event.target.closest("[data-leaderboard-offer-buy]")) {
+        event.preventDefault();
+        purchaseLeaderboardFlashOffer();
         return;
       }
 
@@ -5337,6 +6722,13 @@
 
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape") {
+        const socialTasksModal = document.getElementById("social-tasks-modal");
+        if (socialTasksModal && !socialTasksModal.hidden) {
+          event.preventDefault();
+          closeSocialTasksModal();
+          return;
+        }
+
         const notificationsModal = document.getElementById("notifications-modal");
         if (notificationsModal && !notificationsModal.hidden) {
           event.preventDefault();
@@ -5363,6 +6755,16 @@
     });
   }
 
+
+  document.addEventListener("click", (event) => {
+    const trigger = event.target?.closest?.('[data-nav="leaderboard"]');
+    if (!trigger) return;
+
+    requestAnimationFrame(() => {
+      renderLeaderboard({ force: true });
+    });
+  });
+
   function gameTick() {
     regenerateEnergy();
     const earned = processPassiveIncome();
@@ -5374,7 +6776,12 @@
     /* Keeps temporary boosts, their timer and energy UI visually in sync. */
     updateTapButton();
     updateLevelUpBoostUI();
+    if (document.querySelector('.screen[data-screen="leaderboard"].active')) {
+      renderLeaderboardRewardsAndOffer();
+    }
     tickDailyRetentionSystem();
+    tickSocialTasksSystem();
+    renderSocialTasksUI();
     renderNotificationsUI();
 
     const notificationsModal = document.getElementById("notifications-modal");
@@ -5393,6 +6800,22 @@
     } else if (active === "cases") {
       renderTimedCases();
       renderAccessoryCases();
+    } else if (active === "leaderboard") {
+      renderLeaderboard();
+    }
+
+    /*
+       Some tab routers only report the six bottom-nav tabs.
+       This fallback keeps the leaderboard live even when it was opened
+       from the HUD button instead of the bottom navigation.
+    */
+    const leaderboardScreen = document.querySelector(
+      '.screen[data-screen="leaderboard"].active'
+    );
+    if (leaderboardScreen) {
+      renderLeaderboard();
+    } else {
+      updateLeaderboardSeasonCountdown();
     }
   }
 
@@ -5430,6 +6853,8 @@
     renderAccessoryCatalog();
     renderRandomEvent();
     renderDailyRetentionUI();
+    renderLeaderboard();
+    renderSocialTasksUI();
   }
 
   async function initGame() {
@@ -5450,6 +6875,7 @@
     recomputeDerivedState();
     regenerateEnergy();
     ensureDailyRetentionState();
+    ensureSocialTasksState();
 
     const offlineResult = checkOfflineEarnings();
     const offlineIncome = Math.max(
@@ -5558,6 +6984,18 @@
       claim: claimDailyCheckIn
     },
     resetInSeconds: getSecondsUntilDailyReset
+  };
+
+  window.socialTasksSystem = {
+    ids: SOCIAL_TASK_IDS,
+    open: openSocialTasksModal,
+    close: closeSocialTasksModal,
+    interact: handleSocialTaskInteraction,
+    claim: claimSocialTaskReward,
+    simulateInvite: simulateSocialInvite,
+    setActionLink: setSocialTaskActionLink,
+    getState: () => state.socialTasks,
+    render: renderSocialTasksUI
   };
 
   window.offlineEarningsSystem = {
@@ -5691,6 +7129,41 @@
       getBonuses: getWardrobeBonusTotals,
       getStyleSetProgress,
       render: renderWardrobeUI
+    },
+
+    leaderboard: {
+      getMockPlayers: () => LEADERBOARD_MOCK_PLAYERS.map((player) => ({ ...player })),
+      getCurrentPlayer: getCurrentLeaderboardPlayer,
+      getSnapshot: getLeaderboardSnapshot,
+      getCurrentRank: () => getLeaderboardSnapshot().current?.rank || null,
+      sortPlayers: sortLeaderboardPlayers,
+      getPrestigeScore: () => calculateLocalPrestigeScore(state),
+      getSortMode: () => leaderboardSortMode,
+      setSortMode: setLeaderboardSortMode,
+      getRewardTier: (rank) => getLeaderboardRewardTier(rank),
+      getFlashOffer: () => ({
+        ...LEADERBOARD_FLASH_OFFER,
+        offerEndsAt: getLeaderboardFlashOfferEnd(),
+        boost: getLeaderboardFlashBoostState()
+      }),
+      purchaseFlashOffer: purchaseLeaderboardFlashOffer,
+      render: (options = {}) => renderLeaderboard({ force: true, ...options })
+    },
+
+    socialTasks: {
+      ids: SOCIAL_TASK_IDS,
+      getConfig: (taskId) => SOCIAL_TASK_CONFIGS[taskId] || null,
+      getState: (taskId = null) => taskId
+        ? getSocialTaskState(taskId)
+        : state.socialTasks,
+      open: openSocialTasksModal,
+      close: closeSocialTasksModal,
+      interact: handleSocialTaskInteraction,
+      claim: claimSocialTaskReward,
+      simulateInvite: simulateSocialInvite,
+      setActionLink: setSocialTaskActionLink,
+      tick: tickSocialTasksSystem,
+      render: renderSocialTasksUI
     }
   };
 
@@ -5703,3 +7176,9 @@
 
 
 /* V16.6: Wardrobe avatar scale + fixed accessory rows + simplified row copy. */
+
+/* V16.9: Dynamic leaderboard ranking, current-player rank, 15-player mock dataset. */
+
+/* V17.0: Leaderboard season rewards + limited Gem-based x2 income boost offer. */
+
+/* V17.3: Interactive Social Tasks modal, verification states, claims and live HUD rewards. */
