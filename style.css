@@ -7821,3 +7821,497 @@ body.notifications-modal-open {
   }
 }
 
+
+/* ==========================================================
+   V16.7 — FINAL HOME + HUD LAYOUT
+   This block must remain LAST so it overrides older layout experiments.
+========================================================== */
+
+:root {
+  --topbar-height: 40px;
+}
+
+/* ---------- 1) Compact single-row HUD ---------- */
+.topbar.topbar-compact {
+  box-sizing: border-box !important;
+  display: grid !important;
+  grid-template-columns: minmax(70px, 1fr) max-content max-content !important;
+  align-items: center !important;
+  min-height: var(--topbar-height) !important;
+  height: auto !important;
+  column-gap: 3px !important;
+  row-gap: 0 !important;
+  padding:
+    max(2px, env(safe-area-inset-top, 0px))
+    4px
+    2px !important;
+  overflow: hidden !important;
+}
+
+.topbar.topbar-compact .player-level {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  overflow: hidden !important;
+}
+
+.topbar.topbar-compact .player-avatar,
+.topbar.topbar-compact .header-avatar {
+  flex: 0 0 26px !important;
+  width: 26px !important;
+  height: 26px !important;
+  min-width: 26px !important;
+  min-height: 26px !important;
+}
+
+.topbar.topbar-compact .player-level-content {
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+.topbar.topbar-compact .level-row {
+  margin: 0 0 1px !important;
+  line-height: 1 !important;
+}
+
+.topbar.topbar-compact .level-row strong {
+  font-size: 7.2px !important;
+  line-height: 1 !important;
+}
+
+.topbar.topbar-compact .xp-row {
+  min-width: 0 !important;
+  display: grid !important;
+  grid-template-columns: 10px minmax(25px, 1fr) auto !important;
+  align-items: center !important;
+  gap: 2px !important;
+}
+
+.topbar.topbar-compact .xp-row .progress-bar {
+  min-width: 0 !important;
+  height: 3px !important;
+}
+
+.topbar.topbar-compact .xp-row > span {
+  min-width: 0 !important;
+  max-width: 46px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-size: 5.2px !important;
+  line-height: 1 !important;
+}
+
+.topbar.topbar-compact .hud-icon-xp {
+  width: 10px !important;
+  height: 10px !important;
+  flex: 0 0 10px !important;
+}
+
+/* Resource cluster remains one compact row. */
+.topbar.topbar-compact .topbar-resources {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-wrap: nowrap !important;
+  gap: 2px !important;
+  overflow: hidden !important;
+}
+
+.topbar.topbar-compact .resource-card {
+  box-sizing: border-box !important;
+  flex: 0 1 auto !important;
+  width: auto !important;
+  min-width: 31px !important;
+  max-width: 60px !important;
+  height: 22px !important;
+  min-height: 22px !important;
+  gap: 2px !important;
+  padding: 0 3px !important;
+  border-radius: 6px !important;
+  overflow: hidden !important;
+}
+
+.topbar.topbar-compact .resource-card strong {
+  min-width: 0 !important;
+  max-width: 42px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-size: clamp(5.8px, 1.25vw, 7.2px) !important;
+  line-height: 1 !important;
+  letter-spacing: -.02em !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+.topbar.topbar-compact .resource-card .hud-icon {
+  width: 12px !important;
+  height: 12px !important;
+  min-width: 12px !important;
+  flex: 0 0 12px !important;
+  margin: 0 !important;
+  object-fit: contain !important;
+}
+
+.topbar.topbar-compact .topbar-actions {
+  min-width: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: nowrap !important;
+  gap: 1px !important;
+}
+
+.topbar.topbar-compact .top-action,
+.topbar.topbar-compact .language-button {
+  box-sizing: border-box !important;
+  flex: 0 0 20px !important;
+  width: 20px !important;
+  min-width: 20px !important;
+  height: 20px !important;
+  min-height: 20px !important;
+  padding: 0 !important;
+  border-radius: 6px !important;
+  font-size: 10.5px !important;
+  line-height: 1 !important;
+}
+
+.topbar.topbar-compact .language-button {
+  flex-basis: 22px !important;
+  width: 22px !important;
+  min-width: 22px !important;
+  font-size: 6.2px !important;
+}
+
+.topbar.topbar-compact .notification-button .badge,
+.topbar.topbar-compact .badge {
+  top: -2px !important;
+  right: -2px !important;
+  min-width: 11px !important;
+  width: auto !important;
+  height: 11px !important;
+  padding: 0 2px !important;
+  line-height: 11px !important;
+  font-size: 5.5px !important;
+}
+
+/* ---------- 2) Home left widgets: zero absolute title/badge collisions ---------- */
+.screen[data-screen="home"] .home-left {
+  box-sizing: border-box !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 5px !important;
+  padding: 6px !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+
+.screen[data-screen="home"] .home-left-widget {
+  box-sizing: border-box !important;
+  position: relative !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  display: grid !important;
+  grid-template-columns: 25px minmax(0, 1fr) !important;
+  align-items: center !important;
+  column-gap: 5px !important;
+  padding: 5px !important;
+  overflow: hidden !important;
+}
+
+/* Header contents stay in normal flow. No old absolute rule can re-enter here. */
+.screen[data-screen="home"] .home-widget-header {
+  position: static !important;
+  inset: auto !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 4px !important;
+  overflow: hidden !important;
+}
+
+.screen[data-screen="home"] .home-widget-header > strong,
+.screen[data-screen="home"] .home-widget-header > span,
+.screen[data-screen="home"] .home-widget-header > small,
+.screen[data-screen="home"] .daily-challenges-launch-badge {
+  position: static !important;
+  inset: auto !important;
+  top: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+}
+
+.screen[data-screen="home"] .home-widget-header > strong {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  font-size: 6.4px !important;
+  line-height: 1.15 !important;
+  white-space: normal !important;
+  overflow: hidden !important;
+  overflow-wrap: anywhere !important;
+}
+
+.screen[data-screen="home"] .daily-challenges-launch-badge {
+  flex: 0 0 auto !important;
+  align-self: flex-start !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  min-width: 23px !important;
+  height: 15px !important;
+  padding: 0 4px !important;
+  margin: 0 !important;
+  border-radius: 999px !important;
+  font-size: 6.4px !important;
+  line-height: 15px !important;
+  white-space: nowrap !important;
+}
+
+.screen[data-screen="home"] .mini-feature-copy,
+.screen[data-screen="home"] .daily-challenges-launch-copy {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: stretch !important;
+  gap: 2px !important;
+  overflow: hidden !important;
+}
+
+.screen[data-screen="home"] .mini-feature-copy > span,
+.screen[data-screen="home"] .mini-feature-copy > small,
+.screen[data-screen="home"] .mini-feature-meta-row {
+  position: static !important;
+  inset: auto !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+.screen[data-screen="home"] .daily-challenges-launch-timer,
+.screen[data-screen="home"] .mini-feature-value,
+.screen[data-screen="home"] .feature-value,
+.screen[data-screen="home"] .offline-value {
+  width: auto !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-size: 7.6px !important;
+  line-height: 1.1 !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+.screen[data-screen="home"] .daily-challenges-launch-copy > small,
+.screen[data-screen="home"] .mini-feature-copy > small {
+  margin: 0 !important;
+  font-size: 6px !important;
+  line-height: 1.15 !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+}
+
+/* Every descendant is constrained to the rounded card width. */
+.screen[data-screen="home"] .home-left-widget,
+.screen[data-screen="home"] .home-left-widget * {
+  box-sizing: border-box !important;
+  max-width: 100% !important;
+}
+
+/* ---------- 3) Balanced 3-column Home ---------- */
+.screen[data-screen="home"] .home-layout-balanced {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  display: grid !important;
+  grid-template-columns:
+    minmax(92px, .82fr)
+    minmax(0, 1.45fr)
+    minmax(122px, 1fr) !important;
+  align-items: stretch !important;
+  gap: 6px !important;
+  overflow: hidden !important;
+}
+
+.screen[data-screen="home"] .home-left,
+.screen[data-screen="home"] .home-center,
+.screen[data-screen="home"] .home-missions {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  overflow-x: hidden !important;
+}
+
+/* Center column stays truly centered regardless of side content width. */
+.screen[data-screen="home"] .home-center {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.screen[data-screen="home"] .home-character-stage {
+  width: 100% !important;
+  min-width: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.screen[data-screen="home"] .home-character-stage
+.home-character-sprite.character-real-image {
+  margin-left: auto !important;
+  margin-right: auto !important;
+  object-position: center center !important;
+}
+
+/* Right column text also stays within its rounded container. */
+.screen[data-screen="home"] .home-missions,
+.screen[data-screen="home"] .home-missions * {
+  box-sizing: border-box !important;
+  max-width: 100% !important;
+}
+
+.screen[data-screen="home"] .home-missions {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+/* ---------- Narrow screens ---------- */
+@media (max-width: 430px) {
+  :root {
+    --topbar-height: 38px;
+  }
+
+  .topbar.topbar-compact {
+    grid-template-columns: minmax(62px, 1fr) max-content max-content !important;
+    column-gap: 2px !important;
+    padding-left: 3px !important;
+    padding-right: 3px !important;
+  }
+
+  .topbar.topbar-compact .player-avatar,
+  .topbar.topbar-compact .header-avatar {
+    flex-basis: 24px !important;
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px !important;
+    min-height: 24px !important;
+  }
+
+  .topbar.topbar-compact .resource-card {
+    min-width: 29px !important;
+    max-width: 48px !important;
+    height: 21px !important;
+    min-height: 21px !important;
+    padding-inline: 2px !important;
+  }
+
+  .topbar.topbar-compact .resource-card strong {
+    max-width: 31px !important;
+    font-size: 5.7px !important;
+  }
+
+  .topbar.topbar-compact .resource-card .hud-icon {
+    width: 11px !important;
+    height: 11px !important;
+    min-width: 11px !important;
+    flex-basis: 11px !important;
+  }
+
+  .topbar.topbar-compact .top-action,
+  .topbar.topbar-compact .language-button {
+    flex-basis: 19px !important;
+    width: 19px !important;
+    min-width: 19px !important;
+    height: 19px !important;
+    min-height: 19px !important;
+    font-size: 9.5px !important;
+  }
+
+  .topbar.topbar-compact .language-button {
+    flex-basis: 21px !important;
+    width: 21px !important;
+    min-width: 21px !important;
+    font-size: 5.9px !important;
+  }
+
+  .screen[data-screen="home"] .home-layout-balanced {
+    grid-template-columns:
+      minmax(86px, .78fr)
+      minmax(0, 1.38fr)
+      minmax(116px, 1fr) !important;
+    gap: 5px !important;
+  }
+
+  .screen[data-screen="home"] .home-left {
+    padding: 5px !important;
+    gap: 4px !important;
+  }
+
+  .screen[data-screen="home"] .home-left-widget {
+    grid-template-columns: 23px minmax(0, 1fr) !important;
+    column-gap: 4px !important;
+    padding: 4px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .topbar.topbar-compact {
+    grid-template-columns: minmax(50px, 1fr) max-content max-content !important;
+  }
+
+  /* XP value is the least important string on very narrow devices. */
+  .topbar.topbar-compact .xp-row {
+    grid-template-columns: 9px minmax(22px, 1fr) !important;
+  }
+
+  .topbar.topbar-compact .xp-row > span {
+    display: none !important;
+  }
+
+  .topbar.topbar-compact .topbar-resources {
+    gap: 1px !important;
+  }
+
+  .topbar.topbar-compact .resource-card {
+    min-width: 27px !important;
+    max-width: 43px !important;
+  }
+
+  .screen[data-screen="home"] .home-layout-balanced {
+    grid-template-columns:
+      minmax(78px, .74fr)
+      minmax(0, 1.34fr)
+      minmax(106px, 1fr) !important;
+    gap: 4px !important;
+  }
+
+  .screen[data-screen="home"] .home-widget-header > strong {
+    font-size: 5.9px !important;
+  }
+
+  .screen[data-screen="home"] .daily-challenges-launch-badge {
+    min-width: 21px !important;
+    height: 14px !important;
+    padding-inline: 3px !important;
+    font-size: 5.8px !important;
+    line-height: 14px !important;
+  }
+}
+

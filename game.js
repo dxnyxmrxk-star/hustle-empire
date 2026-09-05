@@ -52,7 +52,7 @@
      CSS/UI frame overlay rendered above it.
   ========================================================== */
 
-  const SPRITE_BUILD_VERSION = "16.6";
+  const SPRITE_BUILD_VERSION = "16.7";
 
   const REAL_GAME_ASSET_PATHS = Object.freeze([
     "assets/acc_epic.png",
