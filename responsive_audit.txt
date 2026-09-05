@@ -1,0 +1,29 @@
+URBAN TYCOON V19.0 — RESPONSIVE SCALE STATIC AUDIT
+
+Goals:
+- improve readability on desktop and mobile
+- enlarge the interface slightly without changing the overall grid
+- keep long EN/RU strings inside their containers
+
+Implementation:
+- body.ui-scale-responsive scopes the new design layer
+- desktop app max-width increased from 560px to 624px (39rem)
+- typography uses clamp()-based scale from 2xs through xl
+- padding/gaps use flexible clamp()-based spacing tokens
+- topbar and bottom-nav heights scale with viewport
+- currency badges/icons scale together and retain V18.7 vertical alignment
+- mobile override prevents old 5.6–5.9px currency text shrink
+- Home, City, Cases, Collection, Wardrobe, Shop and Leaderboard typography raised
+- card/button padding and minimum heights increased proportionally
+- min-width:0 + overflow-wrap:anywhere protect long EN/RU strings
+- bottom-nav labels/icons scale without changing the six-column layout
+- V18.9 navigation-performance code remains unchanged
+
+Validation:
+- node --check script.js: OK
+- node --check game.js: OK
+- node --check translations.js: OK
+- CSS brace balance: OK
+- cache/version refs: 19.0
+
+No live browser/Telegram visual screenshot test was performed.

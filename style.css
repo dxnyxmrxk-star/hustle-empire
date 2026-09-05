@@ -11726,3 +11726,575 @@ body.social-tasks-modal-open {
   }
 }
 
+
+/* ==========================================================
+   V19.0 — RESPONSIVE SCALE / TYPOGRAPHY SYSTEM
+   Desktop + mobile readability pass.
+   Scoped through body.ui-scale-responsive.
+   Keep this block LAST.
+========================================================== */
+
+body.ui-scale-responsive {
+  --ui-text-2xs: clamp(.45rem, .425rem + .10vw, .52rem);
+  --ui-text-xs:  clamp(.50rem, .465rem + .14vw, .59rem);
+  --ui-text-sm:  clamp(.57rem, .525rem + .18vw, .68rem);
+  --ui-text-md:  clamp(.66rem, .605rem + .22vw, .80rem);
+  --ui-text-lg:  clamp(.79rem, .70rem + .34vw, 1rem);
+  --ui-text-xl:  clamp(1.08rem, .92rem + .64vw, 1.48rem);
+
+  --ui-space-1: clamp(.25rem, .21rem + .15vw, .34rem);
+  --ui-space-2: clamp(.38rem, .32rem + .22vw, .52rem);
+  --ui-space-3: clamp(.52rem, .43rem + .30vw, .72rem);
+  --ui-space-4: clamp(.68rem, .55rem + .42vw, .94rem);
+
+  --ui-control-h: clamp(2rem, 1.86rem + .42vw, 2.28rem);
+  --ui-card-radius: clamp(.55rem, .48rem + .25vw, .72rem);
+
+  --topbar-height: clamp(3.45rem, 3.2rem + .8vw, 3.9rem);
+  --navbar-height: clamp(3.7rem, 3.45rem + .85vw, 4.25rem);
+  --radius: var(--ui-card-radius);
+
+  font-size: clamp(10.5px, 9.5px + .18vw, 12px);
+}
+
+body.ui-scale-responsive .app-shell {
+  width: min(100%, 39rem) !important;
+  max-width: 39rem !important;
+}
+
+body.ui-scale-responsive .screen {
+  padding: var(--ui-space-3) !important;
+}
+
+body.ui-scale-responsive .screen *,
+body.ui-scale-responsive .topbar * {
+  min-width: 0;
+}
+
+body.ui-scale-responsive .screen p,
+body.ui-scale-responsive .screen small,
+body.ui-scale-responsive .screen strong,
+body.ui-scale-responsive .screen span {
+  overflow-wrap: anywhere;
+}
+
+/* ---------- TOP HUD ---------- */
+
+body.ui-scale-responsive .topbar.topbar-compact {
+  gap: clamp(.20rem, .16rem + .16vw, .32rem) !important;
+  padding:
+    max(.44rem, env(safe-area-inset-top))
+    clamp(.35rem, .28rem + .24vw, .52rem)
+    .38rem !important;
+}
+
+body.ui-scale-responsive .topbar.topbar-compact .player-avatar {
+  width: clamp(2rem, 1.9rem + .35vw, 2.25rem) !important;
+  height: clamp(2rem, 1.9rem + .35vw, 2.25rem) !important;
+  flex-basis: clamp(2rem, 1.9rem + .35vw, 2.25rem) !important;
+}
+
+body.ui-scale-responsive .level-row strong {
+  font-size: var(--ui-text-md) !important;
+  font-weight: 850 !important;
+}
+
+body.ui-scale-responsive .xp-row > span {
+  font-size: var(--ui-text-xs) !important;
+  line-height: 1.1 !important;
+}
+
+body.ui-scale-responsive .progress-bar {
+  height: clamp(.36rem, .32rem + .14vw, .44rem) !important;
+}
+
+body.ui-scale-responsive .topbar.topbar-compact .resource-card {
+  grid-template-columns:
+    clamp(.78rem, .72rem + .18vw, .88rem)
+    minmax(0, auto) !important;
+  min-width: clamp(2.65rem, 2.45rem + .65vw, 3.05rem) !important;
+  max-width: clamp(4.4rem, 4rem + 1.2vw, 5rem) !important;
+  height: clamp(1.55rem, 1.45rem + .34vw, 1.75rem) !important;
+  min-height: clamp(1.55rem, 1.45rem + .34vw, 1.75rem) !important;
+  column-gap: clamp(.15rem, .12rem + .10vw, .22rem) !important;
+  padding-inline: clamp(.26rem, .22rem + .14vw, .34rem) !important;
+  border-radius: clamp(.36rem, .32rem + .14vw, .45rem) !important;
+}
+
+body.ui-scale-responsive .topbar.topbar-compact .energy-card {
+  min-width: clamp(3.25rem, 3rem + .75vw, 3.75rem) !important;
+  max-width: clamp(4.9rem, 4.5rem + 1.2vw, 5.55rem) !important;
+}
+
+body.ui-scale-responsive .topbar.topbar-compact .resource-card .hud-icon {
+  width: clamp(.76rem, .71rem + .15vw, .86rem) !important;
+  height: clamp(.76rem, .71rem + .15vw, .86rem) !important;
+  min-width: clamp(.76rem, .71rem + .15vw, .86rem) !important;
+  min-height: clamp(.76rem, .71rem + .15vw, .86rem) !important;
+  max-width: clamp(.76rem, .71rem + .15vw, .86rem) !important;
+  max-height: clamp(.76rem, .71rem + .15vw, .86rem) !important;
+}
+
+body.ui-scale-responsive .topbar.topbar-compact .resource-card .resource-value,
+body.ui-scale-responsive .topbar.topbar-compact .resource-card > strong {
+  font-size: clamp(.43rem, .405rem + .12vw, .51rem) !important;
+  font-weight: 850 !important;
+  line-height: 1 !important;
+  letter-spacing: -.01em !important;
+}
+
+body.ui-scale-responsive .top-action,
+body.ui-scale-responsive .language-button {
+  width: clamp(1.78rem, 1.68rem + .32vw, 1.98rem) !important;
+  height: clamp(1.78rem, 1.68rem + .32vw, 1.98rem) !important;
+  font-size: clamp(.86rem, .78rem + .25vw, 1rem) !important;
+}
+
+body.ui-scale-responsive .language-button {
+  font-size: var(--ui-text-sm) !important;
+  font-weight: 900 !important;
+}
+
+body.ui-scale-responsive .badge {
+  min-width: clamp(.95rem, .88rem + .22vw, 1.08rem) !important;
+  height: clamp(.95rem, .88rem + .22vw, 1.08rem) !important;
+  font-size: var(--ui-text-xs) !important;
+  font-weight: 900 !important;
+}
+
+/* ---------- TYPOGRAPHY HIERARCHY ---------- */
+
+body.ui-scale-responsive .screen-title,
+body.ui-scale-responsive .cases-page-header h1,
+body.ui-scale-responsive .boost-shop > h1 {
+  font-size: var(--ui-text-xl) !important;
+  line-height: 1.03 !important;
+}
+
+body.ui-scale-responsive .missions-title-row h2,
+body.ui-scale-responsive .equipment-column > h2,
+body.ui-scale-responsive .accessory-cases-heading h2,
+body.ui-scale-responsive .exclusive-cards-heading h2,
+body.ui-scale-responsive .leaderboard-panel-head h2,
+body.ui-scale-responsive .leaderboard-support-head h2 {
+  font-size: var(--ui-text-lg) !important;
+  line-height: 1.08 !important;
+}
+
+body.ui-scale-responsive .shop-panel-title,
+body.ui-scale-responsive .gold-section-title,
+body.ui-scale-responsive .outfit-panel h3,
+body.ui-scale-responsive .district-activity h3,
+body.ui-scale-responsive .summary-panel h2,
+body.ui-scale-responsive .summary-panel h3 {
+  font-size: var(--ui-text-sm) !important;
+  line-height: 1.15 !important;
+}
+
+body.ui-scale-responsive .cases-helper,
+body.ui-scale-responsive .quick-job-content > small,
+body.ui-scale-responsive .boost-card small,
+body.ui-scale-responsive .premium-product span,
+body.ui-scale-responsive .outfit-panel section > small,
+body.ui-scale-responsive .quest-info small,
+body.ui-scale-responsive .leaderboard-title-block p,
+body.ui-scale-responsive .leaderboard-season-card small,
+body.ui-scale-responsive .leaderboard-player-copy small,
+body.ui-scale-responsive .leaderboard-current-stat small {
+  font-size: var(--ui-text-xs) !important;
+  line-height: 1.28 !important;
+}
+
+body.ui-scale-responsive button,
+body.ui-scale-responsive .nav-item {
+  font-weight: 800;
+}
+
+/* ---------- HOME ---------- */
+
+body.ui-scale-responsive .home-left,
+body.ui-scale-responsive .home-missions,
+body.ui-scale-responsive .quick-jobs-panel,
+body.ui-scale-responsive .home-businesses-panel {
+  padding: var(--ui-space-3) !important;
+  gap: var(--ui-space-2) !important;
+}
+
+body.ui-scale-responsive .home-layout-balanced {
+  gap: clamp(.42rem, .34rem + .28vw, .60rem) !important;
+}
+
+body.ui-scale-responsive .mini-feature {
+  padding: clamp(.38rem, .32rem + .20vw, .50rem) !important;
+}
+
+body.ui-scale-responsive .mini-feature strong {
+  font-size: var(--ui-text-sm) !important;
+}
+
+body.ui-scale-responsive .mini-feature span,
+body.ui-scale-responsive .mini-feature small,
+body.ui-scale-responsive .tap-title,
+body.ui-scale-responsive .quest-reward,
+body.ui-scale-responsive .missions-title-row > strong {
+  font-size: var(--ui-text-xs) !important;
+}
+
+body.ui-scale-responsive .quick-hustle strong,
+body.ui-scale-responsive .business-live-top strong,
+body.ui-scale-responsive .quick-job-content strong {
+  font-size: var(--ui-text-sm) !important;
+  line-height: 1.18 !important;
+}
+
+body.ui-scale-responsive .quest-card,
+body.ui-scale-responsive .quick-job-card,
+body.ui-scale-responsive .business-live-card {
+  padding: var(--ui-space-2) !important;
+  gap: var(--ui-space-2) !important;
+}
+
+body.ui-scale-responsive .quest-info strong {
+  font-size: var(--ui-text-xs) !important;
+}
+
+body.ui-scale-responsive .next-level-button {
+  min-height: clamp(2.45rem, 2.25rem + .65vw, 2.85rem) !important;
+  padding: var(--ui-space-2) var(--ui-space-3) !important;
+}
+
+body.ui-scale-responsive .next-level-button strong {
+  font-size: var(--ui-text-md) !important;
+}
+
+body.ui-scale-responsive .next-level-button small {
+  font-size: var(--ui-text-xs) !important;
+}
+
+/* ---------- CITY / CASES / COLLECTION ---------- */
+
+body.ui-scale-responsive .district-activity,
+body.ui-scale-responsive .premium-cases,
+body.ui-scale-responsive .pity-panel,
+body.ui-scale-responsive .summary-panel {
+  padding: var(--ui-space-3) !important;
+}
+
+body.ui-scale-responsive .city-node {
+  padding: var(--ui-space-2) !important;
+}
+
+body.ui-scale-responsive .city-node strong,
+body.ui-scale-responsive .activity-card strong,
+body.ui-scale-responsive .premium-case strong {
+  font-size: var(--ui-text-xs) !important;
+}
+
+body.ui-scale-responsive .city-node span,
+body.ui-scale-responsive .activity-card span,
+body.ui-scale-responsive .case-timer,
+body.ui-scale-responsive .premium-case small {
+  font-size: var(--ui-text-2xs) !important;
+  line-height: 1.25 !important;
+}
+
+body.ui-scale-responsive .real-case-card,
+body.ui-scale-responsive .premium-accessory-case,
+body.ui-scale-responsive .free-accessory-case {
+  padding: var(--ui-space-3) !important;
+}
+
+body.ui-scale-responsive .real-case-name {
+  font-size: var(--ui-text-md) !important;
+}
+
+body.ui-scale-responsive .real-case-duration,
+body.ui-scale-responsive .real-case-reward-preview,
+body.ui-scale-responsive .compact-card-type,
+body.ui-scale-responsive .compact-card-stars {
+  font-size: var(--ui-text-xs) !important;
+}
+
+body.ui-scale-responsive .real-case-button,
+body.ui-scale-responsive .case-reward-close,
+body.ui-scale-responsive .collection-level-button {
+  min-height: var(--ui-control-h) !important;
+  padding-inline: var(--ui-space-3) !important;
+  font-size: var(--ui-text-sm) !important;
+}
+
+body.ui-scale-responsive .collection-card-item > strong,
+body.ui-scale-responsive .compact-card-name {
+  font-size: var(--ui-text-sm) !important;
+  line-height: 1.16 !important;
+}
+
+body.ui-scale-responsive .collection-card-item > span,
+body.ui-scale-responsive .compact-card-fragments,
+body.ui-scale-responsive .compact-card-bonus {
+  font-size: var(--ui-text-xs) !important;
+}
+
+body.ui-scale-responsive .collection-ring strong {
+  font-size: clamp(1.05rem, .92rem + .45vw, 1.32rem) !important;
+}
+
+body.ui-scale-responsive .collection-ring small {
+  font-size: var(--ui-text-xs) !important;
+}
+
+/* ---------- WARDROBE ---------- */
+
+body.ui-scale-responsive .equipment-column,
+body.ui-scale-responsive .outfit-panel {
+  padding: var(--ui-space-3) !important;
+}
+
+body.ui-scale-responsive .wardrobe-screen {
+  gap: clamp(.45rem, .36rem + .28vw, .62rem) !important;
+}
+
+body.ui-scale-responsive .wardrobe-tabs {
+  gap: var(--ui-space-1) !important;
+}
+
+body.ui-scale-responsive .wardrobe-tabs button,
+body.ui-scale-responsive .open-accessory-catalog {
+  min-height: var(--ui-control-h) !important;
+  padding: var(--ui-space-1) var(--ui-space-2) !important;
+  font-size: var(--ui-text-xs) !important;
+}
+
+body.ui-scale-responsive .equipment-row {
+  padding: var(--ui-space-2) !important;
+}
+
+body.ui-scale-responsive .equipment-row strong {
+  font-size: var(--ui-text-xs) !important;
+}
+
+body.ui-scale-responsive .equipment-row small {
+  font-size: var(--ui-text-2xs) !important;
+}
+
+body.ui-scale-responsive .outfit-panel section {
+  padding: var(--ui-space-3) !important;
+  gap: var(--ui-space-1) !important;
+}
+
+body.ui-scale-responsive .outfit-panel section > strong {
+  font-size: var(--ui-text-md) !important;
+}
+
+body.ui-scale-responsive .outfit-panel p {
+  font-size: var(--ui-text-xs) !important;
+  line-height: 1.3 !important;
+}
+
+body.ui-scale-responsive .upgrade-outfit {
+  min-height: clamp(3.2rem, 2.9rem + .9vw, 3.75rem) !important;
+  padding: var(--ui-space-3) !important;
+}
+
+body.ui-scale-responsive .upgrade-outfit strong {
+  font-size: var(--ui-text-sm) !important;
+}
+
+/* ---------- SHOP ---------- */
+
+body.ui-scale-responsive .boost-shop,
+body.ui-scale-responsive .premium-shop-column {
+  padding: var(--ui-space-3) !important;
+}
+
+body.ui-scale-responsive .shop-screen {
+  gap: clamp(.48rem, .38rem + .32vw, .66rem) !important;
+}
+
+body.ui-scale-responsive .boost-grid,
+body.ui-scale-responsive .gem-pack-row,
+body.ui-scale-responsive .premium-shop-column {
+  gap: var(--ui-space-2) !important;
+}
+
+body.ui-scale-responsive .boost-card,
+body.ui-scale-responsive .premium-product,
+body.ui-scale-responsive .empire-pass {
+  padding: var(--ui-space-2) !important;
+  border-radius: var(--ui-card-radius) !important;
+}
+
+body.ui-scale-responsive .boost-card {
+  min-height: clamp(6.3rem, 5.8rem + 1.5vw, 7.1rem) !important;
+}
+
+body.ui-scale-responsive .boost-card strong,
+body.ui-scale-responsive .premium-product strong {
+  font-size: var(--ui-text-sm) !important;
+  line-height: 1.16 !important;
+}
+
+body.ui-scale-responsive .boost-card button,
+body.ui-scale-responsive .empire-pass button {
+  min-height: var(--ui-control-h) !important;
+  padding: var(--ui-space-1) var(--ui-space-2) !important;
+  font-size: var(--ui-text-xs) !important;
+}
+
+body.ui-scale-responsive .gem-pack {
+  min-height: clamp(3.75rem, 3.45rem + .9vw, 4.3rem) !important;
+}
+
+body.ui-scale-responsive .gem-pack strong {
+  font-size: var(--ui-text-md) !important;
+}
+
+body.ui-scale-responsive .gem-pack span,
+body.ui-scale-responsive .premium-product small,
+body.ui-scale-responsive .empire-pass span {
+  font-size: var(--ui-text-xs) !important;
+}
+
+body.ui-scale-responsive .empire-pass strong {
+  font-size: var(--ui-text-md) !important;
+}
+
+body.ui-scale-responsive .empire-pass span {
+  line-height: 1.28 !important;
+}
+
+/* ---------- LEADERBOARD ---------- */
+
+body.ui-scale-responsive .leaderboard-screen {
+  gap: var(--ui-space-2) !important;
+}
+
+body.ui-scale-responsive .leaderboard-title-block,
+body.ui-scale-responsive .leaderboard-season-card,
+body.ui-scale-responsive .leaderboard-panel,
+body.ui-scale-responsive .leaderboard-current-card,
+body.ui-scale-responsive .leaderboard-rewards-card,
+body.ui-scale-responsive .leaderboard-flash-offer {
+  border-radius: var(--ui-card-radius) !important;
+}
+
+body.ui-scale-responsive .leaderboard-title-block,
+body.ui-scale-responsive .leaderboard-season-card {
+  padding: var(--ui-space-3) !important;
+}
+
+body.ui-scale-responsive .leaderboard-title-block h1 {
+  font-size: clamp(1.15rem, .98rem + .65vw, 1.68rem) !important;
+}
+
+body.ui-scale-responsive .leaderboard-season-label,
+body.ui-scale-responsive .leaderboard-season-badge,
+body.ui-scale-responsive .leaderboard-columns {
+  font-size: var(--ui-text-xs) !important;
+}
+
+body.ui-scale-responsive .leaderboard-season-time {
+  font-size: clamp(.88rem, .78rem + .40vw, 1.18rem) !important;
+}
+
+body.ui-scale-responsive .leaderboard-panel {
+  padding: var(--ui-space-2) !important;
+}
+
+body.ui-scale-responsive .leaderboard-row {
+  min-height: clamp(3.15rem, 2.9rem + .72vw, 3.6rem) !important;
+  padding: var(--ui-space-2) var(--ui-space-3) !important;
+}
+
+body.ui-scale-responsive .leaderboard-rank,
+body.ui-scale-responsive .leaderboard-player-copy strong,
+body.ui-scale-responsive .leaderboard-income,
+body.ui-scale-responsive .leaderboard-current-stat strong {
+  font-size: var(--ui-text-sm) !important;
+}
+
+body.ui-scale-responsive .leaderboard-you-badge {
+  font-size: var(--ui-text-2xs) !important;
+  min-height: 1rem !important;
+  line-height: 1rem !important;
+  padding-inline: .28rem !important;
+}
+
+/* ---------- BOTTOM NAV ---------- */
+
+body.ui-scale-responsive .bottom-navigation .nav-item {
+  min-height: var(--navbar-height) !important;
+  padding:
+    clamp(.30rem, .25rem + .18vw, .40rem)
+    clamp(.10rem, .08rem + .08vw, .16rem)
+    calc(.28rem + env(safe-area-inset-bottom, 0px)) !important;
+  font-size: clamp(.43rem, .40rem + .10vw, .50rem) !important;
+  font-weight: 850 !important;
+}
+
+body.ui-scale-responsive .bottom-navigation .nav-icon {
+  font-size: clamp(1rem, .92rem + .30vw, 1.18rem) !important;
+}
+
+/* ---------- MOBILE ---------- */
+
+@media (max-width: 480px) {
+  body.ui-scale-responsive {
+    --ui-text-2xs: clamp(.44rem, 1.85vw, .49rem);
+    --ui-text-xs:  clamp(.49rem, 2.02vw, .55rem);
+    --ui-text-sm:  clamp(.55rem, 2.22vw, .62rem);
+    --ui-text-md:  clamp(.63rem, 2.52vw, .72rem);
+    --ui-text-lg:  clamp(.73rem, 2.9vw, .84rem);
+    --ui-text-xl:  clamp(1.02rem, 4.05vw, 1.22rem);
+
+    --ui-space-2: clamp(.34rem, 1.5vw, .43rem);
+    --ui-space-3: clamp(.47rem, 1.9vw, .58rem);
+  }
+
+  body.ui-scale-responsive .screen {
+    padding: var(--ui-space-2) !important;
+  }
+
+  body.ui-scale-responsive .topbar.topbar-compact .resource-card .resource-value,
+  body.ui-scale-responsive .topbar.topbar-compact .resource-card > strong {
+    font-size: clamp(.42rem, 1.75vw, .48rem) !important;
+  }
+
+  body.ui-scale-responsive .bottom-navigation .nav-item {
+    font-size: clamp(.42rem, 1.7vw, .47rem) !important;
+  }
+}
+
+@media (max-width: 390px) {
+  body.ui-scale-responsive .app-shell {
+    width: 100% !important;
+  }
+
+  body.ui-scale-responsive .topbar.topbar-compact {
+    gap: .12rem !important;
+    padding-inline: .28rem !important;
+  }
+
+  body.ui-scale-responsive .home-layout-balanced,
+  body.ui-scale-responsive .shop-screen,
+  body.ui-scale-responsive .wardrobe-screen {
+    max-width: 100% !important;
+  }
+}
+
+@media (min-width: 700px) {
+  body.ui-scale-responsive .app-shell {
+    border-radius: 1.15rem;
+  }
+
+  body.ui-scale-responsive .screen {
+    padding: clamp(.72rem, .5rem + .45vw, .92rem) !important;
+  }
+
+  body.ui-scale-responsive .home-layout-balanced,
+  body.ui-scale-responsive .shop-screen,
+  body.ui-scale-responsive .wardrobe-screen {
+    gap: clamp(.55rem, .42rem + .32vw, .72rem) !important;
+  }
+}
+
