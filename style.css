@@ -3996,3 +3996,843 @@ body.offline-earnings-modal-open {
     font-size: 34px;
   }
 }
+
+
+/* ==========================================================
+   V14.5 — DAILY RETENTION
+========================================================== */
+
+.daily-retention-panel {
+  margin-top: 14px;
+  padding: 16px;
+  border: 1px solid rgba(82, 221, 255, .14);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 15% 0%, rgba(0, 230, 118, .08), transparent 30%),
+    linear-gradient(180deg, rgba(16, 28, 40, .92), rgba(8, 16, 25, .94));
+  box-shadow: 0 14px 40px rgba(0, 0, 0, .18);
+}
+
+.daily-retention-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.daily-retention-heading h2 {
+  margin: 2px 0 0;
+}
+
+.daily-reset-badge {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  min-width: 92px;
+  padding: 7px 10px;
+  border: 1px solid rgba(0, 230, 118, .22);
+  border-radius: 13px;
+  background: rgba(0, 230, 118, .065);
+}
+
+.daily-reset-badge small {
+  color: rgba(229, 241, 250, .5);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .1em;
+}
+
+.daily-reset-badge strong {
+  color: #7dffb5;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.daily-retention-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.daily-retention-card {
+  min-width: 0;
+  padding: 13px;
+  border: 1px solid rgba(255, 255, 255, .075);
+  border-radius: 17px;
+  background: rgba(255, 255, 255, .035);
+}
+
+.daily-retention-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.daily-retention-card-head > div:first-child {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+.daily-retention-card-head small {
+  display: block;
+  color: rgba(229, 241, 250, .46);
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .09em;
+}
+
+.daily-retention-card-head strong {
+  display: block;
+  margin-top: 2px;
+  color: #fff;
+  font-size: 13px;
+}
+
+.daily-feature-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: rgba(82, 221, 255, .08);
+  font-size: 20px;
+}
+
+.daily-progress-pill {
+  flex: 0 0 auto;
+  padding: 4px 7px;
+  border-radius: 999px;
+  background: rgba(0, 230, 118, .09);
+  color: #75ffb6;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.daily-retention-card > p {
+  min-height: 30px;
+  margin: 9px 0;
+  color: rgba(229, 241, 250, .58);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.daily-combo-slots {
+  display: grid;
+  gap: 6px;
+}
+
+.daily-combo-slot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 6px 8px;
+  border: 1px solid rgba(255, 255, 255, .065);
+  border-radius: 11px;
+  background: rgba(2, 8, 14, .24);
+}
+
+.daily-combo-slot.completed {
+  border-color: rgba(0, 230, 118, .24);
+  background: rgba(0, 230, 118, .06);
+}
+
+.daily-combo-slot-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, .055);
+  font-size: 14px;
+}
+
+.daily-combo-slot.completed .daily-combo-slot-icon {
+  background: rgba(0, 230, 118, .14);
+  color: #6dffad;
+  font-weight: 950;
+}
+
+.daily-combo-slot small {
+  display: block;
+  color: rgba(229, 241, 250, .42);
+  font-size: 8px;
+}
+
+.daily-combo-slot strong {
+  display: block;
+  overflow: hidden;
+  margin-top: 1px;
+  color: rgba(244, 249, 252, .9);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.daily-retention-reward {
+  margin-top: 8px;
+  padding: 7px 8px;
+  border-radius: 10px;
+  background: rgba(255, 215, 0, .07);
+  color: #ffd95a;
+  font-size: 9px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.daily-morse-code {
+  display: grid;
+  place-items: center;
+  min-height: 54px;
+  margin: 8px 0;
+  border: 1px solid rgba(82, 221, 255, .14);
+  border-radius: 13px;
+  background: rgba(0, 176, 255, .055);
+  color: #72dcff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 25px;
+  font-weight: 900;
+  letter-spacing: .18em;
+  text-shadow: 0 0 14px rgba(0, 176, 255, .18);
+}
+
+.daily-morse-input-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 7px;
+}
+
+.daily-morse-input {
+  min-width: 0;
+  min-height: 38px;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 255, 255, .10);
+  border-radius: 10px;
+  outline: 0;
+  background: rgba(2, 8, 14, .42);
+  color: #fff;
+  font: 850 16px/1 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  text-align: center;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.daily-morse-input:focus {
+  border-color: rgba(82, 221, 255, .4);
+  box-shadow: 0 0 0 2px rgba(82, 221, 255, .07);
+}
+
+.daily-morse-input-row button,
+.daily-checkin-claim {
+  min-height: 38px;
+  border: 0;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #1bea86, #00c966);
+  color: #03130b;
+  font-size: 10px;
+  font-weight: 950;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.daily-morse-input-row button {
+  padding: 0 12px;
+}
+
+.daily-morse-input-row button:disabled,
+.daily-checkin-claim:disabled {
+  opacity: .5;
+  cursor: default;
+  filter: grayscale(.35);
+}
+
+.daily-retention-status {
+  min-height: 27px;
+  margin-top: 7px;
+  color: rgba(229, 241, 250, .47);
+  font-size: 8px;
+  line-height: 1.4;
+}
+
+.daily-retention-status.success {
+  color: #75ffb6;
+}
+
+.daily-retention-status.error {
+  color: #ff8484;
+}
+
+.daily-checkin-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  margin: 10px 0 8px;
+}
+
+.daily-checkin-day {
+  position: relative;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  min-width: 0;
+  min-height: 50px;
+  padding: 5px 2px;
+  border: 1px solid rgba(255, 255, 255, .065);
+  border-radius: 9px;
+  background: rgba(2, 8, 14, .28);
+  text-align: center;
+}
+
+.daily-checkin-day small {
+  color: rgba(229, 241, 250, .38);
+  font-size: 6px;
+  font-weight: 900;
+}
+
+.daily-checkin-day strong {
+  overflow: hidden;
+  max-width: 100%;
+  margin-top: 3px;
+  color: rgba(255, 255, 255, .82);
+  font-size: 7px;
+  line-height: 1.15;
+}
+
+.daily-checkin-day span {
+  position: absolute;
+  top: 2px;
+  right: 3px;
+  color: #7dffb5;
+  font-size: 8px;
+  font-weight: 950;
+}
+
+.daily-checkin-day.current {
+  border-color: rgba(255, 215, 0, .28);
+  background: rgba(255, 215, 0, .065);
+}
+
+.daily-checkin-day.current strong {
+  color: #ffe470;
+}
+
+.daily-checkin-day.claimed {
+  border-color: rgba(0, 230, 118, .28);
+  background: rgba(0, 230, 118, .065);
+}
+
+.daily-checkin-claim {
+  width: 100%;
+  margin-top: 2px;
+}
+
+@media (max-width: 860px) {
+  .daily-retention-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .daily-retention-card > p {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 430px) {
+  .daily-retention-panel {
+    padding: 12px;
+    border-radius: 18px;
+  }
+
+  .daily-retention-heading {
+    align-items: flex-end;
+  }
+
+  .daily-retention-heading h2 {
+    font-size: 18px;
+  }
+
+  .daily-reset-badge {
+    min-width: 82px;
+  }
+
+  .daily-retention-card {
+    padding: 11px;
+  }
+
+  .daily-checkin-grid {
+    gap: 3px;
+  }
+
+  .daily-checkin-day {
+    min-height: 46px;
+    border-radius: 8px;
+  }
+
+  .daily-checkin-day strong {
+    font-size: 6px;
+  }
+}
+
+
+/* ==========================================================
+   V15.6 — DAILY CHALLENGES MODAL + CHARACTER LAYOUT
+========================================================== */
+
+/* -------- Home sidebar launcher -------- */
+
+.daily-challenges-launch {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-color: rgba(0, 230, 118, .24) !important;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(0, 230, 118, .12), transparent 44%),
+    rgba(5, 18, 28, .72) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.035),
+    0 0 0 1px rgba(0,230,118,.025);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.daily-challenges-launch:hover {
+  border-color: rgba(0, 230, 118, .42) !important;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(0, 230, 118, .18), transparent 48%),
+    rgba(7, 24, 34, .88) !important;
+}
+
+.daily-challenges-icon {
+  background:
+    linear-gradient(145deg, rgba(0,230,118,.16), rgba(0,176,255,.11)) !important;
+  box-shadow: 0 0 16px rgba(0,230,118,.08);
+}
+
+.daily-challenges-launch-copy {
+  min-width: 0;
+}
+
+.daily-challenges-launch-copy strong,
+.daily-challenges-launch-copy span,
+.daily-challenges-launch-copy small {
+  display: block;
+}
+
+.daily-challenges-launch-timer {
+  margin-top: 2px;
+  color: #73ffb4 !important;
+  font-size: 10px !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.daily-challenges-launch-copy small {
+  margin-top: 2px;
+  color: rgba(225, 239, 247, .46);
+  font-size: 8px;
+}
+
+.daily-challenges-launch-badge {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  display: grid;
+  place-items: center;
+  min-width: 29px;
+  height: 19px;
+  padding: 0 6px;
+  border: 1px solid rgba(0,230,118,.3);
+  border-radius: 999px;
+  background: rgba(0,230,118,.12);
+  color: #79ffb8;
+  font-size: 9px;
+  font-weight: 950;
+}
+
+/* -------- Modal shell -------- */
+
+#daily-challenges-modal[hidden] {
+  display: none !important;
+}
+
+body.daily-challenges-modal-open {
+  overflow: hidden !important;
+}
+
+#daily-challenges-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 5400;
+  display: grid;
+  place-items: center;
+  padding:
+    max(16px, env(safe-area-inset-top, 0px))
+    14px
+    max(16px, env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
+}
+
+.daily-challenges-backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  padding: 0;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(0, 230, 118, .15), transparent 30%),
+    radial-gradient(circle at 80% 72%, rgba(0, 176, 255, .11), transparent 34%),
+    rgba(1, 6, 12, .84);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+
+.daily-challenges-dialog {
+  position: relative;
+  width: min(880px, 100%);
+  max-height: min(780px, calc(100dvh - 32px));
+  overflow: hidden;
+  border: 1px solid rgba(82, 221, 255, .20);
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(0, 230, 118, .08), transparent 31%),
+    linear-gradient(180deg, rgba(13, 27, 40, .98), rgba(5, 13, 22, .985));
+  box-shadow:
+    0 30px 90px rgba(0,0,0,.60),
+    0 0 40px rgba(0,176,255,.08),
+    inset 0 1px 0 rgba(255,255,255,.04);
+  color: #fff;
+}
+
+.daily-challenges-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 18px 14px;
+  border-bottom: 1px solid rgba(255,255,255,.055);
+  background: rgba(255,255,255,.018);
+}
+
+.daily-challenges-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.daily-challenges-modal-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  border: 1px solid rgba(0,230,118,.24);
+  border-radius: 16px;
+  background:
+    linear-gradient(145deg, rgba(0,230,118,.13), rgba(0,176,255,.08));
+  box-shadow: 0 0 22px rgba(0,230,118,.08);
+  font-size: 24px;
+}
+
+.daily-challenges-modal-title h2 {
+  margin: 2px 0 3px;
+  color: #fff;
+  font-size: clamp(21px, 4vw, 30px);
+  line-height: 1.05;
+}
+
+.daily-challenges-modal-title p {
+  max-width: 520px;
+  margin: 0;
+  color: rgba(224, 238, 247, .54);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.daily-challenges-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.daily-challenges-close {
+  display: grid;
+  place-items: center;
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 12px;
+  background: rgba(255,255,255,.04);
+  color: rgba(255,255,255,.72);
+  font-size: 25px;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.daily-challenges-close:hover {
+  border-color: rgba(255,255,255,.18);
+  background: rgba(255,255,255,.075);
+  color: #fff;
+}
+
+/* The old inline Home block is gone; the retained panel now lives only here. */
+.daily-retention-modal-panel {
+  margin: 0 !important;
+  max-height: calc(min(780px, 100dvh - 32px) - 88px);
+  overflow-y: auto;
+  padding: 16px 18px 20px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+.daily-retention-modal-panel .daily-retention-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 12px;
+}
+
+.daily-retention-modal-panel .daily-retention-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 290px;
+  padding: 14px;
+  border-color: rgba(255,255,255,.08);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.022));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.025),
+    0 10px 30px rgba(0,0,0,.14);
+}
+
+.daily-retention-modal-panel .daily-retention-card > p {
+  min-height: 32px;
+}
+
+.daily-card-progress-track {
+  width: 100%;
+  height: 5px;
+  margin: 1px 0 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255,255,255,.06);
+}
+
+.daily-card-progress-fill {
+  width: 0%;
+  height: 100%;
+  border-radius: inherit;
+  background:
+    linear-gradient(90deg, #00d66f, #48f5aa);
+  box-shadow: 0 0 12px rgba(0,230,118,.24);
+  transition: width .25s ease;
+}
+
+.daily-retention-modal-panel .daily-combo-slots {
+  flex: 1 1 auto;
+}
+
+.daily-retention-modal-panel .daily-morse-code {
+  min-height: 70px;
+  margin-top: 4px;
+  border-color: rgba(82,221,255,.18);
+  background:
+    radial-gradient(circle, rgba(0,176,255,.09), rgba(0,176,255,.035));
+  font-size: clamp(23px, 4vw, 31px);
+}
+
+.daily-retention-modal-panel .daily-morse-input {
+  min-height: 44px;
+  border-color: rgba(255,255,255,.12);
+  background: rgba(1,8,14,.55);
+}
+
+.daily-retention-modal-panel .daily-morse-input-row button,
+.daily-retention-modal-panel .daily-checkin-claim {
+  min-height: 44px;
+}
+
+.daily-retention-modal-panel .daily-checkin-grid {
+  margin-top: 4px;
+}
+
+.daily-retention-modal-panel .daily-retention-reward {
+  margin-top: auto;
+}
+
+/* -------- Character positioning -------- */
+
+/*
+  Direct PNG characters are now centered within the visual card.
+  They intentionally do NOT use the old sprite-character sizing rules.
+*/
+.home-center,
+.wardrobe-character {
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.home-character-sprite.character-real-image {
+  position: absolute !important;
+  z-index: 3 !important;
+  left: 50% !important;
+  top: 48% !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: min(94%, 430px) !important;
+  height: min(82%, 510px) !important;
+  max-width: 94% !important;
+  max-height: 82% !important;
+  transform: translate(-50%, -50%) !important;
+  object-fit: contain !important;
+  object-position: center center !important;
+  background: transparent !important;
+  filter: drop-shadow(0 18px 24px rgba(0,0,0,.42));
+}
+
+.wardrobe-character-sprite.character-real-image {
+  position: absolute !important;
+  z-index: 3 !important;
+  left: 50% !important;
+  top: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: min(96%, 430px) !important;
+  height: min(94%, 540px) !important;
+  max-width: 96% !important;
+  max-height: 94% !important;
+  transform: translate(-50%, -50%) !important;
+  object-fit: contain !important;
+  object-position: center center !important;
+  background: transparent !important;
+  filter: drop-shadow(0 18px 24px rgba(0,0,0,.45));
+}
+
+.player-avatar-image,
+#level-up-case-image,
+.city-map-image,
+img[data-fallback-src],
+img[src*="assets/"] {
+  background: transparent !important;
+  background-color: transparent !important;
+  image-rendering: auto !important;
+}
+
+.player-avatar-image {
+  object-fit: cover !important;
+  object-position: center !important;
+}
+
+#level-up-case-image {
+  object-fit: contain !important;
+  object-position: center !important;
+}
+
+@supports not (height: 100dvh) {
+  .daily-challenges-dialog {
+    max-height: calc(100vh - 32px);
+  }
+
+  .daily-retention-modal-panel {
+    max-height: calc(100vh - 120px);
+  }
+}
+
+@media (max-width: 860px) {
+  .daily-retention-modal-panel .daily-retention-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .daily-retention-modal-panel .daily-retention-card {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 520px) {
+  #daily-challenges-modal {
+    padding:
+      max(8px, env(safe-area-inset-top, 0px))
+      8px
+      max(8px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .daily-challenges-dialog {
+    width: 100%;
+    max-height: calc(100dvh - 16px);
+    border-radius: 21px;
+  }
+
+  .daily-challenges-modal-header {
+    align-items: flex-start;
+    gap: 8px;
+    padding: 13px 12px 11px;
+  }
+
+  .daily-challenges-modal-icon {
+    flex-basis: 40px;
+    width: 40px;
+    height: 40px;
+    border-radius: 13px;
+    font-size: 20px;
+  }
+
+  .daily-challenges-modal-title h2 {
+    font-size: 20px;
+  }
+
+  .daily-challenges-modal-title p {
+    display: none;
+  }
+
+  .daily-challenges-header-actions {
+    gap: 5px;
+  }
+
+  .daily-challenges-header-actions .daily-reset-badge {
+    min-width: 76px;
+    padding: 6px 7px;
+  }
+
+  .daily-challenges-close {
+    flex-basis: 34px;
+    width: 34px;
+    height: 34px;
+  }
+
+  .daily-retention-modal-panel {
+    max-height: calc(100dvh - 82px);
+    padding: 10px !important;
+  }
+
+  .daily-retention-modal-panel .daily-retention-card {
+    padding: 12px;
+    border-radius: 15px;
+  }
+
+  .home-character-sprite.character-real-image {
+    top: 46% !important;
+    width: min(98%, 360px) !important;
+    height: min(78%, 430px) !important;
+    max-width: 98% !important;
+    max-height: 78% !important;
+  }
+
+  .wardrobe-character-sprite.character-real-image {
+    width: min(98%, 350px) !important;
+    height: min(92%, 450px) !important;
+    max-width: 98% !important;
+    max-height: 92% !important;
+  }
+}

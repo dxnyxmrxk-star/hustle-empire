@@ -121,7 +121,7 @@
     premium_legendary: "case-gold"
   };
 
-  const SPRITE_BUILD_VERSION = "15.5";
+  const SPRITE_BUILD_VERSION = "15.6";
 
   /*
      V14.0 asset manifest.
@@ -2481,6 +2481,66 @@
     }
   }
 
+  function getDailyChallengesCompletionCount() {
+    const today = getUtcDayKey();
+    const comboDone = Boolean(dailyRetention.combo?.rewardGranted);
+    const morseDone = Boolean(dailyRetention.morse?.claimed);
+    const checkInDone = dailyRetention.checkIn?.lastClaimDay === today;
+
+    return [comboDone, morseDone, checkInDone].filter(Boolean).length;
+  }
+
+  function renderDailyRetentionLauncher() {
+    const completed = getDailyChallengesCompletionCount();
+    const timerValue = formatDailyResetTimer(
+      getSecondsUntilDailyReset()
+    );
+
+    const badge = document.getElementById("daily-challenges-button-badge");
+    const status = document.getElementById("daily-challenges-button-status");
+    const timer = document.getElementById("daily-challenges-button-timer");
+
+    if (badge) badge.textContent = `${completed}/3`;
+    if (status) {
+      status.textContent =
+        completed >= 3
+          ? "Completate ✓"
+          : `${completed}/3 completate`;
+    }
+    if (timer) timer.textContent = timerValue;
+  }
+
+  function openDailyChallengesModal() {
+    ensureDailyRetentionState();
+    renderDailyRetentionUI();
+
+    const modal = document.getElementById("daily-challenges-modal");
+    if (!modal) return false;
+
+    modal.hidden = false;
+    modal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("daily-challenges-modal-open");
+
+    const firstInteractive =
+      modal.querySelector("#daily-morse-input:not(:disabled)")
+      ||
+      modal.querySelector("[data-daily-checkin-claim]:not(:disabled)")
+      ||
+      modal.querySelector("[data-daily-challenges-close]");
+
+    requestAnimationFrame(() => firstInteractive?.focus?.());
+    return true;
+  }
+
+  function closeDailyChallengesModal() {
+    const modal = document.getElementById("daily-challenges-modal");
+    if (!modal) return;
+
+    modal.hidden = true;
+    modal.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("daily-challenges-modal-open");
+  }
+
   function renderDailyRetentionUI(status = "") {
     ensureDailyRetentionState();
 
@@ -2488,13 +2548,32 @@
     renderDailyMorseUI(status);
     renderDailyCheckInUI(status);
 
-    const resetTimer = document.getElementById("daily-reset-timer");
+    const resetValue = formatDailyResetTimer(
+      getSecondsUntilDailyReset()
+    );
 
-    if (resetTimer) {
-      resetTimer.textContent = formatDailyResetTimer(
-        getSecondsUntilDailyReset()
-      );
-    }
+    const resetTimer = document.getElementById("daily-reset-timer");
+    if (resetTimer) resetTimer.textContent = resetValue;
+
+    const comboFill = document.getElementById("daily-combo-progress-fill");
+    const morseFill = document.getElementById("daily-morse-progress-fill");
+    const morseProgress = document.getElementById("daily-morse-progress");
+    const checkInFill = document.getElementById("daily-checkin-progress-fill");
+
+    const comboCompleted =
+      dailyRetention.combo?.completedSlots?.filter(Boolean).length || 0;
+    const morseCompleted = dailyRetention.morse?.claimed ? 1 : 0;
+    const checkInDay = Math.min(
+      7,
+      Math.max(0, Number(dailyRetention.checkIn?.streakDays) || 0)
+    );
+
+    if (comboFill) comboFill.style.width = `${(comboCompleted / 3) * 100}%`;
+    if (morseFill) morseFill.style.width = morseCompleted ? "100%" : "0%";
+    if (morseProgress) morseProgress.textContent = `${morseCompleted}/1`;
+    if (checkInFill) checkInFill.style.width = `${(checkInDay / 7) * 100}%`;
+
+    renderDailyRetentionLauncher();
   }
 
   function tickDailyRetentionSystem() {
@@ -2505,13 +2584,15 @@
       return;
     }
 
-    const resetTimer = document.getElementById("daily-reset-timer");
+    const resetValue = formatDailyResetTimer(
+      getSecondsUntilDailyReset()
+    );
 
-    if (resetTimer) {
-      resetTimer.textContent = formatDailyResetTimer(
-        getSecondsUntilDailyReset()
-      );
-    }
+    const resetTimer = document.getElementById("daily-reset-timer");
+    const launcherTimer = document.getElementById("daily-challenges-button-timer");
+
+    if (resetTimer) resetTimer.textContent = resetValue;
+    if (launcherTimer) launcherTimer.textContent = resetValue;
   }
 
   function initializeDailyRetention() {
@@ -4847,6 +4928,18 @@
     bindTapControl();
 
     document.addEventListener("click", (event) => {
+      if (event.target.closest("[data-daily-challenges-open]")) {
+        event.preventDefault();
+        openDailyChallengesModal();
+        return;
+      }
+
+      if (event.target.closest("[data-daily-challenges-close]")) {
+        event.preventDefault();
+        closeDailyChallengesModal();
+        return;
+      }
+
       const dailyMorseSubmit = event.target.closest("[data-daily-morse-submit]");
       if (dailyMorseSubmit) {
         event.preventDefault();
@@ -4984,6 +5077,15 @@
     });
 
     document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        const modal = document.getElementById("daily-challenges-modal");
+        if (modal && !modal.hidden) {
+          event.preventDefault();
+          closeDailyChallengesModal();
+          return;
+        }
+      }
+
       if (
         event.key === "Enter"
         &&
@@ -5168,6 +5270,8 @@
   window.dailyRetentionSystem = {
     ensure: ensureDailyRetentionState,
     render: renderDailyRetentionUI,
+    open: openDailyChallengesModal,
+    close: closeDailyChallengesModal,
     combo: {
       getState: () => ({ ...dailyRetention.combo }),
       track: trackDailyComboAction
