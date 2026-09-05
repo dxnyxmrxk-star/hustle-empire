@@ -1,0 +1,60 @@
+URBAN TYCOON V19.6 — CHARACTER SELECTION / PERSISTENCE STATIC AUDIT
+
+Implemented:
+- Blocking full-screen welcome selector before Home when no character choice
+  has been confirmed yet.
+- Two choices stored as stable values:
+    male
+    female
+- New persistent state:
+    state.profile.characterGender
+    state.profile.characterSelected
+- Existing V19.1 save key is intentionally unchanged:
+    urbanTycoonSave_v19_1
+  so money, XP, missions, businesses, cards, wardrobe and timers are not reset.
+- Old saves are deep-merged with profile defaults.
+- Safe default/fallback is male.
+- Choice is immediately persisted with saveGame("character-selection").
+- Deep Proxy autosave + local backup + Telegram CloudStorage from V19.1 remain active.
+- Home and Wardrobe character rendering now read the selected gender.
+- HUD avatar fallback rendering also reads the selected gender.
+- Leaderboard local-player fallback avatar reads the selected gender.
+- Public API:
+    HustleGame.character.getGender()
+    HustleGame.character.isSelected()
+    HustleGame.character.select("male" | "female")
+    HustleGame.character.openSelector()
+    HustleGame.character.refresh()
+    HustleGame.character.getAsset(stage)
+
+Female asset contract:
+- assets/hero_female_lvl1.png
+- assets/hero_female_lvl2.png
+- assets/hero_female_lvl3.png
+- assets/avatar_female_face.png
+
+These female PNGs are not present in the current code-only patch asset set.
+If absent, V19.6 safely falls back to the equivalent existing male PNG while
+KEEPING the saved female choice. The selector itself shows a female visual
+fallback instead of a broken image. Adding those four files later automatically
+activates the female art without changing code or save data.
+
+Startup order:
+1. Restore newest local/Telegram save
+2. Sanitize state + migrate profile safely
+3. Bind UI
+4. If characterSelected !== true, show selector before Home interaction
+5. Save choice immediately
+6. Render selected avatar/character
+7. Show any deferred offline earnings modal
+
+Validation:
+- node --check script.js: OK
+- node --check game.js: OK
+- node --check translations.js: OK
+- CSS brace balance: OK
+- V19.6 version/cache refs: OK
+- Existing persistence key unchanged: OK
+- Mission/business/card/equipment default structures retained: OK
+
+No live Telegram CloudStorage round-trip or browser visual test was performed.

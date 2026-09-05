@@ -1,6 +1,6 @@
 /* ============================================================
    URBAN TYCOON — CENTRAL EN/RU TRANSLATIONS
-   V19.5
+   V19.6
 ============================================================ */
 (() => {
   "use strict";
@@ -43,6 +43,14 @@
       "nav.collection": "Cards",
       "nav.wardrobe": "Wardrobe",
       "nav.shop": "Shop",
+      "characterSelect.eyebrow": "WELCOME TO URBAN TYCOON",
+      "characterSelect.title": "Choose your character",
+      "characterSelect.subtitle": "Pick the character that will represent you across your empire.",
+      "characterSelect.male": "Man",
+      "characterSelect.maleHint": "Start with the classic Urban Tycoon character.",
+      "characterSelect.female": "Woman",
+      "characterSelect.femaleHint": "Use the female Urban Tycoon character.",
+      "characterSelect.savedHint": "Your choice is saved automatically with your game progress.",
       "home.tagline": "Small steps. Big empire.",
       "home.dailyChallenges": "Daily Challenges",
       "home.dailyChallengesProgressZero": "0/3 completed",
@@ -544,6 +552,14 @@
       "nav.collection": "Карты",
       "nav.wardrobe": "Гардероб",
       "nav.shop": "Магазин",
+      "characterSelect.eyebrow": "ДОБРО ПОЖАЛОВАТЬ В URBAN TYCOON",
+      "characterSelect.title": "Выберите персонажа",
+      "characterSelect.subtitle": "Выберите персонажа, который будет представлять вас в вашей империи.",
+      "characterSelect.male": "Мужчина",
+      "characterSelect.maleHint": "Классический персонаж Urban Tycoon.",
+      "characterSelect.female": "Женщина",
+      "characterSelect.femaleHint": "Женский персонаж Urban Tycoon.",
+      "characterSelect.savedHint": "Выбор автоматически сохраняется вместе с игровым прогрессом.",
       "home.tagline": "Маленькие шаги. Большая империя.",
       "home.dailyChallenges": "Ежедневные задания",
       "home.dailyChallengesProgressZero": "0/3 выполнено",

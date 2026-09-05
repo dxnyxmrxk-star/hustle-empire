@@ -84,7 +84,7 @@
      CSS/UI frame overlay rendered above it.
   ========================================================== */
 
-  const SPRITE_BUILD_VERSION = "19.5";
+  const SPRITE_BUILD_VERSION = "19.6";
 
   const REAL_GAME_ASSET_PATHS = Object.freeze([
     "assets/acc_epic.png",
@@ -139,11 +139,56 @@
     avatarFallback: "",
     characterMain: "assets/hero_lvl1.png",
 
+    /*
+       Male assets are the existing production character.
+       Female paths are intentionally separate. If those PNGs are not yet
+       present in /assets, rendering falls back to the matching male stage
+       without touching the saved gender choice or player progress.
+    */
+    avatarsByGender: Object.freeze({
+      male: Object.freeze({
+        primary: "assets/avatar_face.png",
+        fallback: ""
+      }),
+      female: Object.freeze({
+        primary: "assets/avatar_female_face.png",
+        fallback: "assets/avatar_face.png"
+      })
+    }),
+
     characters: Object.freeze({
       1: Object.freeze({ primary: "assets/hero_lvl1.png", fallback: "" }),
       2: Object.freeze({ primary: "assets/hero_lvl2.png", fallback: "" }),
       3: Object.freeze({ primary: "assets/hero_lvl3.png", fallback: "" }),
       4: Object.freeze({ primary: "assets/hero_lvl3.png", fallback: "" })
+    }),
+
+    charactersByGender: Object.freeze({
+      male: Object.freeze({
+        1: Object.freeze({ primary: "assets/hero_lvl1.png", fallback: "" }),
+        2: Object.freeze({ primary: "assets/hero_lvl2.png", fallback: "" }),
+        3: Object.freeze({ primary: "assets/hero_lvl3.png", fallback: "" }),
+        4: Object.freeze({ primary: "assets/hero_lvl3.png", fallback: "" })
+      }),
+
+      female: Object.freeze({
+        1: Object.freeze({
+          primary: "assets/hero_female_lvl1.png",
+          fallback: "assets/hero_lvl1.png"
+        }),
+        2: Object.freeze({
+          primary: "assets/hero_female_lvl2.png",
+          fallback: "assets/hero_lvl2.png"
+        }),
+        3: Object.freeze({
+          primary: "assets/hero_female_lvl3.png",
+          fallback: "assets/hero_lvl3.png"
+        }),
+        4: Object.freeze({
+          primary: "assets/hero_female_lvl3.png",
+          fallback: "assets/hero_lvl3.png"
+        })
+      })
     }),
 
     cityMap: "assets/city_map.png",
@@ -632,12 +677,13 @@
   }
 
   async function preloadCriticalDirectAssets() {
-    const stageOne = ASSET_PATHS.characters[1];
+    const stageOne = getRealCharacterAsset(1);
+    const selectedAvatar = getSelectedAvatarAsset();
 
     return Promise.all([
       preloadDirectAsset(
-        ASSET_PATHS.avatar,
-        [ASSET_PATHS.avatarFallback]
+        selectedAvatar.primary,
+        [selectedAvatar.fallback]
       ),
       preloadDirectAsset(
         stageOne.primary,
@@ -1073,6 +1119,22 @@
     totalNodes: document.querySelectorAll(".sprite-icon").length
   });
 
+  const CHARACTER_GENDERS = Object.freeze(["male", "female"]);
+  const DEFAULT_CHARACTER_GENDER = "male";
+
+  function normalizeCharacterGender(value) {
+    const gender = String(value || "").toLowerCase();
+    return CHARACTER_GENDERS.includes(gender)
+      ? gender
+      : DEFAULT_CHARACTER_GENDER;
+  }
+
+  function getSelectedCharacterGender(targetState = state) {
+    return normalizeCharacterGender(
+      targetState?.profile?.characterGender
+    );
+  }
+
   function getCharacterStage(level = state?.level || 1) {
     const safeLevel = Math.max(1, Math.floor(Number(level) || 1));
     if (safeLevel <= 10) return 1;
@@ -1081,8 +1143,36 @@
     return 4;
   }
 
-  function getRealCharacterAsset(stage = 1) {
+  function getSelectedAvatarAsset(
+    gender = getSelectedCharacterGender()
+  ) {
+    const normalized = normalizeCharacterGender(gender);
+
     return (
+      ASSET_PATHS.avatarsByGender?.[normalized]
+      ||
+      ASSET_PATHS.avatarsByGender?.[DEFAULT_CHARACTER_GENDER]
+      ||
+      {
+        primary: ASSET_PATHS.avatar,
+        fallback: ASSET_PATHS.avatarFallback
+      }
+    );
+  }
+
+  function getRealCharacterAsset(
+    stage = 1,
+    gender = getSelectedCharacterGender()
+  ) {
+    const normalizedGender = normalizeCharacterGender(gender);
+    const genderSet =
+      ASSET_PATHS.charactersByGender?.[normalizedGender];
+
+    return (
+      genderSet?.[stage]
+      ||
+      genderSet?.[1]
+      ||
       ASSET_PATHS.characters[stage]
       ||
       ASSET_PATHS.characters[1]
@@ -1094,8 +1184,12 @@
   function forceDirectCharacterImage(element, stage = 1) {
     if (!(element instanceof HTMLImageElement)) return false;
 
-    const asset = getRealCharacterAsset(stage);
+    const gender = getSelectedCharacterGender();
+    const asset = getRealCharacterAsset(stage, gender);
     const cleanPath = normalizeRelativeAssetPath(asset.primary);
+    const fallbackPath = normalizeRelativeAssetPath(asset.fallback);
+
+    element.dataset.characterGender = gender;
 
     /*
        The Home and Wardrobe character are NOT sprite nodes.
@@ -1156,10 +1250,20 @@
 
     element.onerror = () => {
       /*
-         Real PNG is part of the audited assets bundle. If the request still
-         fails, keep the page alive with the transparent placeholder rather
-         than falling back to the old green silhouette SVG.
+         A gender-specific asset may not exist yet in an older deployment.
+         Keep the saved choice, but fall back to the equivalent production
+         male stage instead of blanking the character or corrupting state.
       */
+      if (
+        fallbackPath
+        && element.dataset.characterFallbackTried !== "true"
+      ) {
+        element.dataset.characterFallbackTried = "true";
+        element.dataset.characterFallbackUsed = "true";
+        element.src = resolveAssetUrl(fallbackPath);
+        return;
+      }
+
       element.onerror = null;
       element.dataset.characterLoaded = "false";
       element.classList.add("asset-placeholder");
@@ -1171,6 +1275,8 @@
        Assign one URL only — no character-01.svg / character-main.svg.
     */
     if (element.src !== expectedSrc) {
+      delete element.dataset.characterFallbackTried;
+      delete element.dataset.characterFallbackUsed;
       element.src = expectedSrc;
     }
 
@@ -2167,6 +2273,16 @@
   }
 
   const DEFAULT_STATE = {
+    /*
+       Existing saves without profile data are deep-merged with this block.
+       They keep all money/XP/missions/businesses and simply receive the safe
+       default male character until the player confirms a choice.
+    */
+    profile: {
+      characterGender: DEFAULT_CHARACTER_GENDER,
+      characterSelected: false
+    },
+
     money: 0,
     gems: 0,
     energy: CONFIG.ENERGY_MAX,
@@ -2400,6 +2516,12 @@
   }
 
   function sanitizeState(s) {
+    s.profile ||= {};
+    s.profile.characterGender =
+      normalizeCharacterGender(s.profile.characterGender);
+    s.profile.characterSelected =
+      Boolean(s.profile.characterSelected);
+
     s.money = Math.max(0, Number(s.money) || 0);
     s.gems = Math.max(0, Number(s.gems) || 0);
     s.level = Math.max(1, Math.floor(Number(s.level) || 1));
@@ -2509,7 +2631,7 @@
 
     return {
       schema: 2,
-      appVersion: "19.1",
+      appVersion: "19.6",
       updatedAt,
       state: JSON.parse(JSON.stringify(state))
     };
@@ -6094,6 +6216,219 @@
     }
   }
 
+  function forceSelectedAvatarImage(element) {
+    if (!(element instanceof HTMLImageElement)) return false;
+
+    const gender = getSelectedCharacterGender();
+    const asset = getSelectedAvatarAsset(gender);
+    const primaryPath = normalizeRelativeAssetPath(asset.primary);
+    const fallbackPath = normalizeRelativeAssetPath(asset.fallback);
+    const primarySrc = resolveAssetUrl(primaryPath);
+
+    element.dataset.characterGender = gender;
+    element.dataset.avatarAsset = primaryPath;
+
+    element.onload = () => {
+      element.dataset.avatarLoaded = "true";
+      element.classList.remove("asset-placeholder");
+    };
+
+    element.onerror = () => {
+      if (
+        fallbackPath
+        && element.dataset.avatarFallbackTried !== "true"
+      ) {
+        element.dataset.avatarFallbackTried = "true";
+        element.dataset.avatarFallbackUsed = "true";
+        element.src = resolveAssetUrl(fallbackPath);
+        return;
+      }
+
+      element.onerror = null;
+      element.dataset.avatarLoaded = "false";
+      element.classList.add("asset-placeholder");
+      element.src = TRANSPARENT_ASSET_PLACEHOLDER;
+    };
+
+    if (element.src !== primarySrc) {
+      delete element.dataset.avatarFallbackTried;
+      delete element.dataset.avatarFallbackUsed;
+      element.src = primarySrc;
+    }
+
+    return true;
+  }
+
+  function updateSelectedAvatarUI(root = document) {
+    root
+      .querySelectorAll(".player-avatar-image[data-game-avatar]")
+      .forEach((element) => {
+        forceSelectedAvatarImage(element);
+      });
+  }
+
+  function applySelectedCharacterToUI() {
+    const gender = getSelectedCharacterGender();
+
+    document.body.dataset.characterGender = gender;
+    document.documentElement.dataset.characterGender = gender;
+
+    updateSelectedAvatarUI(document);
+
+    document.querySelectorAll(
+      ".home-character-sprite[data-character-sprite], .wardrobe-character-sprite[data-character-sprite]"
+    ).forEach((element) => {
+      applyCharacterSpriteStage(element, state.level);
+    });
+
+    document
+      .querySelectorAll("[data-character-choice]")
+      .forEach((button) => {
+        const selected =
+          button.dataset.characterChoice === gender;
+
+        button.classList.toggle("selected", selected);
+        button.setAttribute(
+          "aria-pressed",
+          selected ? "true" : "false"
+        );
+      });
+
+    return gender;
+  }
+
+  let pendingCharacterSelectionOfflineResult = null;
+
+  function isCharacterSelectionRequired() {
+    return state.profile?.characterSelected !== true;
+  }
+
+  function openCharacterSelection(options = {}) {
+    const modal =
+      document.getElementById("character-selection-modal");
+
+    if (!modal) return false;
+
+    applySelectedCharacterToUI();
+
+    modal.hidden = false;
+    modal.setAttribute("aria-hidden", "false");
+
+    document.body.classList.add("character-selection-open");
+
+    const appShell = document.querySelector(".app-shell");
+    if (appShell) {
+      appShell.setAttribute("aria-hidden", "true");
+      if ("inert" in appShell) appShell.inert = true;
+    }
+
+    if (options.focus !== false) {
+      requestAnimationFrame(() => {
+        const selected =
+          modal.querySelector(
+            `[data-character-choice="${getSelectedCharacterGender()}"]`
+          )
+          || modal.querySelector("[data-character-choice]");
+
+        selected?.focus?.({ preventScroll: true });
+      });
+    }
+
+    return true;
+  }
+
+  function closeCharacterSelection() {
+    const modal =
+      document.getElementById("character-selection-modal");
+
+    if (!modal) return false;
+
+    modal.hidden = true;
+    modal.setAttribute("aria-hidden", "true");
+
+    document.body.classList.remove("character-selection-open");
+
+    const appShell = document.querySelector(".app-shell");
+    if (appShell) {
+      appShell.removeAttribute("aria-hidden");
+      if ("inert" in appShell) appShell.inert = false;
+    }
+
+    return true;
+  }
+
+  function selectCharacterGender(gender, options = {}) {
+    const normalized =
+      normalizeCharacterGender(gender);
+
+    state.profile ||= {};
+    state.profile.characterGender = normalized;
+    state.profile.characterSelected = true;
+
+    /*
+       Persist immediately. The deep Proxy also observes these assignments,
+       but saveGame() makes the choice durable before the player can close
+       Telegram again.
+    */
+    saveGame("character-selection");
+
+    applySelectedCharacterToUI();
+    closeCharacterSelection();
+
+    if (
+      pendingCharacterSelectionOfflineResult
+      && Number(
+        pendingCharacterSelectionOfflineResult.pendingAmount
+      ) > 0
+    ) {
+      const pending =
+        pendingCharacterSelectionOfflineResult;
+
+      pendingCharacterSelectionOfflineResult = null;
+
+      requestAnimationFrame(() => {
+        showOfflineEarningsModal(pending);
+      });
+    }
+
+    emitGameEvent("characterSelected", {
+      gender: normalized,
+      source: options.source || "character-selection"
+    });
+
+    return normalized;
+  }
+
+  function bindCharacterSelection() {
+    const modal =
+      document.getElementById("character-selection-modal");
+
+    if (!modal || modal.dataset.bound === "true") return;
+
+    modal.dataset.bound = "true";
+
+    modal.addEventListener("click", (event) => {
+      const choice =
+        event.target?.closest?.("[data-character-choice]");
+
+      if (!choice) return;
+
+      event.preventDefault();
+
+      selectCharacterGender(
+        choice.dataset.characterChoice,
+        { source: "startup-selector" }
+      );
+    });
+
+    /*
+       This is a blocking first-run decision: Escape does not dismiss it.
+       A valid default (male) still exists internally, so legacy/fallback
+       rendering stays safe until the player chooses.
+    */
+    applySelectedCharacterToUI();
+  }
+
   function updateWardrobeCharacter() {
     document.querySelectorAll(".wardrobe-character-sprite[data-character-sprite]").forEach((element) => {
       applyCharacterSpriteStage(element, state.level);
@@ -6117,11 +6452,7 @@
   ========================================================== */
 
   function updateHomeCharacter() {
-    document.querySelectorAll(
-      ".home-character-sprite[data-character-sprite], .wardrobe-character-sprite[data-character-sprite]"
-    ).forEach((element) => {
-      applyCharacterSpriteStage(element, state.level);
-    });
+    applySelectedCharacterToUI();
   }
 
   function updateHomeMetaUI(offlineIncome = null) {
@@ -6725,10 +7056,13 @@
 
   function getTelegramLeaderboardIdentity() {
     const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
+    const selectedAvatar = getSelectedAvatarAsset();
+
     if (!user) {
       return {
         username: tr("leaderboard.you"),
-        avatarUrl: ASSET_PATHS.avatar
+        avatarUrl: selectedAvatar.primary,
+        avatarFallbackUrl: selectedAvatar.fallback
       };
     }
 
@@ -6739,7 +7073,11 @@
 
     return {
       username: displayName || tr("leaderboard.you"),
-      avatarUrl: user.photo_url || ASSET_PATHS.avatar
+      avatarUrl: user.photo_url || selectedAvatar.primary,
+      avatarFallbackUrl:
+        user.photo_url
+          ? ""
+          : selectedAvatar.fallback
     };
   }
 
@@ -6912,6 +7250,16 @@
         : `Avatar di ${player.username}`;
       image.draggable = false;
       image.decoding = "async";
+
+      if (player.avatarFallbackUrl) {
+        image.onerror = () => {
+          image.onerror = null;
+          image.src = resolveAssetUrl(
+            player.avatarFallbackUrl
+          );
+        };
+      }
+
       avatar.appendChild(image);
     } else {
       avatar.textContent =
@@ -8120,6 +8468,7 @@
     bindTapControl();
     bindLeaderboardHudButton();
     bindOptimizedTabRendering();
+    bindCharacterSelection();
 
     /*
        Capture these two legacy generic-modal actions before script.js bubble
@@ -8680,6 +9029,20 @@
     bindUIEvents();
 
     /*
+       Existing saves are deep-merged, so this never resets progress.
+       First-run / pre-V19.6 saves without a confirmed choice receive the
+       safe male fallback internally and see the selector before Home.
+    */
+    const characterSelectionOpen =
+      isCharacterSelectionRequired()
+        ? openCharacterSelection({ focus: true })
+        : false;
+
+    if (!characterSelectionOpen) {
+      applySelectedCharacterToUI();
+    }
+
+    /*
        First paint only renders the active Home screen and lightweight global
        systems. Hidden tabs are prepared later during idle time.
     */
@@ -8693,7 +9056,12 @@
     updateHomeMetaUI(offlineIncome);
 
     if (offlineIncome > 0) {
-      showOfflineEarningsModal(offlineResult);
+      if (characterSelectionOpen) {
+        pendingCharacterSelectionOfflineResult =
+          offlineResult;
+      } else {
+        showOfflineEarningsModal(offlineResult);
+      }
     }
 
     /*
@@ -8727,7 +9095,13 @@
         updateHomeMetaUI(resumedOfflineResult.pendingAmount || 0);
 
         if (Number(resumedOfflineResult.pendingAmount) > 0) {
-          showOfflineEarningsModal(resumedOfflineResult);
+          if (isCharacterSelectionRequired()) {
+            pendingCharacterSelectionOfflineResult =
+              resumedOfflineResult;
+            openCharacterSelection({ focus: false });
+          } else {
+            showOfflineEarningsModal(resumedOfflineResult);
+          }
         }
 
         scheduleSpriteRender(document);
@@ -8907,6 +9281,18 @@
         scheduleDynamicScreenRender(screenName, options),
       warmScreens: scheduleIdleScreenWarmup,
       getWarmedScreens: () => [...warmedPerformanceScreens]
+    },
+
+    character: {
+      getGender: () => getSelectedCharacterGender(),
+      isSelected: () => Boolean(state.profile?.characterSelected),
+      select: (gender) =>
+        selectCharacterGender(gender, { source: "api" }),
+      openSelector: () =>
+        openCharacterSelection({ focus: true }),
+      refresh: applySelectedCharacterToUI,
+      getAsset: (stage = getCharacterStage(state.level)) =>
+        getRealCharacterAsset(stage)
     },
 
     persistence: {
@@ -9121,3 +9507,5 @@
 /* V19.4: Leaderboard is an isolated fullscreen modal with explicit close/restore flow. */
 
 /* V19.5: Home widgets/cards use explicit non-overlapping media/content/stat regions. */
+
+/* V19.6: persistent male/female character selection with safe legacy/female-asset fallbacks. */

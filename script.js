@@ -1,5 +1,5 @@
 /* ============================================================
-   URBAN TYCOON — UI CONTROLLER V19.5
+   URBAN TYCOON — UI CONTROLLER V19.6
    Navigation, Telegram shell, static i18n and generic modal
 ============================================================ */
 
