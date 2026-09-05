@@ -121,19 +121,70 @@
     premium_legendary: "case-gold"
   };
 
-  const SPRITE_BUILD_VERSION = "12.4";
+  const SPRITE_BUILD_VERSION = "14.0";
+
+  /*
+     V14.0 asset manifest.
+
+     IMPORTANT FOR GITHUB PAGES:
+     - every repository-local path is relative to the current GitHub Pages project directory
+     - vector characters/icons use their real .svg names
+     - bitmap cases/sprite sheets use their real .png names
+     - old *_v124 sprite names are fallback-only, so an older deployment can
+       still recover without rendering a blank game screen.
+  */
+  const ASSET_PATHS = Object.freeze({
+    avatar: "assets/avatar-small.svg",
+    avatarFallback: "assets/avatar.png",
+    characterMain: "assets/character-main.svg",
+    characters: Object.freeze({
+      1: Object.freeze({ primary: "assets/character-01.svg", fallback: "assets/character_novice.png" }),
+      2: Object.freeze({ primary: "assets/character-02.svg", fallback: "assets/character_street.png" }),
+      3: Object.freeze({ primary: "assets/character-03.svg", fallback: "assets/character_hustler.png" }),
+      4: Object.freeze({ primary: "assets/character-04.svg", fallback: "assets/character_tycoon.png" })
+    }),
+    cityMap: "assets/sprite_city_map.png",
+    cityMapFallback: "assets/city-map.svg",
+    cases: Object.freeze({
+      case_2h: "assets/case_2h.png",
+      case_4h: "assets/case_4h.png",
+      case_8h: "assets/case_8h.png",
+      case_24h: "assets/case_24h.png",
+      street: "assets/case_street.png",
+      hustler: "assets/case_hustler.png",
+      tycoon: "assets/case_tycoon.png",
+      boss: "assets/case_boss.png"
+    }),
+    spriteSheets: Object.freeze({
+      character: "assets/sprite_character_evolution.png",
+      cityMap: "assets/sprite_city_map.png",
+      businesses: "assets/sprite_businesses.png",
+      cases: "assets/sprite_cases.png",
+      workers: "assets/sprite_cards_workers.png",
+      wardrobe: "assets/sprite_wardrobe_items.png"
+    })
+  });
 
   const OFFICIAL_SPRITE_ASSETS = Object.freeze({
-    character: "./assets/sprite_character_evolution_v124.png",
-    cityMap: "./assets/sprite_city_map_v124.png",
-    businesses: "./assets/sprite_businesses_v124.png",
-    cases: "./assets/sprite_cases_v124.png",
-    workers: "./assets/sprite_cards_workers_v124.png",
-    wardrobe: "./assets/sprite_wardrobe_items_v124.png"
+    character: ASSET_PATHS.spriteSheets.character,
+    cityMap: ASSET_PATHS.spriteSheets.cityMap,
+    businesses: ASSET_PATHS.spriteSheets.businesses,
+    cases: ASSET_PATHS.spriteSheets.cases,
+    workers: ASSET_PATHS.spriteSheets.workers,
+    wardrobe: ASSET_PATHS.spriteSheets.wardrobe
+  });
+
+  const SPRITE_ASSET_FALLBACKS = Object.freeze({
+    character: "assets/sprite_character_evolution_v124.png",
+    cityMap: "assets/sprite_city_map_v124.png",
+    businesses: "assets/sprite_businesses_v124.png",
+    cases: "assets/sprite_cases_v124.png",
+    workers: "assets/sprite_cards_workers_v124.png",
+    wardrobe: "assets/sprite_wardrobe_items_v124.png"
   });
 
   /*
-     V12.4: the sprite sheets remain the canonical six source assets, but
+     V14.0: the sprite sheets remain the canonical six source assets, but
      individual cells are painted into tiny DPR-aware canvases. This removes
      the WebKit-sensitive dependency on huge CSS background-position crops.
   */
@@ -201,8 +252,22 @@
   let spriteMutationObserver = null;
   let spriteResizeObserver = null;
 
+  function normalizeRelativeAssetPath(relativePath) {
+    /*
+       Never allow repository-local media to accidentally resolve from the
+       GitHub Pages domain root. A root-relative asset path would break project pages such as
+       username.github.io/repository/.
+    */
+    return String(relativePath || "")
+      .trim()
+      .replace(/^\/+/, "")
+      .replace(/^\.\//, "");
+  }
+
   function resolveAssetUrl(relativePath) {
-    const url = new URL(relativePath, document.baseURI);
+    const safePath = normalizeRelativeAssetPath(relativePath);
+    const url = new URL(safePath, document.baseURI);
+
     /* Query cache-busting is safe on HTTP(S), but not on every file:// preview. */
     if (url.protocol === "http:" || url.protocol === "https:") {
       url.searchParams.set("v", SPRITE_BUILD_VERSION);
@@ -210,26 +275,51 @@
     return url.href;
   }
 
-  function loadSpriteImage(key, relativePath) {
+  function loadSpriteImage(key, primaryPath) {
+    const candidates = [
+      normalizeRelativeAssetPath(primaryPath),
+      normalizeRelativeAssetPath(SPRITE_ASSET_FALLBACKS[key])
+    ].filter((value, index, list) => value && list.indexOf(value) === index);
+
     return new Promise((resolve) => {
-      const image = new Image();
-      image.decoding = "async";
-      image.onload = async () => {
-        try {
-          if (typeof image.decode === "function") await image.decode();
-        } catch (_) {
-          /* Safari can reject decode() after load; the bitmap is still usable. */
+      let candidateIndex = 0;
+
+      const tryNext = () => {
+        if (candidateIndex >= candidates.length) {
+          console.error(`[Hustle Empire] Sprite failed to load: ${key}`, candidates);
+          document.documentElement.dataset.spriteError = key;
+          resolve({ key, ok: false, image: null, candidates });
+          return;
         }
-        SPRITE_IMAGES[key] = image;
-        document.documentElement.dataset[`sprite${key[0].toUpperCase()}${key.slice(1)}`] = "ready";
-        resolve({ key, ok: true, image });
+
+        const currentPath = candidates[candidateIndex++];
+        const image = new Image();
+        image.decoding = "async";
+
+        image.onload = async () => {
+          try {
+            if (typeof image.decode === "function") await image.decode();
+          } catch (_) {
+            /* WebKit may reject decode() even after a successful load. */
+          }
+
+          SPRITE_IMAGES[key] = image;
+          document.documentElement.dataset[
+            `sprite${key[0].toUpperCase()}${key.slice(1)}`
+          ] = "ready";
+
+          resolve({ key, ok: true, image, path: currentPath });
+        };
+
+        image.onerror = () => {
+          console.warn(`[Hustle Empire] Asset 404/load error, trying fallback: ${currentPath}`);
+          tryNext();
+        };
+
+        image.src = resolveAssetUrl(currentPath);
       };
-      image.onerror = () => {
-        console.error(`[Hustle Empire] Sprite failed to load: ${key} -> ${relativePath}`);
-        document.documentElement.dataset.spriteError = key;
-        resolve({ key, ok: false, image: null });
-      };
-      image.src = resolveAssetUrl(relativePath);
+
+      tryNext();
     });
   }
 
@@ -237,11 +327,87 @@
     const results = await Promise.all(
       Object.entries(OFFICIAL_SPRITE_ASSETS).map(([key, src]) => loadSpriteImage(key, src))
     );
+
     spriteAssetsReady = results.some((result) => result.ok);
     document.documentElement.classList.toggle("sprites-ready", spriteAssetsReady);
     return results;
   }
 
+  function preloadDirectAsset(relativePath) {
+    return new Promise((resolve) => {
+      if (!relativePath) {
+        resolve(false);
+        return;
+      }
+
+      const image = new Image();
+      image.decoding = "async";
+      image.onload = async () => {
+        try {
+          if (typeof image.decode === "function") await image.decode();
+        } catch (_) {}
+        resolve(true);
+      };
+      image.onerror = () => resolve(false);
+      image.src = resolveAssetUrl(relativePath);
+    });
+  }
+
+  async function preloadCriticalDirectAssets() {
+    const stageOne = ASSET_PATHS.characters[1];
+    return Promise.all([
+      preloadDirectAsset(ASSET_PATHS.avatar),
+      preloadDirectAsset(stageOne.primary),
+      preloadDirectAsset(stageOne.fallback),
+      preloadDirectAsset(ASSET_PATHS.cityMap)
+    ]);
+  }
+
+  function setDirectImageAsset(imageElement, primaryPath, fallbackPath = "") {
+    if (!(imageElement instanceof HTMLImageElement)) return false;
+
+    const primary = normalizeRelativeAssetPath(primaryPath);
+    const fallback = normalizeRelativeAssetPath(fallbackPath);
+
+    imageElement.dataset.primarySrc = primary;
+    if (fallback) imageElement.dataset.fallbackSrc = fallback;
+    imageElement.dataset.assetFallbackUsed = "false";
+
+    imageElement.onerror = () => {
+      if (
+        fallback &&
+        imageElement.dataset.assetFallbackUsed !== "true"
+      ) {
+        imageElement.dataset.assetFallbackUsed = "true";
+        imageElement.src = resolveAssetUrl(fallback);
+        return;
+      }
+
+      imageElement.classList.add("asset-load-error");
+      console.error("[Hustle Empire] Direct image failed:", primary, fallback);
+    };
+
+    const nextSrc = resolveAssetUrl(primary);
+    if (imageElement.src !== nextSrc) imageElement.src = nextSrc;
+    return true;
+  }
+
+  function installStaticImageFallbacks(root = document) {
+    root.querySelectorAll?.("img[data-fallback-src]").forEach((image) => {
+      if (image.dataset.assetFallbackBound === "true") return;
+      image.dataset.assetFallbackBound = "true";
+
+      const primary =
+        image.dataset.primarySrc ||
+        image.getAttribute("src")?.split("?")[0] ||
+        "";
+      const fallback = image.dataset.fallbackSrc || "";
+
+      setDirectImageAsset(image, primary, fallback);
+    });
+  }
+
+  window.HustleAssetPaths = ASSET_PATHS;
   window.HustleSpriteAssets = OFFICIAL_SPRITE_ASSETS;
 
   function findSpriteCellClass(node) {
@@ -419,6 +585,7 @@
       for (const mutation of mutations) {
         mutation.addedNodes.forEach((added) => {
           if (!(added instanceof Element)) return;
+          installStaticImageFallbacks(added);
           normalizeSpriteFrames();
           if (spriteResizeObserver) {
             if (added.matches(".sprite-icon")) spriteResizeObserver.observe(added);
@@ -456,11 +623,26 @@
 
   function applyCharacterSpriteStage(element, level = state?.level || 1) {
     if (!element) return;
+
     const stage = getCharacterStage(level);
     const cellClass = `char-level-${stage}`;
+
     element.classList.remove("char-level-1", "char-level-2", "char-level-3", "char-level-4");
     element.classList.add(cellClass);
     element.dataset.characterStage = String(stage);
+
+    /*
+       V14: Home/Wardrobe character images are normal <img> elements.
+       This avoids a blank canvas when Telegram iOS/WebKit restores the page
+       before a sprite sheet has decoded.
+    */
+    if (element instanceof HTMLImageElement) {
+      const asset = ASSET_PATHS.characters[stage] || ASSET_PATHS.characters[1];
+      setDirectImageAsset(element, asset.primary, asset.fallback);
+      return;
+    }
+
+    /* Legacy/canvas sprite fallback for any remaining sprite-character node. */
     element.dataset.spriteSheet = "character";
     element.dataset.spriteCell = cellClass;
     if (spriteAssetsReady) scheduleSpriteRender(element);
@@ -3028,8 +3210,16 @@
 
   async function initGame() {
     document.documentElement.classList.add("sprites-loading");
+
+    /*
+       Bind <img> fallbacks before first paint. This is important on Telegram
+       iOS where an SVG request can fail before the rest of the app is ready.
+    */
+    installStaticImageFallbacks(document);
     normalizeSpriteFrames();
+
     const spritePreloadPromise = preloadOfficialSpriteSheets();
+    const directAssetPreloadPromise = preloadCriticalDirectAssets();
 
     recomputeDerivedState();
     regenerateEnergy();
@@ -3048,7 +3238,7 @@
        Do not paint any CSS sprite sheet before its bitmap is decoded.
        This is especially important in Telegram's WKWebView on iOS.
     */
-    await spritePreloadPromise;
+    await Promise.all([spritePreloadPromise, directAssetPreloadPromise]);
     normalizeSpriteFrames();
     installSpriteRendererObservers();
     renderSpriteTree(document);
