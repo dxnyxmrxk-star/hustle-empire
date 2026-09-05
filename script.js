@@ -1,5 +1,5 @@
 /* ============================================================
-   HUSTLE EMPIRE — UI CONTROLLER V9
+   URBAN TYCOON — UI CONTROLLER V18.9
    Navigation, Telegram shell, static i18n and generic modal
 ============================================================ */
 
@@ -96,31 +96,138 @@
     translatePage();
   }
 
-  function setScreen(screenName, options = {}) {
-    if (!SCREENS.includes(screenName)) screenName = "home";
-    activeScreen = screenName;
+  const screenElementCache = new Map();
+  const navElementCache = new Map();
+  const screenScrollPositions = Object.create(null);
 
-    document.querySelectorAll("[data-screen]").forEach((screen) => {
-      screen.classList.toggle("active", screen.dataset.screen === screenName);
+  let screenScroller = null;
+  let pendingScrollRestoreFrame = 0;
+
+  function cacheNavigationElements() {
+    screenElementCache.clear();
+    navElementCache.clear();
+
+    document.querySelectorAll(".screens > .screen[data-screen]").forEach((screen) => {
+      screenElementCache.set(screen.dataset.screen, screen);
     });
 
-    document.querySelectorAll("[data-nav]").forEach((button) => {
-      button.classList.toggle("active", button.dataset.nav === screenName);
+    document.querySelectorAll(".bottom-navigation .nav-item[data-nav]").forEach((button) => {
+      navElementCache.set(button.dataset.nav, button);
     });
 
-    if (options.scroll !== false) {
-      const scroller = document.querySelector(".screen-content");
-      scroller?.scrollTo({ top: 0, left: 0, behavior: options.instant ? "auto" : "smooth" });
+    screenScroller = document.querySelector(".screen-content");
+  }
+
+  function updateNavigationShell(previousScreen, nextScreen) {
+    if (previousScreen && previousScreen !== nextScreen) {
+      const previousElement = screenElementCache.get(previousScreen);
+      previousElement?.classList.remove("active");
+      previousElement?.setAttribute("aria-hidden", "true");
+
+      const previousButton = navElementCache.get(previousScreen);
+      previousButton?.classList.remove("active");
+      previousButton?.setAttribute("aria-current", "false");
     }
 
-    window.dispatchEvent(new CustomEvent("hustle:tabChanged", { detail: { tab: screenName } }));
+    const nextElement = screenElementCache.get(nextScreen);
+    nextElement?.classList.add("active");
+    nextElement?.setAttribute("aria-hidden", "false");
+
+    const nextButton = navElementCache.get(nextScreen);
+    nextButton?.classList.add("active");
+    nextButton?.setAttribute("aria-current", "page");
+  }
+
+  function restoreScreenScroll(screenName, options = {}) {
+    if (!screenScroller || options.scroll === false) return;
+
+    const targetTop =
+      options.resetScroll === true
+        ? 0
+        : Math.max(0, Number(screenScrollPositions[screenName]) || 0);
+
+    if (pendingScrollRestoreFrame) {
+      cancelAnimationFrame(pendingScrollRestoreFrame);
+    }
+
+    pendingScrollRestoreFrame = requestAnimationFrame(() => {
+      pendingScrollRestoreFrame = 0;
+      screenScroller?.scrollTo({
+        top: targetTop,
+        left: 0,
+        behavior: "auto"
+      });
+    });
+  }
+
+  function setScreen(screenName, options = {}) {
+    if (!SCREENS.includes(screenName)) screenName = "home";
+
+    if (!screenElementCache.size) {
+      cacheNavigationElements();
+    }
+
+    const previousScreen = activeScreen;
+
+    if (previousScreen === screenName && options.force !== true) {
+      if (options.resetScroll === true && screenScroller) {
+        screenScrollPositions[screenName] = 0;
+        restoreScreenScroll(screenName, { resetScroll: true });
+      }
+      return screenName;
+    }
+
+    if (screenScroller && previousScreen) {
+      screenScrollPositions[previousScreen] =
+        Math.max(0, screenScroller.scrollTop || 0);
+    }
+
+    activeScreen = screenName;
+
+    /*
+       Only previous + next nodes are touched. This avoids scanning all
+       screens/buttons on every fast tab switch.
+    */
+    updateNavigationShell(previousScreen, screenName);
+    restoreScreenScroll(screenName, options);
+
+    window.dispatchEvent(new CustomEvent("hustle:tabChanged", {
+      detail: {
+        tab: screenName,
+        previousTab: previousScreen,
+        source: options.source || "navigation"
+      }
+    }));
+
+    return screenName;
   }
 
   function initNavigation() {
-    document.querySelectorAll("[data-nav]").forEach((button) => {
-      button.addEventListener("click", () => setScreen(button.dataset.nav));
+    cacheNavigationElements();
+
+    navElementCache.forEach((button, screenName) => {
+      button.addEventListener("click", (event) => {
+        event.preventDefault();
+
+        if (screenName === activeScreen) {
+          setScreen(screenName, {
+            resetScroll: true,
+            source: "bottom-nav-reselect"
+          });
+          return;
+        }
+
+        setScreen(screenName, {
+          source: "bottom-nav"
+        });
+      });
     });
-    setScreen("home", { scroll: false, instant: true });
+
+    setScreen("home", {
+      scroll: false,
+      force: true,
+      source: "boot"
+    });
   }
 
   function showModal(title, message, icon = "◆") {
@@ -231,7 +338,14 @@
 
   window.HustleTabs = {
     setActiveTab: setScreen,
-    getActiveTab: () => activeScreen
+    getActiveTab: () => activeScreen,
+    getScrollPosition: (screenName = activeScreen) =>
+      Math.max(0, Number(screenScrollPositions[screenName]) || 0),
+    resetActiveScroll: () =>
+      setScreen(activeScreen, {
+        resetScroll: true,
+        source: "api"
+      })
   };
 
   window.HustleShop = {

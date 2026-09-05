@@ -61,7 +61,7 @@
      CSS/UI frame overlay rendered above it.
   ========================================================== */
 
-  const SPRITE_BUILD_VERSION = "18.7";
+  const SPRITE_BUILD_VERSION = "18.9";
 
   const REAL_GAME_ASSET_PATHS = Object.freeze([
     "assets/acc_epic.png",
@@ -7372,6 +7372,7 @@
   function bindUIEvents() {
     bindTapControl();
     bindLeaderboardHudButton();
+    bindOptimizedTabRendering();
 
     /*
        Capture these two legacy generic-modal actions before script.js bubble
@@ -7719,6 +7720,167 @@
     renderSocialTasksUI();
   }
 
+
+  const PERFORMANCE_SCREEN_NAMES = Object.freeze([
+    "home",
+    "city",
+    "cases",
+    "collection",
+    "wardrobe",
+    "shop"
+  ]);
+
+  const warmedPerformanceScreens = new Set();
+  let pendingScreenRenderName = "";
+  let pendingScreenRenderFrame = 0;
+
+  function renderDynamicScreen(screenName, options = {}) {
+    switch (screenName) {
+      case "home":
+        updateHomeCharacter();
+        updateHomeMetaUI();
+        updateTapButton();
+        updateLevelUpBoostUI();
+        renderMissions();
+        renderQuickJobs();
+        renderHomeBusinesses();
+        break;
+
+      case "city":
+        renderCityUI();
+        break;
+
+      case "cases":
+        renderTimedCases();
+        renderAccessoryCases();
+        break;
+
+      case "collection":
+        renderCollectionUI();
+        renderExclusiveCards();
+        updateCollectionSummaryUI();
+        break;
+
+      case "wardrobe":
+        renderWardrobeUI();
+        break;
+
+      case "shop":
+        updateShopUI();
+        break;
+
+      case "leaderboard":
+        renderLeaderboard({ force: Boolean(options.force) });
+        updateLeaderboardSeasonCountdown();
+        break;
+
+      default:
+        return false;
+    }
+
+    const screen = document.querySelector(
+      `.screen[data-screen="${screenName}"]`
+    );
+
+    if (screen) {
+      warmedPerformanceScreens.add(screenName);
+      screen.dataset.renderReady = "true";
+
+      /*
+         Sprite work is deferred after the DOM update so the heavy child
+         render and sprite paint do not compete in the same frame.
+      */
+      requestAnimationFrame(() => {
+        scheduleSpriteRender(screen);
+      });
+    }
+
+    return true;
+  }
+
+  function scheduleDynamicScreenRender(screenName, options = {}) {
+    if (
+      screenName !== "leaderboard"
+      && !PERFORMANCE_SCREEN_NAMES.includes(screenName)
+    ) {
+      return;
+    }
+
+    pendingScreenRenderName = screenName;
+
+    /*
+       Rapid taps are coalesced into ONE render on the next animation frame.
+       Only the most recently selected screen gets rebuilt.
+    */
+    if (pendingScreenRenderFrame) return;
+
+    pendingScreenRenderFrame = requestAnimationFrame(() => {
+      pendingScreenRenderFrame = 0;
+
+      const targetName = pendingScreenRenderName;
+      pendingScreenRenderName = "";
+
+      const targetScreen = document.querySelector(
+        `.screen[data-screen="${targetName}"]`
+      );
+
+      if (!targetScreen?.classList.contains("active")) return;
+
+      renderDynamicScreen(targetName, options);
+    });
+  }
+
+  function scheduleIdleScreenWarmup() {
+    const queue = PERFORMANCE_SCREEN_NAMES.filter(
+      (name) => name !== "home" && !warmedPerformanceScreens.has(name)
+    );
+
+    if (!queue.length) return;
+
+    const scheduleIdle =
+      typeof window.requestIdleCallback === "function"
+        ? (callback) => window.requestIdleCallback(callback, { timeout: 700 })
+        : (callback) => window.setTimeout(
+            () => callback({
+              didTimeout: true,
+              timeRemaining: () => 0
+            }),
+            140
+          );
+
+    const warmNext = () => {
+      const screenName = queue.shift();
+      if (!screenName) return;
+
+      if (!document.hidden) {
+        renderDynamicScreen(screenName, { warmup: true });
+      }
+
+      if (queue.length) {
+        scheduleIdle(warmNext);
+      }
+    };
+
+    scheduleIdle(warmNext);
+  }
+
+  function bindOptimizedTabRendering() {
+    window.addEventListener("hustle:tabChanged", (event) => {
+      const tab = String(event.detail?.tab || "");
+      if (!PERFORMANCE_SCREEN_NAMES.includes(tab)) return;
+
+      /*
+         script.js has already switched the visible shell synchronously.
+         Child DOM rendering is then coalesced for the next frame.
+      */
+      scheduleDynamicScreenRender(tab, {
+        reason: event.detail?.source || "tab-change"
+      });
+
+      syncLeaderboardHudButtonState();
+    });
+  }
+
   async function initGame() {
     document.documentElement.classList.add("sprites-loading");
 
@@ -7751,7 +7913,17 @@
     }
 
     bindUIEvents();
-    renderAllDynamic();
+
+    /*
+       First paint only renders the active Home screen and lightweight global
+       systems. Hidden tabs are prepared later during idle time.
+    */
+    renderDynamicScreen("home", { force: true });
+    renderRandomEvent();
+    renderDailyRetentionUI();
+    renderSocialTasksUI();
+    renderNotificationsUI();
+
     updateUI();
     updateHomeMetaUI(offlineIncome);
 
@@ -7768,6 +7940,12 @@
     installSpriteRendererObservers();
     renderSpriteTree(document);
     document.documentElement.classList.remove("sprites-loading");
+
+    /*
+       Warm hidden screens one-at-a-time only after first paint/assets are
+       ready. This removes first-visit stutter without slowing Home startup.
+    */
+    scheduleIdleScreenWarmup();
 
     setInterval(gameTick, GAME_TICK_INTERVAL);
     setInterval(saveGame, AUTO_SAVE_INTERVAL);
@@ -7940,6 +8118,15 @@
     setMaxLevel,
     getXpRequired,
     getPlayerStats: () => computePlayerStats(state),
+
+    performance: {
+      renderScreen: (screenName, options = {}) =>
+        renderDynamicScreen(screenName, options),
+      scheduleScreenRender: (screenName, options = {}) =>
+        scheduleDynamicScreenRender(screenName, options),
+      warmScreens: scheduleIdleScreenWarmup,
+      getWarmedScreens: () => [...warmedPerformanceScreens]
+    },
 
     i18n: {
       getLanguage: () => window.i18n?.getLanguage?.() || "en",
@@ -8129,3 +8316,5 @@
 /* V18.5: proportional image/media frames for Cases, Shop and Wardrobe. */
 
 /* V18.6: HUD trophy now directly opens and renders the Leaderboard screen. */
+
+/* V18.9: coalesced tab rendering, idle screen warmup and instant nav shell switching. */

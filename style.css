@@ -11451,3 +11451,278 @@ body.social-tasks-modal-open {
   }
 }
 
+
+/* ==========================================================
+   V18.8 — SCROLL / OVERFLOW SAFETY
+   Leaderboard + long secondary screens / Shop.
+   Keep this block LAST.
+========================================================== */
+
+:root {
+  --ui-scrollbar-size: 6px;
+  --ui-scrollbar-gap: 7px;
+  --ui-scrollbar-thumb: rgba(58, 177, 238, .38);
+  --ui-scrollbar-thumb-hover: rgba(82, 205, 255, .56);
+  --ui-scrollbar-track: rgba(5, 18, 29, .34);
+}
+
+/* ----------------------------------------------------------
+   PAGE-LEVEL SCROLLER
+   Shop and other long secondary pages use .screens as owner.
+---------------------------------------------------------- */
+.screens.screen-content {
+  box-sizing: border-box !important;
+
+  /*
+    Reserve layout space for classic desktop scrollbars instead of letting
+    them sit on top of the right-hand card border.
+  */
+  scrollbar-gutter: stable !important;
+  scrollbar-width: thin;
+  scrollbar-color:
+    var(--ui-scrollbar-thumb)
+    var(--ui-scrollbar-track);
+
+  /*
+    Small visual safety zone. Width remains 100% because border-box is set.
+  */
+  padding-inline-end:
+    max(5px, env(safe-area-inset-right, 0px)) !important;
+}
+
+.screens.screen-content::-webkit-scrollbar {
+  width: var(--ui-scrollbar-size);
+}
+
+.screens.screen-content::-webkit-scrollbar-track {
+  margin-block: 4px;
+  border-radius: 999px;
+  background: var(--ui-scrollbar-track);
+}
+
+.screens.screen-content::-webkit-scrollbar-thumb {
+  min-height: 36px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(82, 205, 255, .50),
+      rgba(0, 176, 255, .27)
+    )
+    padding-box;
+}
+
+.screens.screen-content::-webkit-scrollbar-thumb:hover {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(105, 220, 255, .68),
+      rgba(0, 176, 255, .42)
+    )
+    padding-box;
+}
+
+/* ----------------------------------------------------------
+   LEADERBOARD INTERNAL LIST
+---------------------------------------------------------- */
+.screen[data-screen="leaderboard"] .leaderboard-panel {
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+/*
+  The list gets its own dedicated scrollbar lane.
+  scrollbar-gutter prevents the thumb from covering row borders.
+*/
+.screen[data-screen="leaderboard"] .leaderboard-list {
+  box-sizing: border-box !important;
+  min-width: 0 !important;
+
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+
+  scrollbar-gutter: stable !important;
+  scrollbar-width: thin !important;
+  scrollbar-color:
+    var(--ui-scrollbar-thumb)
+    transparent !important;
+
+  /*
+    8px right safety padding keeps row shadows/borders visually separate
+    from the scrollbar lane.
+  */
+  padding:
+    1px
+    var(--ui-scrollbar-gap)
+    3px
+    2px !important;
+
+  overscroll-behavior-y: contain !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+/* Keep column header aligned with rows after reserving scrollbar space. */
+.screen[data-screen="leaderboard"] .leaderboard-columns {
+  box-sizing: border-box !important;
+  padding-right:
+    calc(8px + var(--ui-scrollbar-gap)) !important;
+}
+
+.screen[data-screen="leaderboard"] .leaderboard-list::-webkit-scrollbar {
+  width: var(--ui-scrollbar-size);
+}
+
+.screen[data-screen="leaderboard"] .leaderboard-list::-webkit-scrollbar-track {
+  margin-block: 2px;
+  border-radius: 999px;
+  background: rgba(0, 176, 255, .035);
+}
+
+.screen[data-screen="leaderboard"] .leaderboard-list::-webkit-scrollbar-thumb {
+  min-height: 34px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(82, 205, 255, .50),
+      rgba(0, 176, 255, .26)
+    )
+    padding-box;
+}
+
+.screen[data-screen="leaderboard"] .leaderboard-list::-webkit-scrollbar-thumb:hover {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(108, 220, 255, .70),
+      rgba(0, 176, 255, .44)
+    )
+    padding-box;
+}
+
+.screen[data-screen="leaderboard"] .leaderboard-row {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+/* ----------------------------------------------------------
+   SHOP
+   Shop intentionally keeps ONE page-level vertical scroller:
+   no nested wheel/touch trap inside Boost/Premium columns.
+---------------------------------------------------------- */
+.screen[data-screen="shop"] {
+  box-sizing: border-box !important;
+  min-width: 0 !important;
+  overflow: visible !important;
+}
+
+.screen[data-screen="shop"] .shop-screen {
+  box-sizing: border-box !important;
+  min-width: 0 !important;
+
+  /*
+    Additional inner breathing room between premium cards and the outer
+    screen scrollbar, especially on desktop where the right column is close.
+  */
+  padding-inline-end: 6px !important;
+}
+
+.screen[data-screen="shop"] .boost-shop,
+.screen[data-screen="shop"] .premium-shop-column {
+  min-width: 0 !important;
+  max-width: 100% !important;
+
+  /* Do not create a second vertical scroller inside Shop. */
+  overflow: visible !important;
+}
+
+.screen[data-screen="shop"] .premium-product,
+.screen[data-screen="shop"] .empire-pass,
+.screen[data-screen="shop"] .boost-card {
+  max-width: 100% !important;
+}
+
+/* ----------------------------------------------------------
+   NARROW / TOUCH DEVICES
+   Native overlay scrollbars are tiny; keep padding useful but not wasteful.
+---------------------------------------------------------- */
+@media (max-width: 480px) {
+  :root {
+    --ui-scrollbar-size: 5px;
+    --ui-scrollbar-gap: 5px;
+  }
+
+  .screens.screen-content {
+    padding-inline-end:
+      max(3px, env(safe-area-inset-right, 0px)) !important;
+  }
+
+  .screen[data-screen="shop"] .shop-screen {
+    padding-inline-end: 3px !important;
+  }
+
+  .screen[data-screen="leaderboard"] .leaderboard-list {
+    padding-right: var(--ui-scrollbar-gap) !important;
+  }
+}
+
+/* Scrollbars remain discoverable without aggressive visual contrast. */
+@media (hover: none) and (pointer: coarse) {
+  .screens.screen-content::-webkit-scrollbar-thumb,
+  .screen[data-screen="leaderboard"] .leaderboard-list::-webkit-scrollbar-thumb {
+    background: rgba(65, 190, 245, .34);
+  }
+}
+
+
+/* ==========================================================
+   V18.9 — BOTTOM NAV / SCREEN TRANSITION PERFORMANCE
+   Keep this block LAST.
+========================================================== */
+
+.screens > .screen {
+  animation: none !important;
+  contain: layout paint style;
+}
+
+.screens > .screen.active {
+  animation: screenFastEnter 82ms cubic-bezier(.2,.72,.3,1) both !important;
+  backface-visibility: hidden;
+  transform-origin: 50% 20%;
+}
+
+@keyframes screenFastEnter {
+  from {
+    opacity: .975;
+    transform: translate3d(0, 1px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.screens > .screen[data-render-ready="true"] {
+  isolation: isolate;
+}
+
+.bottom-navigation .nav-item {
+  transition:
+    color 80ms ease,
+    background-color 80ms ease,
+    filter 80ms ease,
+    transform 70ms ease !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .screens > .screen.active {
+    animation: none !important;
+  }
+
+  .bottom-navigation .nav-item {
+    transition: none !important;
+  }
+}
+

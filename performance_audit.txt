@@ -1,0 +1,42 @@
+URBAN TYCOON V18.9 — NAVIGATION PERFORMANCE STATIC AUDIT
+
+Root causes found:
+1. Legacy setScreen() scanned every [data-screen] and every [data-nav] on every tap.
+2. Every tab change used smooth scrolling, so the main scroller kept animating
+   while the new screen was painting.
+3. Boot synchronously rendered every major hidden screen through renderAllDynamic().
+4. Rapid tab taps could queue unnecessary child DOM rebuilds.
+5. The old 130ms fade ran on every activation.
+
+V18.9:
+- Cached screen and bottom-nav nodes in script.js.
+- A switch touches only previous + next screen/button.
+- Re-selecting the same tab does not rebuild the screen.
+- Per-screen vertical scroll position is preserved.
+- Tab scroll restoration is instant (behavior:auto), not smooth.
+- Visible shell changes synchronously on click.
+- game.js coalesces rapid tab changes into one requestAnimationFrame.
+- Only the latest active tab performs a heavy child render.
+- Boot renders Home only instead of all hidden screens at once.
+- City/Cases/Cards/Wardrobe/Shop warm one-at-a-time with requestIdleCallback.
+- Sprite work is deferred after child DOM rendering.
+- Screen transition is an 82ms compositor-only opacity/translate3d animation.
+- Reduced-motion path is included.
+
+Files:
+- index.html
+- style.css
+- translations.js
+- script.js
+- game.js
+
+Validation:
+- node --check script.js: OK
+- node --check game.js: OK
+- node --check translations.js: OK
+- old smooth-navigation code path: removed
+- boot renderAllDynamic burst: removed
+- CSS brace balance: OK
+- version/cache refs: 18.9
+
+No live browser/Telegram FPS trace was run in this environment.
