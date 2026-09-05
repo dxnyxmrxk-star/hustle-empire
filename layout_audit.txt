@@ -1,0 +1,24 @@
+URBAN TYCOON V18.4 — LAYOUT / UX STATIC AUDIT
+
+Base analyzed:
+- index.html
+- style.css (monolithic CSS; no Tailwind source file is present in this patch build)
+- existing Home / Wardrobe / Shop component markup
+
+Changes:
+- Home lower panels: normalized padding/margins and adaptive grids
+- Wardrobe: responsive lower information panels, safer tabs/catalog/upgrade sizing
+- Shop: removed Empire Pass auto-push whitespace, adaptive 3→2→1 column layouts
+- Buttons: touch-action manipulation, exact-element hitboxes, :active and :focus-visible feedback
+- Bottom navigation: each nav item fills exactly one grid cell
+- Shop action buttons: explicit type="button"
+- Reduced-motion handling added
+
+Static validation:
+- game.js node --check: OK
+- translations.js node --check: OK
+- CSS brace balance: OK
+- V18.4 cache/version refs: OK
+
+Note:
+No browser/Telegram visual runtime screenshot test was performed in this environment.

@@ -10276,3 +10276,649 @@ body.social-tasks-modal-open {
   font-size: 5.5px;
   line-height: 1;
 }
+
+
+/* ==========================================================
+   V18.4 — LAYOUT / HITBOX / RESPONSIVE UX FINAL
+   Targets Home, Wardrobe, Shop and fixed bottom navigation.
+   This block intentionally stays LAST.
+========================================================== */
+
+:root {
+  --ui-control-min: 34px;
+  --ui-control-radius: 8px;
+  --ui-panel-gap: 10px;
+  --ui-panel-pad: 10px;
+  --ui-press-scale: .985;
+}
+
+/* ----------------------------------------------------------
+   GLOBAL INTERACTION CONTRACT
+   The visible graphic and clickable element are the same box.
+---------------------------------------------------------- */
+.screen[data-screen="home"] button,
+.screen[data-screen="home"] a[data-social-tasks-open],
+.screen[data-screen="wardrobe"] button,
+.screen[data-screen="shop"] button,
+.bottom-navigation .nav-item {
+  box-sizing: border-box !important;
+  position: relative;
+  margin: 0;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: pointer;
+  transition:
+    transform 90ms ease,
+    filter 120ms ease,
+    border-color 120ms ease,
+    background-color 120ms ease,
+    box-shadow 120ms ease,
+    opacity 120ms ease;
+}
+
+/*
+   Children never create a smaller nested hit target.
+   Pointer/click is owned by the graphic control itself.
+*/
+.screen[data-screen="home"] button > *,
+.screen[data-screen="home"] a[data-social-tasks-open] > *,
+.screen[data-screen="wardrobe"] button > *,
+.screen[data-screen="shop"] button > *,
+.bottom-navigation .nav-item > * {
+  pointer-events: none;
+}
+
+.screen[data-screen="home"] button:active:not(:disabled),
+.screen[data-screen="home"] a[data-social-tasks-open]:active,
+.screen[data-screen="wardrobe"] button:active:not(:disabled),
+.screen[data-screen="shop"] button:active:not(:disabled),
+.bottom-navigation .nav-item:active:not(:disabled) {
+  transform: scale(var(--ui-press-scale)) !important;
+  filter: brightness(.94) saturate(1.06);
+}
+
+.screen[data-screen="home"] button:focus-visible,
+.screen[data-screen="home"] a[data-social-tasks-open]:focus-visible,
+.screen[data-screen="wardrobe"] button:focus-visible,
+.screen[data-screen="shop"] button:focus-visible,
+.bottom-navigation .nav-item:focus-visible {
+  outline: 2px solid rgba(83, 220, 255, .82) !important;
+  outline-offset: -2px !important;
+  box-shadow:
+    0 0 0 1px rgba(0, 176, 255, .20),
+    0 0 14px rgba(0, 176, 255, .16) !important;
+}
+
+.screen[data-screen="home"] button:disabled,
+.screen[data-screen="wardrobe"] button:disabled,
+.screen[data-screen="shop"] button:disabled,
+.bottom-navigation .nav-item:disabled {
+  transform: none !important;
+  filter: none !important;
+  cursor: default !important;
+}
+
+/* ----------------------------------------------------------
+   HOME — spacing + lower information panels
+---------------------------------------------------------- */
+.screen[data-screen="home"] {
+  min-width: 0 !important;
+  padding-inline: 8px !important;
+  padding-bottom: 12px !important;
+}
+
+.screen[data-screen="home"] .home-layout-balanced {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.screen[data-screen="home"] .home-left-widget {
+  min-height: 45px !important;
+}
+
+.screen[data-screen="home"] .quick-jobs-panel,
+.screen[data-screen="home"] .home-businesses-panel {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  margin: 10px 0 0 !important;
+  padding: 10px !important;
+  overflow: hidden !important;
+}
+
+.screen[data-screen="home"] .home-businesses-panel {
+  margin-bottom: 4px !important;
+}
+
+.screen[data-screen="home"] .business-section-heading {
+  min-width: 0 !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: start !important;
+  gap: 10px !important;
+  margin: 0 0 9px !important;
+}
+
+.screen[data-screen="home"] .business-section-heading > div:first-child {
+  min-width: 0 !important;
+}
+
+.screen[data-screen="home"] .business-section-heading h2,
+.screen[data-screen="home"] .business-section-heading .section-eyebrow {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow-wrap: anywhere !important;
+}
+
+.screen[data-screen="home"] .business-section-heading h2 {
+  margin: 0 !important;
+  line-height: 1.15 !important;
+}
+
+.screen[data-screen="home"] .home-business-total {
+  min-width: max-content !important;
+  max-width: 42% !important;
+  align-self: start !important;
+  text-align: right !important;
+}
+
+.screen[data-screen="home"] .home-business-total small,
+.screen[data-screen="home"] .home-business-total strong {
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.screen[data-screen="home"] .quick-jobs-grid,
+.screen[data-screen="home"] .home-business-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) !important;
+  grid-auto-rows: auto !important;
+  align-items: stretch !important;
+  gap: 8px !important;
+  min-width: 0 !important;
+}
+
+.screen[data-screen="home"] .quick-job-card,
+.screen[data-screen="home"] .business-live-card {
+  min-width: 0 !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 9px !important;
+  align-self: stretch !important;
+}
+
+.screen[data-screen="home"] .quick-job-content,
+.screen[data-screen="home"] .business-live-content {
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+.screen[data-screen="home"] .quick-job-content > strong,
+.screen[data-screen="home"] .business-live-top > strong {
+  max-width: 100% !important;
+  line-height: 1.2 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.screen[data-screen="home"] .quick-job-button,
+.screen[data-screen="home"] .business-upgrade-button,
+.screen[data-screen="home"] .next-level-button {
+  min-height: 34px !important;
+  padding: 7px 9px !important;
+}
+
+/* ----------------------------------------------------------
+   WARDROBE — resilient lower panels and controls
+---------------------------------------------------------- */
+.screen[data-screen="wardrobe"] {
+  min-width: 0 !important;
+  padding-inline: 8px !important;
+  padding-bottom: 12px !important;
+}
+
+.screen[data-screen="wardrobe"] .wardrobe-screen {
+  box-sizing: border-box !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  align-content: start !important;
+  gap: 9px !important;
+}
+
+.screen[data-screen="wardrobe"] .equipment-column {
+  box-sizing: border-box !important;
+  padding: 9px !important;
+}
+
+.screen[data-screen="wardrobe"] .equipment-column > h2 {
+  margin: 0 0 8px !important;
+  line-height: 1.1 !important;
+  overflow-wrap: anywhere !important;
+}
+
+.screen[data-screen="wardrobe"] .wardrobe-tabs {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 5px !important;
+  margin: 0 0 7px !important;
+}
+
+.screen[data-screen="wardrobe"] .wardrobe-tabs button {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 32px !important;
+  padding: 6px 5px !important;
+  line-height: 1.12 !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+}
+
+.screen[data-screen="wardrobe"] .open-accessory-catalog {
+  width: 100% !important;
+  min-height: 36px !important;
+  margin: 0 0 7px !important;
+  padding: 6px 8px !important;
+}
+
+.screen[data-screen="wardrobe"] .wardrobe-dynamic-list {
+  padding: 1px 2px 3px 0 !important;
+  gap: 6px !important;
+}
+
+.screen[data-screen="wardrobe"] .equipment-row {
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  border-radius: 8px !important;
+}
+
+.screen[data-screen="wardrobe"] .outfit-panel {
+  box-sizing: border-box !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, 1fr)
+    minmax(138px, .74fr) !important;
+  align-items: stretch !important;
+  gap: 8px !important;
+  padding: 9px !important;
+  overflow: hidden !important;
+}
+
+.screen[data-screen="wardrobe"] .outfit-panel section {
+  box-sizing: border-box !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  padding: 9px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 5px !important;
+  overflow: hidden !important;
+}
+
+.screen[data-screen="wardrobe"] .outfit-panel h3,
+.screen[data-screen="wardrobe"] .outfit-panel p,
+.screen[data-screen="wardrobe"] .outfit-panel small,
+.screen[data-screen="wardrobe"] .outfit-panel strong {
+  max-width: 100% !important;
+  margin-block: 0 !important;
+  overflow-wrap: anywhere !important;
+}
+
+.screen[data-screen="wardrobe"] .outfit-panel p {
+  line-height: 1.25 !important;
+}
+
+.screen[data-screen="wardrobe"] .upgrade-outfit {
+  min-width: 0 !important;
+  min-height: 54px !important;
+  height: 100% !important;
+  padding: 9px !important;
+  align-self: stretch !important;
+  justify-self: stretch !important;
+  border-radius: 9px !important;
+}
+
+/* ----------------------------------------------------------
+   SHOP — remove artificial whitespace + responsive grids
+---------------------------------------------------------- */
+.screen[data-screen="shop"] {
+  min-width: 0 !important;
+  padding-inline: 8px !important;
+  padding-bottom: 12px !important;
+}
+
+.screen[data-screen="shop"] .shop-screen {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  grid-template-columns: minmax(0, 1.62fr) minmax(166px, .92fr) !important;
+  align-items: start !important;
+  gap: 9px !important;
+}
+
+.screen[data-screen="shop"] .boost-shop,
+.screen[data-screen="shop"] .premium-shop-column {
+  box-sizing: border-box !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  padding: 10px !important;
+}
+
+.screen[data-screen="shop"] .boost-shop > h1 {
+  margin: 0 0 8px !important;
+  line-height: 1.1 !important;
+}
+
+.screen[data-screen="shop"] .shop-panel-title {
+  margin: 0 0 7px !important;
+  line-height: 1.2 !important;
+}
+
+.screen[data-screen="shop"] .boost-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  grid-auto-rows: auto !important;
+  align-items: stretch !important;
+  gap: 6px !important;
+  min-width: 0 !important;
+}
+
+.screen[data-screen="shop"] .boost-card {
+  box-sizing: border-box !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 7px !important;
+  gap: 3px !important;
+}
+
+.screen[data-screen="shop"] .boost-card strong {
+  min-height: 0 !important;
+  line-height: 1.18 !important;
+  overflow-wrap: anywhere !important;
+}
+
+.screen[data-screen="shop"] .boost-card small {
+  flex: 0 0 auto !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  line-height: 1.22 !important;
+  overflow-wrap: anywhere !important;
+}
+
+.screen[data-screen="shop"] .boost-card button {
+  width: 100% !important;
+  min-height: 32px !important;
+  margin-top: auto !important;
+  padding: 6px 7px !important;
+}
+
+.screen[data-screen="shop"] .gem-pack-row {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 6px !important;
+  margin-top: 8px !important;
+}
+
+.screen[data-screen="shop"] .gem-pack {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 56px !important;
+  padding: 6px !important;
+}
+
+.screen[data-screen="shop"] .premium-shop-column {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  align-content: start !important;
+  gap: 7px !important;
+}
+
+.screen[data-screen="shop"] .premium-product {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 86px !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 7px !important;
+  grid-template-columns: 50px minmax(0, 1fr) !important;
+  gap: 7px !important;
+  align-items: center !important;
+}
+
+.screen[data-screen="shop"] .premium-product > div:last-child {
+  min-width: 0 !important;
+}
+
+.screen[data-screen="shop"] .premium-product strong,
+.screen[data-screen="shop"] .premium-product span,
+.screen[data-screen="shop"] .premium-product small {
+  max-width: 100% !important;
+  overflow-wrap: anywhere !important;
+  line-height: 1.2 !important;
+}
+
+/* Do not pin Empire Pass to the bottom of a taller left column. */
+.screen[data-screen="shop"] .empire-pass {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 2px 0 0 !important;
+  padding: 10px !important;
+}
+
+.screen[data-screen="shop"] .empire-pass span {
+  margin: 4px 0 8px !important;
+  line-height: 1.25 !important;
+  overflow-wrap: anywhere !important;
+}
+
+.screen[data-screen="shop"] .empire-pass button {
+  width: 100% !important;
+  min-height: 36px !important;
+  padding: 7px 8px !important;
+}
+
+/* ----------------------------------------------------------
+   FIXED NAV — exact grid-cell hitbox + coherent feedback
+---------------------------------------------------------- */
+.bottom-navigation {
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+.bottom-navigation .nav-item {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 100% !important;
+  min-height: var(--navbar-height) !important;
+  margin: 0 !important;
+  padding: 5px 2px calc(4px + env(safe-area-inset-bottom, 0px)) !important;
+  border-radius: 0 !important;
+  overflow: hidden !important;
+}
+
+.bottom-navigation .nav-item .nav-icon {
+  line-height: 1 !important;
+}
+
+.bottom-navigation .nav-item > span:last-child {
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.bottom-navigation .nav-item.active {
+  transform: none !important;
+}
+
+.bottom-navigation .nav-item:active:not(.active) {
+  background: rgba(0, 176, 255, .10) !important;
+}
+
+/* ----------------------------------------------------------
+   RESPONSIVE
+---------------------------------------------------------- */
+@media (max-width: 480px) {
+  .screen[data-screen="home"] .quick-jobs-grid,
+  .screen[data-screen="home"] .home-business-grid {
+    grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)) !important;
+  }
+
+  .screen[data-screen="wardrobe"] .wardrobe-screen {
+    grid-template-columns: minmax(108px, .78fr) minmax(0, 1.48fr) !important;
+    grid-template-rows: minmax(330px, 55svh) auto !important;
+  }
+
+  .screen[data-screen="wardrobe"] .outfit-panel {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .screen[data-screen="wardrobe"] .upgrade-outfit {
+    grid-column: 1 / -1 !important;
+    height: auto !important;
+    min-height: 48px !important;
+  }
+
+  .screen[data-screen="shop"] .shop-screen {
+    grid-template-columns: 1fr !important;
+    gap: 9px !important;
+  }
+
+  .screen[data-screen="shop"] .boost-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .screen[data-screen="shop"] .premium-shop-column {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    align-items: stretch !important;
+  }
+
+  .screen[data-screen="shop"] .premium-product {
+    grid-template-columns: 44px minmax(0, 1fr) !important;
+    min-height: 82px !important;
+  }
+
+  .screen[data-screen="shop"] .premium-product-image {
+    width: 44px !important;
+    height: 58px !important;
+  }
+
+  .screen[data-screen="shop"] .empire-pass {
+    grid-column: 1 / -1 !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .screen[data-screen="home"] .business-section-heading {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 5px !important;
+  }
+
+  .screen[data-screen="home"] .home-business-total {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    text-align: left !important;
+  }
+
+  .screen[data-screen="home"] .home-business-total small,
+  .screen[data-screen="home"] .home-business-total strong {
+    display: inline !important;
+    margin-right: 4px !important;
+  }
+
+  .screen[data-screen="home"] .quick-jobs-grid,
+  .screen[data-screen="home"] .home-business-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .screen[data-screen="wardrobe"] .equipment-column {
+    padding: 7px !important;
+  }
+
+  .screen[data-screen="wardrobe"] .wardrobe-tabs button {
+    min-height: 30px !important;
+    font-size: 5.8px !important;
+  }
+
+  .screen[data-screen="shop"] .boost-shop,
+  .screen[data-screen="shop"] .premium-shop-column {
+    padding: 8px !important;
+  }
+}
+
+@media (max-width: 350px) {
+  .screen[data-screen="wardrobe"] .wardrobe-screen {
+    grid-template-columns: 1fr !important;
+    grid-template-areas:
+      "character"
+      "equipment"
+      "outfit" !important;
+    grid-template-rows: 330px auto auto !important;
+  }
+
+  .screen[data-screen="wardrobe"] .wardrobe-character {
+    min-height: 330px !important;
+  }
+
+  .screen[data-screen="wardrobe"] .equipment-column {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .screen[data-screen="wardrobe"] .wardrobe-dynamic-list {
+    max-height: 330px !important;
+  }
+
+  .screen[data-screen="wardrobe"] .outfit-panel {
+    grid-template-columns: 1fr !important;
+  }
+
+  .screen[data-screen="wardrobe"] .upgrade-outfit {
+    grid-column: auto !important;
+  }
+
+  .screen[data-screen="shop"] .boost-grid,
+  .screen[data-screen="shop"] .premium-shop-column {
+    grid-template-columns: 1fr !important;
+  }
+
+  .screen[data-screen="shop"] .gem-pack-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .bottom-navigation .nav-item {
+    padding-inline: 1px !important;
+    font-size: 5.5px !important;
+  }
+
+  .bottom-navigation .nav-item .nav-icon {
+    font-size: 14px !important;
+  }
+}
+
+/* Motion-sensitive players still get state changes without scale animation. */
+@media (prefers-reduced-motion: reduce) {
+  .screen[data-screen="home"] button,
+  .screen[data-screen="home"] a[data-social-tasks-open],
+  .screen[data-screen="wardrobe"] button,
+  .screen[data-screen="shop"] button,
+  .bottom-navigation .nav-item {
+    transition: none !important;
+  }
+}
+
