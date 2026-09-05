@@ -1,0 +1,23 @@
+URBAN TYCOON V17.9 — EN/RU I18N AUDIT
+
+Dictionary keys EN: 386
+Dictionary keys RU: 386
+Literal/static translation keys used: 333
+Dynamic tr() families checked: 3
+Missing EN keys: 0
+Missing RU keys: 0
+Placeholder mismatches EN/RU: 0
+Missing keys used by game.js/index.html: 0
+Italian quoted UI strings in game.js: 0
+Raw technical translation keys in visible HTML: 0
+node --check game.js: OK
+node --check translations.js: OK
+All index cache/version references: 17.9
+
+Toggle flow:
+EN active -> button shows RU
+RU active -> button shows EN
+Static DOM updates immediately.
+Dynamic game views redraw on hustle:languageChanged.
+A MutationObserver translates newly inserted data-i18n nodes.
+Missing-key fallback never exposes raw technical keys.

@@ -1,6 +1,6 @@
 /* ============================================================
    URBAN TYCOON — CENTRAL EN/RU TRANSLATIONS
-   V17.6
+   V17.9
 ============================================================ */
 (() => {
   "use strict";
@@ -31,6 +31,9 @@
       "common.locked": "Locked",
       "common.max": "MAX",
       "common.new": "NEW",
+      "common.unknown": "Unknown",
+      "common.textUnavailable": "Text unavailable",
+      "common.ok": "OK",
       "common.requiresLevel": "Requires LV {level}",
       "common.upgrade": "Upgrade",
       "nav.home": "Home",
@@ -73,6 +76,10 @@
       "city.bigBusiness": "Big Business",
       "city.richSkyline": "RICH SKYLINE",
       "city.endgameEmpire": "Endgame Empire",
+      "city.rangePoor": "LV 1–10",
+      "city.rangeCenter": "LV 11–20",
+      "city.rangeBusiness": "LV 21–30",
+      "city.rangeRich": "LV 31–40+",
       "cases.rewards": "Rewards",
       "cases.title": "Cases",
       "cases.helper": "Come back when the timer finishes or spend Gems to unlock instantly.",
@@ -84,6 +91,15 @@
       "cases.open": "Open",
       "cases.ready": "Ready",
       "cases.unlockNow": "Unlock now",
+      "cases.caseUnlockNow": "Unlock now",
+      "cases.unlockWith": "Unlock with",
+      "cases.unlockWithGems": "Unlock with Gems",
+      "cases.unlockWith Gems": "Unlock with Gems",
+      "cases.caseWaiting": "Waiting",
+      "caseNames.case_2h": "2-Hour Case",
+      "caseNames.case_4h": "4-Hour Case",
+      "caseNames.case_8h": "8-Hour Case",
+      "caseNames.case_24h": "24-Hour Case",
       "cases.waiting": "Waiting",
       "cases.durationHours": "{hours}h",
       "cases.fragmentsZero": "+0 Fragments",
@@ -96,6 +112,10 @@
       "accessoryCases.ready": "Ready",
       "accessoryCases.waiting": "Waiting",
       "accessoryCases.itemPlaceholder": "Item",
+      "accessoryCaseNames.free_accessory": "Free Accessory Case",
+      "accessoryCaseNames.premium_rare": "Rare Accessory Case",
+      "accessoryCaseNames.premium_epic": "Epic Accessory Case",
+      "accessoryCaseNames.premium_legendary": "Legendary Accessory Case",
       "accessorySources.free": "Free Case",
       "accessorySources.rare": "Rare Case",
       "accessorySources.epic": "Epic Case",
@@ -111,6 +131,19 @@
       "collection.specialPurchase": "Special Purchase",
       "collection.unlock": "Unlock",
       "collection.cardPlaceholder": "Card",
+      "cards.gym_income.name": "Gym Income",
+      "cards.coffee_income.name": "Coffee Income",
+      "cards.delivery_income.name": "Delivery Income",
+      "cards.garage_income.name": "Garage Income",
+      "cards.nightclub_income.name": "Nightclub Income",
+      "cards.tap_power.name": "Tap Power",
+      "cards.critical_rate.name": "Critical Rate",
+      "cards.critical_damage.name": "Critical Damage",
+      "cards.energy_max.name": "Max Energy",
+      "cards.energy_regen.name": "Energy Regen",
+      "cards.founder.name": "Founder",
+      "cards.golden_tycoon.name": "Golden Tycoon",
+      "cards.neon_king.name": "Neon King",
       "rarity.common": "Common",
       "rarity.rare": "Rare",
       "rarity.epic": "Epic",
@@ -123,6 +156,8 @@
       "hustles.run": "Run",
       "randomEvents.energyReward": "+{amount} Energy",
       "randomEvents.tapBoostReward": "Tap boost activated",
+      "randomEvents.bonusTitle": "BONUS!",
+      "randomEvents.tapX2": "Tap x2",
       "stats.income": "Income",
       "stats.tapPower": "Tap Power",
       "stats.criticalRate": "Critical Rate",
@@ -147,6 +182,20 @@
       "wardrobe.unlockSource": "Source",
       "wardrobe.unlocked": "Unlocked",
       "wardrobe.upgradeToLevel": "Upgrade to LV {level}",
+      "wardrobe.upgradeByLevel": "Upgrade to LV {level}",
+      "wardrobe.upgradeByLevelCost": "Upgrade to LV {level}",
+      "wardrobeItems.designer_cap.name": "Designer Cap",
+      "wardrobeItems.urban_shades.name": "Urban Shades",
+      "wardrobeItems.street_jacket.name": "Street Jacket",
+      "wardrobeItems.limited_sneakers.name": "Limited Sneakers",
+      "wardrobeItems.neon_jacket.name": "Neon Jacket",
+      "wardrobeItems.tech_pants.name": "Tech Pants",
+      "wardrobeItems.chrono_watch.name": "Chrono Watch",
+      "wardrobeItems.elite_shades.name": "Elite Shades",
+      "wardrobeItems.crown_cap.name": "Crown Cap",
+      "wardrobeItems.royal_coat.name": "Royal Coat",
+      "wardrobeItems.diamond_watch.name": "Diamond Watch",
+      "wardrobeItems.imperial_shoes.name": "Imperial Shoes",
       "wardrobe.character": "Character",
       "wardrobe.zeroIncome": "★ +0% Income",
       "wardrobe.zeroTapPower": "★ +0% Tap Power",
@@ -191,16 +240,27 @@
       "shop.empirePass": "Empire Pass",
       "shop.empirePassDesc": "Unlock your true potential",
       "shop.perMonth": "{price} / month",
+      "offline.kicker": "OFFLINE EARNINGS",
       "offline.welcome": "Welcome back, Boss!",
       "offline.accumulated": "Accumulated passive income",
-      "offline.maxCap": "Maximum accumulation: 3 hours",
-      "offline.cappedAway": "You were away for more than 3h (cap reached).",
+      "offline.maxCap": "Max accumulation: 3 hours",
+      "offline.cappedAway": "Max accumulation: 3 hours",
       "offline.awayHoursMinutes": "You were away for: {hours}h {minutes}m",
       "offline.awayMinutes": "You were away for: {minutes}m",
       "offline.awayLessMinute": "You were away for less than a minute",
+      "offline.awayExample": "You were away for: 2h 15m",
       "offline.claimAmount": "Claim ${amount}",
+      "modal.dailyChest": "Daily Chest",
+      "modal.dailyChestText": "Come back when the timer reaches zero to claim your Daily Chest.",
+      "modal.dailyChestRemaining": "Time remaining: {time}",
       "daily.closeAria": "Close Daily Challenges",
       "daily.title": "Daily Challenges",
+      "daily.eyebrow": "TYCOON DAILY",
+      "daily.reset": "RESET",
+      "daily.comboEyebrow": "DAILY COMBO",
+      "daily.cipherEyebrow": "DAILY CIPHER",
+      "daily.streakEyebrow": "7-DAY STREAK",
+      "daily.checkinTitle": "Daily Check-in",
       "daily.subtitle": "Complete today’s activities and come back tomorrow for a new rotation.",
       "daily.comboTitle": "Daily Combo",
       "daily.comboHint": "Buy or upgrade the 3 targets selected for today.",
@@ -255,6 +315,9 @@
       "leaderboard.activeProductionOnly": "Applies to active production. Does not increase offline earnings.",
       "leaderboard.activateX2": "ACTIVATE x2",
       "leaderboard.topTycoons": "TOP TYCOONS",
+      "leaderboard.top3Short": "TOP 3",
+      "leaderboard.top10Short": "TOP 10",
+      "leaderboard.youBadge": "YOU",
       "leaderboard.globalRanking": "Global Ranking",
       "leaderboard.season01": "SEASON 01",
       "leaderboard.player": "Player",
@@ -356,6 +419,9 @@
       "common.locked": "Закрыто",
       "common.max": "МАКС",
       "common.new": "НОВОЕ",
+      "common.unknown": "Неизвестно",
+      "common.textUnavailable": "Текст недоступен",
+      "common.ok": "OK",
       "common.requiresLevel": "Требуется УР {level}",
       "common.upgrade": "Улучшить",
       "nav.home": "Главная",
@@ -398,6 +464,10 @@
       "city.bigBusiness": "Большой бизнес",
       "city.richSkyline": "БОГАТЫЙ РАЙОН",
       "city.endgameEmpire": "Империя эндгейма",
+      "city.rangePoor": "УР 1–10",
+      "city.rangeCenter": "УР 11–20",
+      "city.rangeBusiness": "УР 21–30",
+      "city.rangeRich": "УР 31–40+",
       "cases.rewards": "Награды",
       "cases.title": "Кейсы",
       "cases.helper": "Вернись после таймера или потрать кристаллы, чтобы открыть сразу.",
@@ -409,6 +479,15 @@
       "cases.open": "Открыть",
       "cases.ready": "Готово",
       "cases.unlockNow": "Открыть сейчас",
+      "cases.caseUnlockNow": "Открыть сейчас",
+      "cases.unlockWith": "Открыть за",
+      "cases.unlockWithGems": "Открыть за кристаллы",
+      "cases.unlockWith Gems": "Открыть за кристаллы",
+      "cases.caseWaiting": "Ожидание",
+      "caseNames.case_2h": "Кейс на 2 часа",
+      "caseNames.case_4h": "Кейс на 4 часа",
+      "caseNames.case_8h": "Кейс на 8 часов",
+      "caseNames.case_24h": "Кейс на 24 часа",
       "cases.waiting": "Ожидание",
       "cases.durationHours": "{hours}ч",
       "cases.fragmentsZero": "+0 фрагментов",
@@ -421,6 +500,10 @@
       "accessoryCases.ready": "Готово",
       "accessoryCases.waiting": "Ожидание",
       "accessoryCases.itemPlaceholder": "Предмет",
+      "accessoryCaseNames.free_accessory": "Бесплатный кейс аксессуаров",
+      "accessoryCaseNames.premium_rare": "Редкий кейс аксессуаров",
+      "accessoryCaseNames.premium_epic": "Эпический кейс аксессуаров",
+      "accessoryCaseNames.premium_legendary": "Легендарный кейс аксессуаров",
       "accessorySources.free": "Бесплатный кейс",
       "accessorySources.rare": "Редкий кейс",
       "accessorySources.epic": "Эпический кейс",
@@ -436,6 +519,19 @@
       "collection.specialPurchase": "Купить отдельно",
       "collection.unlock": "Открыть",
       "collection.cardPlaceholder": "Карта",
+      "cards.gym_income.name": "Доход спортзала",
+      "cards.coffee_income.name": "Доход кофейни",
+      "cards.delivery_income.name": "Доход доставки",
+      "cards.garage_income.name": "Доход гаража",
+      "cards.nightclub_income.name": "Доход ночного клуба",
+      "cards.tap_power.name": "Сила тапа",
+      "cards.critical_rate.name": "Шанс крита",
+      "cards.critical_damage.name": "Крит. урон",
+      "cards.energy_max.name": "Макс. энергия",
+      "cards.energy_regen.name": "Реген энергии",
+      "cards.founder.name": "Основатель",
+      "cards.golden_tycoon.name": "Золотой магнат",
+      "cards.neon_king.name": "Неоновый король",
       "rarity.common": "Обычная",
       "rarity.rare": "Редкая",
       "rarity.epic": "Эпическая",
@@ -448,6 +544,8 @@
       "hustles.run": "Запустить",
       "randomEvents.energyReward": "+{amount} энергии",
       "randomEvents.tapBoostReward": "Буст тапа активирован",
+      "randomEvents.bonusTitle": "БОНУС!",
+      "randomEvents.tapX2": "Тап x2",
       "stats.income": "Доход",
       "stats.tapPower": "Сила тапа",
       "stats.criticalRate": "Шанс крита",
@@ -472,6 +570,20 @@
       "wardrobe.unlockSource": "Источник",
       "wardrobe.unlocked": "Открыто",
       "wardrobe.upgradeToLevel": "Улучшить до УР {level}",
+      "wardrobe.upgradeByLevel": "Улучшить до УР {level}",
+      "wardrobe.upgradeByLevelCost": "Улучшить до УР {level}",
+      "wardrobeItems.designer_cap.name": "Дизайнерская кепка",
+      "wardrobeItems.urban_shades.name": "Городские очки",
+      "wardrobeItems.street_jacket.name": "Уличная куртка",
+      "wardrobeItems.limited_sneakers.name": "Лимитированные кроссовки",
+      "wardrobeItems.neon_jacket.name": "Неоновая куртка",
+      "wardrobeItems.tech_pants.name": "Техно-брюки",
+      "wardrobeItems.chrono_watch.name": "Часы Chrono",
+      "wardrobeItems.elite_shades.name": "Элитные очки",
+      "wardrobeItems.crown_cap.name": "Королевская кепка",
+      "wardrobeItems.royal_coat.name": "Королевское пальто",
+      "wardrobeItems.diamond_watch.name": "Бриллиантовые часы",
+      "wardrobeItems.imperial_shoes.name": "Императорская обувь",
       "wardrobe.character": "Персонаж",
       "wardrobe.zeroIncome": "★ +0% Доход",
       "wardrobe.zeroTapPower": "★ +0% Сила тапа",
@@ -516,16 +628,27 @@
       "shop.empirePass": "Empire Pass",
       "shop.empirePassDesc": "Раскрой потенциал империи",
       "shop.perMonth": "{price} / месяц",
+      "offline.kicker": "ДОХОД ОФЛАЙН",
       "offline.welcome": "С возвращением, Босс!",
       "offline.accumulated": "Накопленный пассивный доход",
       "offline.maxCap": "Максимальное накопление: 3 часа",
-      "offline.cappedAway": "Тебя не было больше 3ч (лимит достигнут).",
+      "offline.cappedAway": "Максимальное накопление: 3 часа",
       "offline.awayHoursMinutes": "Тебя не было: {hours}ч {minutes}м",
       "offline.awayMinutes": "Тебя не было: {minutes}м",
       "offline.awayLessMinute": "Тебя не было меньше минуты",
+      "offline.awayExample": "Тебя не было: 2ч 15м",
       "offline.claimAmount": "Забрать ${amount}",
+      "modal.dailyChest": "Ежедневный сундук",
+      "modal.dailyChestText": "Вернись, когда таймер дойдёт до нуля, чтобы забрать ежедневный сундук.",
+      "modal.dailyChestRemaining": "Осталось: {time}",
       "daily.closeAria": "Закрыть ежедневные задания",
       "daily.title": "Ежедневные задания",
+      "daily.eyebrow": "ЕЖЕДНЕВНЫЙ TYCOON",
+      "daily.reset": "СБРОС",
+      "daily.comboEyebrow": "ЕЖЕДНЕВНОЕ КОМБО",
+      "daily.cipherEyebrow": "ЕЖЕДНЕВНЫЙ ШИФР",
+      "daily.streakEyebrow": "СЕРИЯ 7 ДНЕЙ",
+      "daily.checkinTitle": "Ежедневный вход",
       "daily.subtitle": "Выполни сегодняшние задания и вернись завтра за новой ротацией.",
       "daily.comboTitle": "Ежедневное комбо",
       "daily.comboHint": "Купи или улучши 3 выбранные сегодня цели.",
@@ -580,6 +703,9 @@
       "leaderboard.activeProductionOnly": "Работает на активный доход. Не увеличивает офлайн-доход.",
       "leaderboard.activateX2": "АКТИВИРОВАТЬ x2",
       "leaderboard.topTycoons": "ТОП МАГНАТОВ",
+      "leaderboard.top3Short": "ТОП 3",
+      "leaderboard.top10Short": "ТОП 10",
+      "leaderboard.youBadge": "ТЫ",
       "leaderboard.globalRanking": "Глобальный рейтинг",
       "leaderboard.season01": "СЕЗОН 01",
       "leaderboard.player": "Игрок",
@@ -688,51 +814,159 @@
 
   let activeLanguage = detectInitialLanguage();
 
+  const MISSING_COPY = Object.freeze({
+    en: "Text unavailable",
+    ru: "Текст недоступен"
+  });
+
+  const warnedMissingKeys = new Set();
+
+  function has(key, language = activeLanguage) {
+    const lang = normalizeLanguage(language);
+    return Object.prototype.hasOwnProperty.call(TRANSLATIONS[lang], key)
+      && String(TRANSLATIONS[lang][key] ?? "").trim().length > 0;
+  }
+
+  function warnMissingTranslation(key, language) {
+    const token = `${language}:${key}`;
+    if (warnedMissingKeys.has(token)) return;
+    warnedMissingKeys.add(token);
+    console.error(
+      `[Urban Tycoon i18n] Missing ${language.toUpperCase()} translation: ${key}`
+    );
+  }
+
   function t(key, params = {}, language = activeLanguage) {
     const lang = normalizeLanguage(language);
-    const source = TRANSLATIONS[lang] || TRANSLATIONS.en;
-    const fallback = TRANSLATIONS.en;
 
-    const value =
-      source[key]
-      ?? fallback[key]
-      ?? key;
+    if (has(key, lang)) {
+      return interpolate(TRANSLATIONS[lang][key], params);
+    }
 
-    return interpolate(value, params);
+    if (lang !== "en" && has(key, "en")) {
+      warnMissingTranslation(key, lang);
+      return interpolate(TRANSLATIONS.en[key], params);
+    }
+
+    /*
+       Never show a raw technical key such as "cases.waiting".
+       The audit below should make this fallback unreachable in production.
+    */
+    warnMissingTranslation(key, lang);
+    return MISSING_COPY[lang] || MISSING_COPY.en;
+  }
+
+  function placeholderTokens(value) {
+    return [...String(value ?? "").matchAll(/\{([a-zA-Z0-9_]+)\}/g)]
+      .map((match) => match[1])
+      .sort();
+  }
+
+  function audit(requiredKeys = []) {
+    const enKeys = new Set(Object.keys(TRANSLATIONS.en));
+    const ruKeys = new Set(Object.keys(TRANSLATIONS.ru));
+    const allKeys = new Set([...enKeys, ...ruKeys]);
+
+    const missingInEnglish = [...allKeys]
+      .filter((key) => !has(key, "en"))
+      .sort();
+
+    const missingInRussian = [...allKeys]
+      .filter((key) => !has(key, "ru"))
+      .sort();
+
+    const placeholderMismatches = [...allKeys]
+      .filter((key) => has(key, "en") && has(key, "ru"))
+      .filter((key) => {
+        const enTokens = placeholderTokens(TRANSLATIONS.en[key]);
+        const ruTokens = placeholderTokens(TRANSLATIONS.ru[key]);
+        return enTokens.join("|") !== ruTokens.join("|");
+      })
+      .sort();
+
+    const required = [...new Set(requiredKeys)].filter(Boolean).sort();
+    const requiredMissing = required.filter(
+      (key) => !has(key, "en") || !has(key, "ru")
+    );
+
+    return Object.freeze({
+      ok:
+        missingInEnglish.length === 0
+        && missingInRussian.length === 0
+        && placeholderMismatches.length === 0
+        && requiredMissing.length === 0,
+      language: activeLanguage,
+      totalEnglish: enKeys.size,
+      totalRussian: ruKeys.size,
+      missingInEnglish,
+      missingInRussian,
+      placeholderMismatches,
+      requiredMissing
+    });
+  }
+
+  function collectDomTranslationKeys(root = document) {
+    const keys = new Set();
+    const attributes = [
+      "data-i18n",
+      "data-i18n-aria-label",
+      "data-i18n-title",
+      "data-i18n-placeholder",
+      "data-i18n-alt"
+    ];
+
+    const visit = (element) => {
+      if (!element?.getAttribute) return;
+      attributes.forEach((attribute) => {
+        const key = element.getAttribute(attribute);
+        if (key) keys.add(key);
+      });
+    };
+
+    if (root?.nodeType === Node.ELEMENT_NODE) visit(root);
+
+    root?.querySelectorAll?.(
+      attributes.map((attribute) => `[${attribute}]`).join(",")
+    ).forEach(visit);
+
+    return [...keys];
+  }
+
+  function applyElementTranslations(element) {
+    if (!element?.getAttribute) return;
+
+    const textKey = element.getAttribute("data-i18n");
+    if (textKey) element.textContent = t(textKey);
+
+    const ariaKey = element.getAttribute("data-i18n-aria-label");
+    if (ariaKey) element.setAttribute("aria-label", t(ariaKey));
+
+    const titleKey = element.getAttribute("data-i18n-title");
+    if (titleKey) element.setAttribute("title", t(titleKey));
+
+    const placeholderKey = element.getAttribute("data-i18n-placeholder");
+    if (placeholderKey) element.setAttribute("placeholder", t(placeholderKey));
+
+    const altKey = element.getAttribute("data-i18n-alt");
+    if (altKey) element.setAttribute("alt", t(altKey));
   }
 
   function applyTranslations(root = document) {
-    root.querySelectorAll?.("[data-i18n]").forEach((element) => {
-      const key = element.dataset.i18n;
-      if (!key) return;
-      element.textContent = t(key);
-    });
+    if (root?.nodeType === Node.ELEMENT_NODE) {
+      applyElementTranslations(root);
+    }
 
-    root.querySelectorAll?.("[data-i18n-aria-label]").forEach((element) => {
-      const key = element.dataset.i18nAriaLabel;
-      if (!key) return;
-      element.setAttribute("aria-label", t(key));
-    });
+    root?.querySelectorAll?.(
+      "[data-i18n],"
+      + "[data-i18n-aria-label],"
+      + "[data-i18n-title],"
+      + "[data-i18n-placeholder],"
+      + "[data-i18n-alt]"
+    ).forEach(applyElementTranslations);
 
-    root.querySelectorAll?.("[data-i18n-title]").forEach((element) => {
-      const key = element.dataset.i18nTitle;
-      if (!key) return;
-      element.setAttribute("title", t(key));
-    });
-
-    root.querySelectorAll?.("[data-i18n-placeholder]").forEach((element) => {
-      const key = element.dataset.i18nPlaceholder;
-      if (!key) return;
-      element.setAttribute("placeholder", t(key));
-    });
-
-    root.querySelectorAll?.("[data-i18n-alt]").forEach((element) => {
-      const key = element.dataset.i18nAlt;
-      if (!key) return;
-      element.setAttribute("alt", t(key));
-    });
-
-    document.title = t("app.title");
+    if (root === document || root === document.documentElement) {
+      document.title = t("app.title");
+    }
   }
 
   function updateLanguageButton() {
@@ -768,6 +1002,11 @@
     applyTranslations(document);
     updateLanguageButton();
 
+    /*
+       game.js redraws every dynamic view synchronously on this event:
+       Missions, Cases, Cards, Wardrobe, Tasks, Notifications,
+       Leaderboard and open popups.
+    */
     if (options.notify !== false && previousLanguage !== nextLanguage) {
       window.dispatchEvent(new CustomEvent("hustle:languageChanged", {
         detail: {
@@ -775,6 +1014,10 @@
           previousLanguage
         }
       }));
+
+      // Catch any newly rendered data-i18n nodes immediately.
+      applyTranslations(document);
+      updateLanguageButton();
     }
 
     return nextLanguage;
@@ -788,15 +1031,58 @@
     return activeLanguage;
   }
 
-  window.i18n = Object.freeze({
+  let translationObserver = null;
+
+  function installTranslationObserver() {
+    if (translationObserver || !document.documentElement) return;
+
+    translationObserver = new MutationObserver((records) => {
+      records.forEach((record) => {
+        record.addedNodes.forEach((node) => {
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            applyTranslations(node);
+          }
+        });
+      });
+    });
+
+    translationObserver.observe(document.documentElement, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  const i18nApi = Object.freeze({
     translations: TRANSLATIONS,
     supported: SUPPORTED,
     t,
+    resolve: t,
+    has,
+    audit,
+    collectDomTranslationKeys,
     apply: applyTranslations,
     setLanguage,
     switchLanguage,
     getLanguage
   });
+
+  window.i18n = i18nApi;
+
+  // Compatibility aliases: one canonical engine/dictionary.
+  window.translations = TRANSLATIONS;
+  window.TRANSLATIONS = TRANSLATIONS;
+  window.LOCALES = TRANSLATIONS;
+  window.I18N = i18nApi;
+
+  const dictionaryAudit = audit();
+  window.__URBAN_TYCOON_I18N_AUDIT__ = dictionaryAudit;
+
+  if (!dictionaryAudit.ok) {
+    console.error(
+      "[Urban Tycoon i18n] Dictionary audit failed:",
+      dictionaryAudit
+    );
+  }
 
   /*
      Capture phase prevents any legacy language-click handler from toggling
@@ -816,8 +1102,29 @@
     notify: false
   });
 
-  document.addEventListener("DOMContentLoaded", () => {
+  const finishI18nBoot = () => {
     applyTranslations(document);
     updateLanguageButton();
-  }, { once: true });
+    installTranslationObserver();
+
+    const domAudit = audit(collectDomTranslationKeys(document));
+    window.__URBAN_TYCOON_I18N_DOM_AUDIT__ = domAudit;
+
+    if (!domAudit.ok) {
+      console.error(
+        "[Urban Tycoon i18n] DOM translation audit failed:",
+        domAudit
+      );
+    }
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener(
+      "DOMContentLoaded",
+      finishI18nBoot,
+      { once: true }
+    );
+  } else {
+    finishI18nBoot();
+  }
 })();

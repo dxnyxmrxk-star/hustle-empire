@@ -52,7 +52,7 @@
      CSS/UI frame overlay rendered above it.
   ========================================================== */
 
-  const SPRITE_BUILD_VERSION = "17.6";
+  const SPRITE_BUILD_VERSION = "17.9";
 
   const REAL_GAME_ASSET_PATHS = Object.freeze([
     "assets/acc_epic.png",
@@ -1426,19 +1426,221 @@
 
   const clone = (value) => JSON.parse(JSON.stringify(value));
 
-  function tr(key, params = {}) {
-    const translated = window.i18n?.t?.(key, params);
-    return translated && translated !== key ? translated : key;
-  }
+  const CRITICAL_POPUP_TRANSLATIONS = Object.freeze({
+    en: Object.freeze({
+      "offline.cappedAway": "Max accumulation: 3 hours",
+      "offline.claimAmount": "Claim ${amount}",
+      "modal.dailyChest": "Daily Chest",
+      "modal.dailyChestText": "Come back when the timer reaches zero to claim your Daily Chest.",
+      "modal.dailyChestRemaining": "Time remaining: {time}",
+      "common.ok": "OK"
+    }),
+    ru: Object.freeze({
+      "offline.cappedAway": "Максимальное накопление: 3 часа",
+      "offline.claimAmount": "Забрать ${amount}",
+      "modal.dailyChest": "Ежедневный сундук",
+      "modal.dailyChestText": "Вернись, когда таймер дойдёт до нуля, чтобы забрать ежедневный сундук.",
+      "modal.dailyChestRemaining": "Осталось: {time}",
+      "common.ok": "OK"
+    })
+  });
 
   function currentLanguage() {
     return window.i18n?.getLanguage?.() || document.documentElement.lang || "en";
   }
 
-  function getLocalizedValue(value) {
-    if (typeof value === "string") return value;
+  function interpolateCriticalTranslation(template, params = {}) {
+    return String(template ?? "").replace(/\{([a-zA-Z0-9_]+)\}/g, (_, key) => {
+      return Object.prototype.hasOwnProperty.call(params, key)
+        ? String(params[key])
+        : `{${key}}`;
+    });
+  }
+
+  function tr(key, params = {}) {
+    const translated = window.i18n?.t?.(key, params);
+
+    if (translated && translated !== key) {
+      return translated;
+    }
+
+    const lang = currentLanguage() === "ru" ? "ru" : "en";
+    const fallback =
+      CRITICAL_POPUP_TRANSLATIONS[lang]?.[key]
+      ?? CRITICAL_POPUP_TRANSLATIONS.en?.[key];
+
+    if (fallback) {
+      return interpolateCriticalTranslation(fallback, params);
+    }
+
+    return currentLanguage() === "ru"
+      ? "Текст недоступен"
+      : "Text unavailable";
+  }
+
+  function looksLikeTechnicalTranslationValue(value) {
+    const text = String(value || "").trim();
+    if (!text) return false;
+
+    return (
+      /^[a-z][a-z0-9_-]*(?:\.[a-z0-9_-]+)+$/i.test(text)
+      || /^[a-z0-9]+(?:_[a-z0-9]+)+$/i.test(text)
+    );
+  }
+
+  function getLocalizedValue(value, fallbackKey = "") {
     const lang = currentLanguage();
-    return value?.[lang] || value?.en || value?.ru || "";
+
+    if (typeof value === "string") {
+      const direct = value.trim();
+
+      // Old config builds sometimes stored translation keys as plain strings.
+      if (direct) {
+        const translated = window.i18n?.t?.(direct);
+        if (translated && translated !== direct) return translated;
+
+        if (!looksLikeTechnicalTranslationValue(direct)) return direct;
+      }
+
+      if (fallbackKey) {
+        const fallback = tr(fallbackKey);
+        if (fallback && fallback !== fallbackKey) return fallback;
+      }
+
+      if (looksLikeTechnicalTranslationValue(direct)) {
+        return fallbackKey
+          ? tr(fallbackKey)
+          : tr("common.textUnavailable");
+      }
+
+      return direct;
+    }
+
+    const localized = value?.[lang] || value?.en || value?.ru || "";
+
+    if (typeof localized === "string") {
+      const translated = window.i18n?.t?.(localized);
+      if (translated && translated !== localized) return translated;
+
+      if (localized && !looksLikeTechnicalTranslationValue(localized)) {
+        return localized;
+      }
+    }
+
+    if (fallbackKey) {
+      const fallback = tr(fallbackKey);
+      if (fallback && fallback !== fallbackKey) return fallback;
+    }
+
+    if (
+      typeof localized === "string"
+      && looksLikeTechnicalTranslationValue(localized)
+    ) {
+      return fallbackKey
+        ? tr(fallbackKey)
+        : tr("common.textUnavailable");
+    }
+
+    return localized || (fallbackKey ? tr(fallbackKey) : "");
+  }
+
+  function getTimedCaseDisplayName(caseId, cfg) {
+    return getLocalizedValue(cfg?.name, `caseNames.${caseId}`);
+  }
+
+  function getAccessoryCaseDisplayName(caseId, cfg) {
+    return getLocalizedValue(cfg?.name, `accessoryCaseNames.${caseId}`);
+  }
+
+  function getCardDisplayName(cardId, cfg = CARD_CONFIGS[cardId]) {
+    return getLocalizedValue(cfg?.name, `cards.${cardId}.name`);
+  }
+
+  function getWardrobeCatalogDisplayName(
+    itemId,
+    cfg = WARDROBE_CATALOG_CONFIGS[itemId]
+  ) {
+    return getLocalizedValue(cfg?.name, `wardrobeItems.${itemId}.name`);
+  }
+
+  function collectRuntimeTranslationKeys() {
+    const keys = new Set();
+
+    CARD_IDS.forEach((id) => keys.add(`cards.${id}.name`));
+    EXCLUSIVE_CARD_IDS.forEach((id) => keys.add(`cards.${id}.name`));
+    TIMED_CASE_IDS.forEach((id) => keys.add(`caseNames.${id}`));
+    ACCESSORY_CASE_IDS.forEach((id) => keys.add(`accessoryCaseNames.${id}`));
+    WARDROBE_CATALOG_IDS.forEach((id) => keys.add(`wardrobeItems.${id}.name`));
+    EQUIPMENT_IDS.forEach((id) => keys.add(`wardrobeSlots.${id}`));
+
+    Object.values(WARDROBE_CATALOG_CONFIGS).forEach((cfg) => {
+      if (cfg?.slot) keys.add(`wardrobeSlots.${cfg.slot}`);
+      if (cfg?.rarity) keys.add(`rarity.${cfg.rarity}`);
+    });
+
+    [
+      ...Object.values(CARD_CONFIGS),
+      ...Object.values(EXCLUSIVE_CARD_CONFIGS)
+    ].forEach((cfg) => {
+      if (cfg?.rarity) keys.add(`rarity.${cfg.rarity}`);
+    });
+
+    Object.values(ACCESSORY_CASE_CONFIGS).forEach((cfg) => {
+      Object.keys(cfg?.rates || {}).forEach((rarity) => {
+        keys.add(`rarity.${rarity}`);
+      });
+    });
+
+    ["street", "boss", "tycoon"].forEach((key) => {
+      keys.add(`levelUp.case.${key}`);
+    });
+
+    /*
+       Detect technical translation keys inside older config.js revisions.
+       Asset filenames/URLs are ignored.
+    */
+    const visited = new WeakSet();
+
+    const scan = (value) => {
+      if (!value) return;
+
+      if (typeof value === "string") {
+        if (
+          looksLikeTechnicalTranslationValue(value)
+          && !/\.(?:png|jpe?g|webp|svg|css|js)$/i.test(value)
+        ) {
+          keys.add(value);
+        }
+        return;
+      }
+
+      if (typeof value !== "object" || visited.has(value)) return;
+      visited.add(value);
+      Object.values(value).forEach(scan);
+    };
+
+    scan(CONFIG);
+
+    return [...keys].sort();
+  }
+
+  function auditGameTranslations() {
+    const requiredKeys = collectRuntimeTranslationKeys();
+    const report = window.i18n?.audit?.(requiredKeys) || {
+      ok: false,
+      requiredMissing: requiredKeys
+    };
+
+    window.__URBAN_TYCOON_GAME_I18N_AUDIT__ = report;
+
+    if (!report.ok) {
+      console.error(
+        "[Urban Tycoon i18n] Runtime translation audit failed:",
+        report
+      );
+    }
+
+    return report;
   }
 
   function formatNumber(value) {
@@ -2384,7 +2586,7 @@
   }
 
   function getDailyTargetName(target) {
-    if (!target) return "Unknown";
+    if (!target) return tr("common.unknown");
 
     if (target.type === "card") {
       const config = CARD_CONFIGS[target.id];
@@ -4014,7 +4216,7 @@
             <span class="compact-card-stars">${getRarityStars(cfg.rarity)}</span>
             <span class="compact-card-type">${cfg.type === "business" ? tr("collection.businessCard") : tr("collection.rpgCard")}</span>
           </div>
-          <strong class="compact-card-name">${getLocalizedValue(cfg.name)}</strong>
+          <strong class="compact-card-name">${getCardDisplayName(cardId, cfg)}</strong>
           <span class="compact-card-level">${card.unlocked ? `${tr("common.levelShort")} ${card.level}` : tr("common.locked")}</span>
           <small class="compact-card-bonus">${getCardBonusLabel(cardId)}</small>
           <div class="compact-fragment-row">
@@ -4057,7 +4259,7 @@
       return `
         <article class="exclusive-card">
           <div class="exclusive-card-image card-art-shell">${cardArtMarkup(artPath)}</div>
-          <strong>${getLocalizedValue(card.name)}</strong>
+          <strong>${getCardDisplayName(cardId, card)}</strong>
           <small>${getLocalizedValue(card.description)}</small>
           <button type="button" data-exclusive-card-buy="${cardId}">${tr("collection.specialPurchase")}</button>
         </article>`;
@@ -4178,13 +4380,13 @@
       return `
         <article class="real-case-card ${ready ? "ready" : ""} ${caseId === "case_24h" ? "case-24h" : ""}">
           <div class="real-case-art">${spriteMarkup("sprite-case", caseClass)}</div>
-          <strong class="real-case-name">${getLocalizedValue(cfg.name)}</strong>
+          <strong class="real-case-name">${getTimedCaseDisplayName(caseId, cfg)}</strong>
           <span class="real-case-duration">${tr("cases.durationHours", { hours })}</span>
           <div class="case-live-timer">${ready ? tr("cases.ready") : formatCaseCountdown(remaining)}</div>
           <div class="real-case-reward-preview"><span>💵 ${tr("common.levelShort")} × ${cfg.moneyMultiplier}</span><span>♦ ${cfg.gemReward}</span><span>🃏 ${cfg.fragments.min}-${cfg.fragments.max}</span></div>
           <div class="real-case-actions">
             <button class="case-open-real-button" type="button" data-timed-case-open="${caseId}" ${ready ? "" : "disabled"}>${ready ? tr("cases.open") : tr("cases.waiting")}</button>
-            ${ready ? "" : `<button class="case-skip-button" type="button" data-timed-case-skip="${caseId}" ${state.gems >= cfg.skipGemCost ? "" : "disabled"}>♦ ${cfg.skipGemCost} · ${tr("cases.unlockNow")}</button>`}
+            ${ready ? "" : `<button class="case-skip-button" type="button" data-timed-case-skip="${caseId}" ${state.gems >= cfg.skipGemCost ? "" : "disabled"}>♦ ${cfg.skipGemCost} · ${tr("cases.caseUnlockNow")}</button>`}
           </div>
         </article>`;
     }).join("");
@@ -4213,7 +4415,7 @@
       );
     }
     overlay.querySelector("#case-reward-rarity").textContent = tr(`rarity.${card.rarity}`).toUpperCase();
-    overlay.querySelector("#case-reward-card-name").textContent = getLocalizedValue(card.card.name);
+    overlay.querySelector("#case-reward-card-name").textContent = getCardDisplayName(card.cardId, card.card);
     overlay.querySelector("#case-reward-fragments").textContent = `+${card.fragments} ${tr("cases.fragments").toUpperCase()}`;
     overlay.hidden = false;
   }
@@ -4391,7 +4593,7 @@
       return `
         <article class="premium-accessory-case ${rarity}">
           <div class="premium-accessory-case-icon">${spriteMarkup("sprite-case", caseClass)}</div>
-          <strong>${getLocalizedValue(cfg.name)}</strong>
+          <strong>${getAccessoryCaseDisplayName(caseId, cfg)}</strong>
           <small>${tr(`rarity.${rarity}`)}</small>
           <button class="buy-accessory-case" type="button" data-premium-accessory-open="${caseId}" ${canAfford && availableItems ? "" : "disabled"}>
             ${availableItems ? `♦ ${cfg.gemCost}` : tr("accessoryCases.collectionComplete")}
@@ -4426,7 +4628,7 @@
     if (rarity) rarity.textContent = tr(`rarity.${cfg.rarity}`).toUpperCase();
 
     const name = overlay.querySelector("#accessory-reward-name");
-    if (name) name.textContent = getLocalizedValue(cfg.name);
+    if (name) name.textContent = getWardrobeCatalogDisplayName(itemId, cfg);
 
     const slot = overlay.querySelector("#accessory-reward-slot");
     if (slot) slot.textContent = tr(`wardrobeSlots.${cfg.slot}`);
@@ -4475,7 +4677,7 @@
             ${spriteMarkup("sprite-wardrobe", spriteClass)}
             ${itemState.unlocked ? "" : '<span class="catalog-lock-icon">🔒</span>'}
           </div>
-          <strong>${itemState.unlocked ? getLocalizedValue(cfg.name) : "???"}</strong>
+          <strong>${itemState.unlocked ? getWardrobeCatalogDisplayName(itemId, cfg) : "???"}</strong>
           <span class="catalog-item-rarity">${tr(`rarity.${cfg.rarity}`)}</span>
           <small class="catalog-source">
             ${itemState.unlocked ? `✓ ${tr("wardrobe.unlocked")}` : `${tr("wardrobe.unlockSource")}: ${getAccessorySourceLabel(cfg)}`}
@@ -4747,7 +4949,7 @@
     if (!es?.unlocked) {
       return tr(`wardrobeSlots.${equipmentId}`);
     }
-    return getLocalizedValue(getEquipmentStage(equipmentId, es.level)?.name) || equipmentId;
+    return getLocalizedValue(getEquipmentStage(equipmentId, es.level)?.name, `wardrobeSlots.${equipmentId}`) || tr(`wardrobeSlots.${equipmentId}`);
   }
 
   function getEquipmentEffectLabel(equipmentId) {
@@ -4911,7 +5113,7 @@
       button.innerHTML = `${tr("wardrobe.maxLevel")} <strong>${tr("common.levelShort")} ${maxLevel}</strong>`;
     } else {
       button.disabled = false;
-      button.innerHTML = `${tr("wardrobe.upgradeToLevel", { level: es.level + 1 })} <strong>${formatCompactMoney(getEquipmentUpgradeCost(selectedWardrobeSlot))}</strong>`;
+      button.innerHTML = `${tr("wardrobe.upgradeByLevel", { level: es.level + 1 })} <strong>${formatCompactMoney(getEquipmentUpgradeCost(selectedWardrobeSlot))}</strong>`;
     }
   }
 
@@ -5166,7 +5368,10 @@
       button.setAttribute("aria-disabled", eligible ? "false" : "true");
       button.title = eligible
         ? ""
-        : `${completedCount}/${total} ${currentLanguage() === "ru" ? "миссий завершено" : "missions completed"}`;
+        : tr("home.missionsCompletedCount", {
+            completed: completedCount,
+            total
+          });
 
       const next = button.querySelector("small");
       if (next) next.textContent = `${tr("common.levelShort")} ${state.level + 1}`;
@@ -5771,13 +5976,13 @@
 
     const name = document.createElement("strong");
     const nameText = document.createElement("span");
-    nameText.textContent = player.username || "Player";
+    nameText.textContent = player.username || tr("leaderboard.player");
     name.appendChild(nameText);
 
     if (player.isCurrent) {
       const you = document.createElement("span");
       you.className = "leaderboard-you-badge";
-      you.textContent = "YOU";
+      you.textContent = tr("leaderboard.youBadge");
       name.appendChild(you);
     }
 
@@ -6377,6 +6582,137 @@
     return changed;
   }
 
+
+  /* ==========================================================
+     V17.7 — GENERIC TRANSLATED MODAL / DAILY CHEST
+     Prevents raw i18n keys such as modal.dailyChest from leaking.
+  ========================================================== */
+
+  let activeGameModalTranslation = null;
+
+  function renderTranslatedGameModal() {
+    const modal = document.getElementById("game-modal");
+    if (!modal || !activeGameModalTranslation) return false;
+
+    const title = document.getElementById("game-modal-title");
+    const message = document.getElementById("game-modal-message");
+    const confirm = modal.querySelector(".modal-confirm");
+    const close = modal.querySelector(".game-modal-close");
+
+    const {
+      titleKey,
+      messageKey,
+      titleParams = {},
+      messageParams = {}
+    } = activeGameModalTranslation;
+
+    if (title) {
+      title.textContent = tr(titleKey, titleParams);
+    }
+
+    if (message) {
+      message.textContent = tr(messageKey, messageParams);
+    }
+
+    if (confirm) {
+      confirm.textContent = tr("common.ok");
+    }
+
+    if (close) {
+      close.setAttribute("aria-label", tr("common.close"));
+    }
+
+    return true;
+  }
+
+  function openTranslatedGameModal(
+    titleKey,
+    messageKey,
+    {
+      titleParams = {},
+      messageParams = {}
+    } = {}
+  ) {
+    const modal = document.getElementById("game-modal");
+    if (!modal) return false;
+
+    activeGameModalTranslation = {
+      titleKey,
+      messageKey,
+      titleParams,
+      messageParams
+    };
+
+    renderTranslatedGameModal();
+
+    modal.hidden = false;
+    modal.setAttribute("aria-hidden", "false");
+
+    requestAnimationFrame(() => {
+      modal.querySelector(".modal-confirm")?.focus?.({
+        preventScroll: true
+      });
+    });
+
+    return true;
+  }
+
+  function closeTranslatedGameModal() {
+    const modal = document.getElementById("game-modal");
+    if (!modal) return false;
+
+    modal.hidden = true;
+    modal.setAttribute("aria-hidden", "true");
+    activeGameModalTranslation = null;
+    return true;
+  }
+
+  function getDailyChestCountdownLabel() {
+    const countdown = document.querySelector(
+      '.daily-chest [data-countdown], .daily-chest .countdown'
+    );
+
+    return String(countdown?.textContent || "").trim();
+  }
+
+  function openDailyChestInfoModal() {
+    const remaining = getDailyChestCountdownLabel();
+
+    /*
+       Keep the main sentence compatible with old code that calls
+       t("modal.dailyChestText") without interpolation.
+       The timer is appended as a separately translated sentence.
+    */
+    const baseText = tr("modal.dailyChestText");
+    const remainingText = remaining
+      ? tr("modal.dailyChestRemaining", { time: remaining })
+      : "";
+
+    const modal = document.getElementById("game-modal");
+    if (!modal) return false;
+
+    activeGameModalTranslation = {
+      titleKey: "modal.dailyChest",
+      messageKey: "modal.dailyChestText"
+    };
+
+    const title = document.getElementById("game-modal-title");
+    const message = document.getElementById("game-modal-message");
+    const confirm = modal.querySelector(".modal-confirm");
+
+    if (title) title.textContent = tr("modal.dailyChest");
+    if (message) {
+      message.textContent = [baseText, remainingText]
+        .filter(Boolean)
+        .join(" ");
+    }
+    if (confirm) confirm.textContent = tr("common.ok");
+
+    modal.hidden = false;
+    modal.setAttribute("aria-hidden", "false");
+    return true;
+  }
+
   /* ==========================================================
      V16.3 — NOTIFICATIONS POPUP
      Dedicated modal with safe backdrop/focus cleanup.
@@ -6572,6 +6908,29 @@
   function bindUIEvents() {
     bindTapControl();
 
+    /*
+       Capture these two legacy generic-modal actions before script.js bubble
+       handlers. This guarantees the translated V17.7 popup wins.
+    */
+    document.addEventListener("click", (event) => {
+      const dailyChestButton = event.target?.closest?.(
+        '.daily-chest[data-action="daily-chest"]'
+      );
+
+      if (dailyChestButton) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        openDailyChestInfoModal();
+        return;
+      }
+
+      if (event.target?.closest?.("#game-modal [data-modal-close]")) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        closeTranslatedGameModal();
+      }
+    }, true);
+
     document.addEventListener("click", (event) => {
       const socialTasksOpen = event.target.closest("[data-social-tasks-open]");
       if (socialTasksOpen) {
@@ -6762,6 +7121,13 @@
 
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape") {
+        const gameModal = document.getElementById("game-modal");
+        if (gameModal && !gameModal.hidden) {
+          event.preventDefault();
+          closeTranslatedGameModal();
+          return;
+        }
+
         const socialTasksModal = document.getElementById("social-tasks-modal");
         if (socialTasksModal && !socialTasksModal.hidden) {
           event.preventDefault();
@@ -6908,6 +7274,7 @@
     installStaticImageFallbacks(document);
     normalizeSpriteFrames();
     logAssetAudit();
+    auditGameTranslations();
 
     const spritePreloadPromise = preloadOfficialSpriteSheets();
     const directAssetPreloadPromise = preloadCriticalDirectAssets();
@@ -6996,6 +7363,19 @@
         showOfflineEarningsModal(getPendingOfflineEarnings());
       }
 
+      const genericModal = document.getElementById("game-modal");
+      if (
+        genericModal
+        && !genericModal.hidden
+        && activeGameModalTranslation
+      ) {
+        if (activeGameModalTranslation.titleKey === "modal.dailyChest") {
+          openDailyChestInfoModal();
+        } else {
+          renderTranslatedGameModal();
+        }
+      }
+
       const notificationsModal = document.getElementById("notifications-modal");
       if (notificationsModal && !notificationsModal.hidden) {
         renderNotificationsModalContent();
@@ -7023,6 +7403,8 @@
         showAccessoryReward(lastAccessoryRewardItemId);
       }
 
+      window.i18n?.apply?.(document);
+      auditGameTranslations();
       scheduleSpriteRender(document);
     });
 
@@ -7102,6 +7484,14 @@
     setMaxLevel,
     getXpRequired,
     getPlayerStats: () => computePlayerStats(state),
+
+    i18n: {
+      getLanguage: () => window.i18n?.getLanguage?.() || "en",
+      setLanguage: (language) => window.i18n?.setLanguage?.(language),
+      switchLanguage: () => window.i18n?.switchLanguage?.(),
+      audit: auditGameTranslations,
+      requiredKeys: collectRuntimeTranslationKeys
+    },
 
     missions: {
       getDefinitions: (level = state.level) => getMissionDefinitions(level),
@@ -7261,3 +7651,9 @@
 /* V17.5: Home/HUD/main navigation EN-RU language polish. */
 
 /* V17.6: Final EN/RU secondary-screen translation audit. */
+
+/* V17.7: Offline Earnings + Daily Chest raw translation-key popup fix. */
+
+/* V17.8: Cases/Cards/Wardrobe raw translation-key compatibility + centralized names. */
+
+/* V17.9: Hardened centralized EN/RU translation engine + runtime coverage audit. */
