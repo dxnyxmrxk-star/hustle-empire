@@ -121,7 +121,7 @@
     premium_legendary: "case-gold"
   };
 
-  const SPRITE_BUILD_VERSION = "15.6";
+  const SPRITE_BUILD_VERSION = "15.7";
 
   /*
      V14.0 asset manifest.

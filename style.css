@@ -4836,3 +4836,378 @@ img[src*="assets/"] {
     max-height: 92% !important;
   }
 }
+
+
+/* ==========================================================
+   V15.7 — HOME VIEWPORT / CHARACTER / TAP / COLUMNS
+   Final layout override. Keep this block LAST in style.css.
+========================================================== */
+
+:root {
+  --home-layout-safe-height:
+    calc(
+      100svh
+      - var(--topbar-height)
+      - var(--navbar-height)
+      - env(safe-area-inset-bottom, 0px)
+      - 26px
+    );
+}
+
+/*
+  The first Home block fits between topbar and fixed bottom navigation.
+  This prevents the Tap CTA from living underneath the navigation.
+*/
+.screen[data-screen="home"] {
+  min-height: 0 !important;
+}
+
+.screen[data-screen="home"] .home-layout {
+  display: grid !important;
+  grid-template-columns: 108px minmax(0, 1fr) 146px !important;
+  align-items: stretch !important;
+  gap: 7px !important;
+
+  width: 100% !important;
+  height: clamp(470px, var(--home-layout-safe-height), 680px) !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  flex: 0 0 auto !important;
+}
+
+/* All three Home columns use the complete available stage height. */
+.screen[data-screen="home"] .home-left,
+.screen[data-screen="home"] .home-center,
+.screen[data-screen="home"] .home-missions {
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+}
+
+/* ---------------- LEFT COLUMN ---------------- */
+
+.screen[data-screen="home"] .home-left {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  justify-content: flex-start !important;
+  gap: 7px !important;
+  padding: 8px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  scrollbar-width: none;
+}
+
+.screen[data-screen="home"] .home-left::-webkit-scrollbar {
+  display: none;
+}
+
+.screen[data-screen="home"] .home-logo {
+  flex: 0 0 auto !important;
+  padding-top: 7px !important;
+  padding-bottom: 7px !important;
+}
+
+.screen[data-screen="home"] .mini-feature {
+  flex: 0 0 auto !important;
+  min-height: 56px !important;
+}
+
+/* ---------------- RIGHT / MISSIONS COLUMN ---------------- */
+
+.screen[data-screen="home"] .home-missions {
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 8px !important;
+  overflow: hidden !important;
+}
+
+.screen[data-screen="home"] .missions-title-row {
+  flex: 0 0 auto !important;
+  margin-bottom: 7px !important;
+}
+
+.screen[data-screen="home"] .quest-list {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding-right: 1px !important;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,176,255,.24) transparent;
+}
+
+.screen[data-screen="home"] .quest-list::-webkit-scrollbar {
+  width: 3px;
+}
+
+.screen[data-screen="home"] .quest-list::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(0,176,255,.24);
+}
+
+.screen[data-screen="home"] .next-level-button {
+  flex: 0 0 auto !important;
+  margin-top: 7px !important;
+}
+
+/* ---------------- CENTER CHARACTER STAGE ---------------- */
+
+.screen[data-screen="home"] .home-center {
+  /*
+    The old absolute-position character layout is replaced by a vertical flex
+    stage: character grows in the free space, Tap sits immediately below it.
+  */
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: stretch !important;
+
+  position: relative !important;
+  isolation: isolate !important;
+  overflow: hidden !important;
+  padding: 8px 8px 14px !important;
+
+  background:
+    radial-gradient(
+      ellipse at 50% 44%,
+      rgba(0, 176, 255, .11) 0%,
+      rgba(0, 176, 255, .035) 31%,
+      transparent 61%
+    ),
+    radial-gradient(
+      ellipse at 50% 72%,
+      rgba(0, 230, 118, .075),
+      transparent 44%
+    ),
+    #0b141f !important;
+}
+
+.screen[data-screen="home"] .home-center::before {
+  z-index: 1 !important;
+  background:
+    radial-gradient(
+      ellipse at 50% 48%,
+      rgba(0,176,255,.08),
+      transparent 57%
+    ) !important;
+}
+
+.screen[data-screen="home"] .home-center::after {
+  z-index: 2 !important;
+  inset: auto 0 0 !important;
+  height: 24% !important;
+  background:
+    linear-gradient(
+      180deg,
+      transparent,
+      rgba(3,10,16,.14) 40%,
+      rgba(3,10,16,.36)
+    ) !important;
+}
+
+body .screen[data-screen="home"] .home-center > .home-character-stage {
+  display: flex !important;
+}
+
+.home-character-stage {
+  position: relative !important;
+  z-index: 3 !important;
+
+  display: flex !important;
+  flex: 1 1 0 !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+/*
+  The PNG contains transparent margins. Letting the image be wider than the
+  center column makes the visible body substantially larger while the stage
+  safely clips only empty side transparency.
+*/
+.screen[data-screen="home"]
+.home-character-stage
+.home-character-sprite.character-real-image {
+  position: relative !important;
+  inset: auto !important;
+  left: auto !important;
+  top: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+
+  flex: 0 0 auto !important;
+  width: 142% !important;
+  height: 112% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: none !important;
+  max-height: none !important;
+
+  margin: 0 !important;
+  transform: none !important;
+
+  object-fit: contain !important;
+  object-position: center center !important;
+  background: transparent !important;
+
+  filter:
+    drop-shadow(0 18px 24px rgba(0,0,0,.44))
+    drop-shadow(0 0 11px rgba(0,176,255,.08)) !important;
+}
+
+/* ---------------- TAP CTA ---------------- */
+
+.screen[data-screen="home"] .home-tap-zone {
+  position: relative !important;
+  z-index: 20 !important;
+
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  top: auto !important;
+
+  flex: 0 0 auto !important;
+  width: min(92%, 270px) !important;
+  margin: 2px auto 0 !important;
+  transform: none !important;
+
+  /*
+    Space below the CTA is inside the Home card itself, so the fixed nav never
+    covers it even on Telegram/iOS.
+  */
+  padding-bottom: 2px !important;
+  pointer-events: none !important;
+}
+
+.screen[data-screen="home"] .home-main-tap {
+  position: relative !important;
+  z-index: 21 !important;
+  width: 100% !important;
+  min-height: 64px !important;
+  pointer-events: auto !important;
+}
+
+.screen[data-screen="home"] .tap-float-layer {
+  bottom: 58px !important;
+}
+
+/* Fixed nav always remains visually and interactively above game content. */
+.bottom-navigation {
+  z-index: 2400 !important;
+  pointer-events: auto !important;
+  isolation: isolate !important;
+}
+
+.bottom-navigation .nav-item {
+  pointer-events: auto !important;
+}
+
+/* ---------------- WARDROBE CHARACTER ---------------- */
+
+/* Keep the Wardrobe character visually centered and make better use of width. */
+.wardrobe-character {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.wardrobe-character-sprite.character-real-image {
+  position: relative !important;
+  inset: auto !important;
+  left: auto !important;
+  top: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+
+  width: 128% !important;
+  height: 104% !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  transform: none !important;
+
+  object-fit: contain !important;
+  object-position: center center !important;
+}
+
+/* ---------------- RESPONSIVE ---------------- */
+
+@supports not (height: 100svh) {
+  :root {
+    --home-layout-safe-height:
+      calc(
+        100vh
+        - var(--topbar-height)
+        - var(--navbar-height)
+        - env(safe-area-inset-bottom, 0px)
+        - 26px
+      );
+  }
+}
+
+@media (max-width: 430px) {
+  .screen[data-screen="home"] .home-layout {
+    grid-template-columns: 94px minmax(0, 1fr) 128px !important;
+    gap: 5px !important;
+    height: clamp(455px, var(--home-layout-safe-height), 650px) !important;
+  }
+
+  .screen[data-screen="home"] .home-left,
+  .screen[data-screen="home"] .home-missions {
+    padding: 6px !important;
+  }
+
+  .screen[data-screen="home"] .home-left {
+    gap: 5px !important;
+  }
+
+  .screen[data-screen="home"] .mini-feature {
+    min-height: 53px !important;
+  }
+
+  .screen[data-screen="home"]
+  .home-character-stage
+  .home-character-sprite.character-real-image {
+    width: 154% !important;
+    height: 114% !important;
+  }
+
+  .screen[data-screen="home"] .home-tap-zone {
+    width: min(94%, 245px) !important;
+    margin-top: 0 !important;
+  }
+
+  .screen[data-screen="home"] .home-main-tap {
+    min-height: 59px !important;
+    padding: 8px 13px !important;
+    gap: 7px !important;
+  }
+}
+
+@media (max-height: 680px) {
+  .screen[data-screen="home"] .home-layout {
+    height: max(
+      430px,
+      calc(
+        100svh
+        - var(--topbar-height)
+        - var(--navbar-height)
+        - env(safe-area-inset-bottom, 0px)
+        - 20px
+      )
+    ) !important;
+  }
+
+  .screen[data-screen="home"] .mini-feature {
+    min-height: 49px !important;
+  }
+
+  .screen[data-screen="home"] .home-main-tap {
+    min-height: 56px !important;
+  }
+}
