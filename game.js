@@ -84,7 +84,7 @@
      CSS/UI frame overlay rendered above it.
   ========================================================== */
 
-  const SPRITE_BUILD_VERSION = "19.6";
+  const SPRITE_BUILD_VERSION = "19.7";
 
   const REAL_GAME_ASSET_PATHS = Object.freeze([
     "assets/acc_epic.png",
@@ -93,6 +93,10 @@
     "assets/acc_rare.png",
     "assets/autodealer.png",
     "assets/avatar_face.png",
+    "assets/female_ui_icon.png",
+    "assets/female_level_1.png",
+    "assets/female_level_10.png",
+    "assets/female_level_30.png",
     "assets/bank.png",
     "assets/barber.png",
     "assets/card_autodealer.png",
@@ -151,7 +155,7 @@
         fallback: ""
       }),
       female: Object.freeze({
-        primary: "assets/avatar_female_face.png",
+        primary: "assets/female_ui_icon.png",
         fallback: "assets/avatar_face.png"
       })
     }),
@@ -173,19 +177,19 @@
 
       female: Object.freeze({
         1: Object.freeze({
-          primary: "assets/hero_female_lvl1.png",
+          primary: "assets/female_level_1.png",
           fallback: "assets/hero_lvl1.png"
         }),
         2: Object.freeze({
-          primary: "assets/hero_female_lvl2.png",
+          primary: "assets/female_level_10.png",
           fallback: "assets/hero_lvl2.png"
         }),
         3: Object.freeze({
-          primary: "assets/hero_female_lvl3.png",
+          primary: "assets/female_level_30.png",
           fallback: "assets/hero_lvl3.png"
         }),
         4: Object.freeze({
-          primary: "assets/hero_female_lvl3.png",
+          primary: "assets/female_level_30.png",
           fallback: "assets/hero_lvl3.png"
         })
       })
@@ -1132,15 +1136,18 @@
   function getSelectedCharacterGender(targetState = state) {
     return normalizeCharacterGender(
       targetState?.profile?.characterGender
+      ?? targetState?.profile?.gender
+      ?? targetState?.gender
     );
   }
 
   function getCharacterStage(level = state?.level || 1) {
     const safeLevel = Math.max(1, Math.floor(Number(level) || 1));
-    if (safeLevel <= 10) return 1;
-    if (safeLevel <= 25) return 2;
-    if (safeLevel <= 45) return 3;
-    return 4;
+
+    // Character art upgrades at the same milestones used by the asset set.
+    if (safeLevel < 10) return 1;
+    if (safeLevel < 30) return 2;
+    return 3;
   }
 
   function getSelectedAvatarAsset(
@@ -2517,10 +2524,21 @@
 
   function sanitizeState(s) {
     s.profile ||= {};
+
+    const persistedGender =
+      s.profile.characterGender
+      ?? s.profile.gender
+      ?? s.gender;
+
     s.profile.characterGender =
-      normalizeCharacterGender(s.profile.characterGender);
+      normalizeCharacterGender(persistedGender);
+
     s.profile.characterSelected =
       Boolean(s.profile.characterSelected);
+
+    // Remove obsolete aliases after migration so future saves stay clean.
+    delete s.profile.gender;
+    delete s.gender;
 
     s.money = Math.max(0, Number(s.money) || 0);
     s.gems = Math.max(0, Number(s.gems) || 0);
@@ -2631,7 +2649,7 @@
 
     return {
       schema: 2,
-      appVersion: "19.6",
+      appVersion: "19.7",
       updatedAt,
       state: JSON.parse(JSON.stringify(state))
     };
@@ -7122,6 +7140,7 @@
       incomePerSecond: Math.max(0, getTotalPassiveIncomePerSecond()),
       prestige: calculateLocalPrestigeScore(state),
       avatarUrl: identity.avatarUrl,
+      avatarFallbackUrl: identity.avatarFallbackUrl,
       isCurrent: true
     };
   }
@@ -9030,7 +9049,7 @@
 
     /*
        Existing saves are deep-merged, so this never resets progress.
-       First-run / pre-V19.6 saves without a confirmed choice receive the
+       First-run / pre-V19.7 saves without a confirmed choice receive the
        safe male fallback internally and see the selector before Home.
     */
     const characterSelectionOpen =
@@ -9508,4 +9527,4 @@
 
 /* V19.5: Home widgets/cards use explicit non-overlapping media/content/stat regions. */
 
-/* V19.6: persistent male/female character selection with safe legacy/female-asset fallbacks. */
+/* V19.7: production female assets integrated (LV 1 / 10 / 30 + HUD icon) with persistent gender selection. */
