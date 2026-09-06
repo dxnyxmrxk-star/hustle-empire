@@ -48,6 +48,15 @@
   const SAVE_BACKUP_KEY = "urbanTycoonSave_v19_1_backup";
   const SAVE_META_KEY = "urbanTycoonSave_v19_1_meta";
 
+  /*
+     V19.9 — the character selector is a true first-access gate.
+     These two tiny keys are intentionally separate from the normal save:
+     - the flag tells us the first-run choice has already been completed;
+     - the value preserves the chosen gender even if gameplay data is reset.
+  */
+  const GENDER_SELECTION_FLAG_KEY = "urbanTycoon_hasSelectedGender_v1";
+  const GENDER_SELECTION_VALUE_KEY = "urbanTycoon_selectedGender_v1";
+
   const LEGACY_SAVE_KEYS = [
     "hustleEmpireSave_v12_5",
     "hustleEmpireSave_v11",
@@ -1161,6 +1170,49 @@
       : DEFAULT_CHARACTER_GENDER;
   }
 
+  function readGenderSelectionFlag() {
+    try {
+      const value = String(
+        localStorage.getItem(GENDER_SELECTION_FLAG_KEY) || ""
+      ).trim().toLowerCase();
+
+      return value === "true" || value === "1";
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function readStandaloneGenderPreference() {
+    try {
+      const value = String(
+        localStorage.getItem(GENDER_SELECTION_VALUE_KEY) || ""
+      ).trim().toLowerCase();
+
+      return CHARACTER_GENDERS.includes(value) ? value : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function persistGenderSelectionMarker(gender) {
+    const normalized = normalizeCharacterGender(gender);
+
+    try {
+      localStorage.setItem(GENDER_SELECTION_FLAG_KEY, "true");
+      localStorage.setItem(
+        GENDER_SELECTION_VALUE_KEY,
+        normalized
+      );
+      return true;
+    } catch (error) {
+      console.warn(
+        "[Urban Tycoon] Gender selection marker save failed:",
+        error
+      );
+      return false;
+    }
+  }
+
   function readPersistedCharacterGender(source) {
     if (!source || typeof source !== "object") return null;
 
@@ -1198,6 +1250,7 @@
 
     if (selected) {
       targetState.profile.characterSelected = true;
+      targetState.profile.hasSelectedGender = true;
     }
 
     /* Remove the obsolete nested alias while keeping top-level gender as the
@@ -2353,7 +2406,8 @@
     */
     profile: {
       characterGender: DEFAULT_CHARACTER_GENDER,
-      characterSelected: false
+      characterSelected: false,
+      hasSelectedGender: false
     },
     gender: DEFAULT_CHARACTER_GENDER,
 
@@ -2607,16 +2661,27 @@
     s.profile.characterGender = normalizedGender;
     s.gender = normalizedGender;
 
-    s.profile.characterSelected =
+    /*
+       Keep both state flags synchronized. `hasSelectedGender` is the current
+       canonical flag; `characterSelected` remains as a compatibility alias
+       for V19.7/V19.8 saves and existing UI/API code.
+    */
+    const persistedSelectionCompleted =
       Boolean(
-        sourceState?.profile?.characterSelected
+        sourceState?.profile?.hasSelectedGender
+        ?? sourceState?.hasSelectedGender
+        ?? sourceState?.profile?.characterSelected
         ?? sourceState?.characterSelected
-        ?? s.profile.characterSelected
+        ?? false
       );
+
+    s.profile.hasSelectedGender = persistedSelectionCompleted;
+    s.profile.characterSelected = persistedSelectionCompleted;
 
     // Remove obsolete aliases after migration so future saves stay clean.
     delete s.profile.gender;
     delete s.characterSelected;
+    delete s.hasSelectedGender;
 
     s.money = Math.max(0, Number(s.money) || 0);
     s.gems = Math.max(0, Number(s.gems) || 0);
@@ -2727,7 +2792,7 @@
 
     return {
       schema: 2,
-      appVersion: "19.8",
+      appVersion: "19.9",
       updatedAt,
       state: JSON.parse(JSON.stringify(state))
     };
@@ -2785,6 +2850,30 @@
   }
 
   const initialLocalSave = loadBestLocalSave();
+
+  /*
+     Capture "first access" BEFORE any boot-time gameplay code can mutate
+     state and trigger an autosave. A valid existing save means the player is
+     not new, even if that older save predates the explicit selection flag.
+  */
+  const hadPersistedLocalSaveAtStartup =
+    initialLocalSave.source !== "default";
+  const hadGenderSelectionMarkerAtStartup =
+    readGenderSelectionFlag();
+  const standaloneGenderAtStartup =
+    readStandaloneGenderPreference();
+
+  if (
+    hadPersistedLocalSaveAtStartup
+    || hadGenderSelectionMarkerAtStartup
+  ) {
+    setSelectedCharacterGender(
+      initialLocalSave.state,
+      standaloneGenderAtStartup
+        ?? getSelectedCharacterGender(initialLocalSave.state),
+      true
+    );
+  }
 
   function createPersistentProxy(target) {
     if (
@@ -3247,6 +3336,57 @@
       source: initialLocalSave.source,
       updatedAt: localUpdatedAt
     };
+  }
+
+  function finalizeStartupGenderSelection(persistenceRestore) {
+    const restoredExistingSave =
+      hadPersistedLocalSaveAtStartup
+      || persistenceRestore?.source === "telegram-cloud";
+
+    const markerAlreadyExists =
+      hadGenderSelectionMarkerAtStartup
+      || readGenderSelectionFlag();
+
+    const stateAlreadySelected =
+      state.profile?.hasSelectedGender === true
+      || state.profile?.characterSelected === true;
+
+    /*
+       Selector is allowed ONLY when all three are false:
+       no local save at startup, no restored cloud save, and no persisted
+       first-run marker. Existing pre-V19.9 saves are migrated silently.
+    */
+    const selectionAlreadyCompleted =
+      restoredExistingSave
+      || markerAlreadyExists
+      || stateAlreadySelected;
+
+    if (!selectionAlreadyCompleted) {
+      state.profile ||= {};
+      state.profile.hasSelectedGender = false;
+      state.profile.characterSelected = false;
+      return false;
+    }
+
+    const standaloneGender =
+      readStandaloneGenderPreference();
+
+    const normalized =
+      setSelectedCharacterGender(
+        state,
+        standaloneGender
+          ?? getSelectedCharacterGender(state),
+        true
+      );
+
+    persistGenderSelectionMarker(normalized);
+
+    /*
+       Persist the migration immediately. This also upgrades old local/cloud
+       saves that had a gender but did not yet have the V19.9 first-run flag.
+    */
+    saveGame("gender-selection-startup-migration");
+    return true;
   }
 
   function persistOnExit(reason = "exit") {
@@ -6416,8 +6556,16 @@
 
   let pendingCharacterSelectionOfflineResult = null;
 
+  function hasCompletedGenderSelection() {
+    return (
+      state.profile?.hasSelectedGender === true
+      || state.profile?.characterSelected === true
+      || readGenderSelectionFlag()
+    );
+  }
+
   function isCharacterSelectionRequired() {
-    return state.profile?.characterSelected !== true;
+    return !hasCompletedGenderSelection();
   }
 
   function openCharacterSelection(options = {}) {
@@ -6479,6 +6627,13 @@
       normalizeCharacterGender(gender);
 
     setSelectedCharacterGender(state, normalized, true);
+
+    /*
+       Write the one-time marker BEFORE the normal save. Even if Telegram is
+       closed immediately after the tap, the next launch must never reopen
+       this selector.
+    */
+    persistGenderSelectionMarker(normalized);
 
     /*
        Persist immediately. The deep Proxy also observes these assignments,
@@ -8895,6 +9050,11 @@
   }
 
   function resetGame() {
+    /*
+       Deliberately preserve GENDER_SELECTION_FLAG_KEY and
+       GENDER_SELECTION_VALUE_KEY: resetting gameplay must not recreate the
+       first-access character selector.
+    */
     try {
       [
         SAVE_KEY,
@@ -9115,6 +9275,12 @@
     const persistenceRestore = await hydratePersistence();
 
     /*
+       Resolve the one-time first-access gate only after local/cloud restore
+       has finished, but before the selector can be opened.
+    */
+    finalizeStartupGenderSelection(persistenceRestore);
+
+    /*
        Bind <img> fallbacks before first paint. This is important on Telegram
        iOS where an SVG request can fail before the rest of the app is ready.
     */
@@ -9145,9 +9311,9 @@
     bindUIEvents();
 
     /*
-       Existing saves are deep-merged, so this never resets progress.
-       First-run / pre-V19.7 saves without a confirmed choice receive the
-       safe male fallback internally and see the selector before Home.
+       V19.9: show the selector only on the absolute first access.
+       Any existing local/cloud save or completed-selection marker skips this
+       screen forever and opens Home with the persisted gender.
     */
     const characterSelectionOpen =
       isCharacterSelectionRequired()
@@ -9401,7 +9567,7 @@
 
     character: {
       getGender: () => getSelectedCharacterGender(),
-      isSelected: () => Boolean(state.profile?.characterSelected),
+      isSelected: () => hasCompletedGenderSelection(),
       select: (gender) =>
         selectCharacterGender(gender, { source: "api" }),
       openSelector: () =>
@@ -9627,3 +9793,5 @@
 /* V19.7: production female assets integrated (LV 1 / 10 / 30 + HUD icon) with persistent gender selection. */
 
 /* V19.8: repo-root asset URL resolver + canonical gender migration/persistence hardening. */
+
+/* V19.9: one-time first-access gender gate with durable local marker and legacy/cloud migration. */
