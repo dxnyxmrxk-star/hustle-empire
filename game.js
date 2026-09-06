@@ -112,7 +112,7 @@
      CSS/UI frame overlay rendered above it.
   ========================================================== */
 
-  const SPRITE_BUILD_VERSION = "20.1";
+  const SPRITE_BUILD_VERSION = "20.2";
 
   const REAL_GAME_ASSET_PATHS = Object.freeze([
     "assets/acc_epic.png",
@@ -2816,7 +2816,7 @@
 
     return {
       schema: 2,
-      appVersion: "20.1",
+      appVersion: "20.2",
       updatedAt,
       state: JSON.parse(JSON.stringify(state))
     };
@@ -9830,4 +9830,4 @@
 
 /* V19.9: one-time first-access gender gate with durable local marker and legacy/cloud migration. */
 
-/* V20.1: Step 2 — removed legacy vertical Home mission panel; compact progression strip preserves level-up flow. */
+/* V20.2: Step 3 — circular quick-action badges surround the Home character; Step 4 mission modal is still pending. */

@@ -15390,3 +15390,522 @@ body.ui-scale-responsive
     display: none !important;
   }
 }
+
+/* ==========================================================
+   V20.2 — STEP 3 / CIRCULAR SIDE QUICK-ACTION HUB
+   Scope intentionally limited to the Home quick-action layout.
+   - Daily Challenges + Daily Chest sit left of the bust.
+   - Hustle Streak + Offline Earnings sit right of the bust.
+   - Existing actions/state bindings are preserved.
+   - Mission modal/drawer remains Step 4 and is NOT added here.
+========================================================== */
+
+/* Use the full Home width so the four side circles can stay balanced. */
+body.ui-scale-responsive
+.home-screen-compact
+.home-layout-balanced {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-template-areas:
+    "left"
+    "center" !important;
+  align-items: stretch !important;
+  gap: clamp(.38rem, 1.3vw, .58rem) !important;
+}
+
+/* The old vertical utilities rail becomes a compact Home header. */
+body.ui-scale-responsive
+.home-screen-compact
+.home-left {
+  grid-area: left !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: clamp(.45rem, 1.7vw, .72rem) !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  padding: clamp(.34rem, 1.2vw, .48rem) clamp(.44rem, 1.7vw, .68rem) !important;
+  overflow: visible !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-left .home-logo {
+  min-width: 0 !important;
+  margin: 0 !important;
+}
+
+/* Social Tasks is intentionally not one of the four orbit actions. */
+body.ui-scale-responsive
+.home-screen-compact
+.home-left > .social-tasks-launcher.home-left-widget {
+  display: grid !important;
+  grid-template-columns: clamp(1.8rem, 7vw, 2.2rem) minmax(0, 1fr) !important;
+  width: clamp(8.2rem, 36vw, 11rem) !important;
+  min-height: clamp(2.65rem, 10vw, 3.1rem) !important;
+  padding: .34rem .46rem !important;
+  gap: .36rem !important;
+  border-radius: .78rem !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-left > .social-tasks-launcher
+.home-widget-media {
+  width: clamp(1.8rem, 7vw, 2.2rem) !important;
+  height: clamp(1.8rem, 7vw, 2.2rem) !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-left > .social-tasks-launcher
+.mini-feature-copy > small {
+  display: none !important;
+}
+
+/* Center now contains one self-contained character hub + the tap CTA. */
+body.ui-scale-responsive
+.home-screen-compact
+.home-center {
+  grid-area: center !important;
+  display: grid !important;
+  grid-template-rows: minmax(0, 1fr) auto !important;
+  align-items: stretch !important;
+  justify-items: center !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  padding: clamp(.2rem, .8vw, .34rem) clamp(.12rem, .8vw, .3rem) clamp(.4rem, 1.4vw, .55rem) !important;
+  overflow: hidden !important;
+}
+
+/* Override an old Home cleanup selector that hid unknown center children. */
+body.ui-scale-responsive
+.home-screen-compact
+.home-center > .home-character-hub {
+  display: grid !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-character-hub {
+  box-sizing: border-box !important;
+  grid-row: 1 !important;
+  display: grid !important;
+  grid-template-columns:
+    minmax(4.35rem, .72fr)
+    minmax(9.8rem, 1.45fr)
+    minmax(4.35rem, .72fr) !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: clamp(.18rem, 1vw, .5rem) !important;
+  width: min(100%, 30rem) !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: 0 auto !important;
+  overflow: visible !important;
+  isolation: isolate !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-orbit-column {
+  position: relative !important;
+  z-index: 8 !important;
+  display: grid !important;
+  grid-template-rows: repeat(2, auto) !important;
+  align-content: center !important;
+  justify-items: center !important;
+  gap: clamp(.65rem, 2.4vw, 1rem) !important;
+  min-width: 0 !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-character-hub > .home-character-stage {
+  position: relative !important;
+  z-index: 4 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 auto !important;
+}
+
+/* -------- Circular quick-action button -------- */
+body.ui-scale-responsive
+.home-screen-compact
+.home-orbit-action {
+  --orbit-accent: 88, 255, 188;
+
+  box-sizing: border-box !important;
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: .18rem !important;
+
+  width: clamp(4.35rem, 18vw, 5.2rem) !important;
+  min-width: 0 !important;
+  max-width: 5.2rem !important;
+  min-height: 5.5rem !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: none !important;
+
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #eef8ff !important;
+
+  cursor: pointer !important;
+  touch-action: manipulation !important;
+  -webkit-tap-highlight-color: transparent !important;
+  overflow: visible !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-orbit-action.daily-challenges-launch {
+  --orbit-accent: 0, 230, 118;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-orbit-action.daily-chest {
+  --orbit-accent: 255, 200, 64;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-orbit-action.hustle-streak {
+  --orbit-accent: 255, 132, 72;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-orbit-action.offline-income {
+  --orbit-accent: 78, 216, 255;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-orbit-circle {
+  box-sizing: border-box !important;
+  position: relative !important;
+  display: grid !important;
+  place-items: center !important;
+  align-content: center !important;
+  gap: .08rem !important;
+
+  width: clamp(3.75rem, 15.6vw, 4.55rem) !important;
+  height: clamp(3.75rem, 15.6vw, 4.55rem) !important;
+  min-width: clamp(3.75rem, 15.6vw, 4.55rem) !important;
+  min-height: clamp(3.75rem, 15.6vw, 4.55rem) !important;
+
+  border: 1px solid rgba(var(--orbit-accent), .34) !important;
+  border-radius: 50% !important;
+
+  background:
+    radial-gradient(circle at 34% 24%, rgba(255,255,255,.09), transparent 30%),
+    radial-gradient(circle at 50% 78%, rgba(var(--orbit-accent), .14), transparent 58%),
+    linear-gradient(180deg, rgba(15,27,40,.98), rgba(7,15,24,.98)) !important;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 .38rem 1rem rgba(0,0,0,.24),
+    0 0 1rem rgba(var(--orbit-accent), .09) !important;
+
+  transition:
+    transform 130ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease !important;
+
+  overflow: hidden !important;
+  pointer-events: none !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-orbit-action:hover .home-orbit-circle,
+body.ui-scale-responsive
+.home-screen-compact
+.home-orbit-action:focus-visible .home-orbit-circle {
+  transform: translateY(-1px) scale(1.035) !important;
+  border-color: rgba(var(--orbit-accent), .62) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.11),
+    0 .45rem 1.15rem rgba(0,0,0,.28),
+    0 0 1.2rem rgba(var(--orbit-accent), .18) !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-orbit-action:active .home-orbit-circle {
+  transform: scale(.955) !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-orbit-action:focus-visible {
+  outline: 2px solid rgba(var(--orbit-accent), .72) !important;
+  outline-offset: .18rem !important;
+  border-radius: .65rem !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-orbit-icon {
+  position: static !important;
+  display: block !important;
+  width: auto !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  font-size: clamp(1.28rem, 5vw, 1.62rem) !important;
+  line-height: 1 !important;
+  filter: drop-shadow(0 .12rem .2rem rgba(0,0,0,.32)) !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-orbit-metric,
+body.ui-scale-responsive
+.home-screen-compact
+.home-orbit-action .daily-challenges-launch-badge,
+body.ui-scale-responsive
+.home-screen-compact
+.home-orbit-action .daily-challenges-launch-timer,
+body.ui-scale-responsive
+.home-screen-compact
+.home-orbit-action .countdown,
+body.ui-scale-responsive
+.home-screen-compact
+.home-orbit-action .offline-value,
+body.ui-scale-responsive
+.home-screen-compact
+.home-orbit-action .feature-value {
+  position: static !important;
+  inset: auto !important;
+  display: block !important;
+  width: auto !important;
+  min-width: 0 !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: rgb(var(--orbit-accent)) !important;
+  font-size: clamp(.54rem, 2.15vw, .66rem) !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+  font-variant-numeric: tabular-nums !important;
+  white-space: nowrap !important;
+  text-shadow: 0 0 .55rem rgba(var(--orbit-accent), .24) !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-orbit-micro {
+  display: block !important;
+  margin: 0 !important;
+  color: rgba(237,248,255,.64) !important;
+  font-size: clamp(.45rem, 1.75vw, .54rem) !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-orbit-label {
+  display: -webkit-box !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  min-height: 1.55em !important;
+  margin: 0 !important;
+  padding: 0 .08rem !important;
+  overflow: hidden !important;
+  -webkit-box-orient: vertical !important;
+  -webkit-line-clamp: 2 !important;
+  color: rgba(239,248,255,.88) !important;
+  font-size: clamp(.51rem, 2vw, .62rem) !important;
+  font-weight: 850 !important;
+  line-height: 1.05 !important;
+  text-align: center !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-orbit-detail {
+  position: static !important;
+  display: block !important;
+  margin: 0 !important;
+  color: rgba(223,240,248,.48) !important;
+  font-size: clamp(.46rem, 1.75vw, .54rem) !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  font-variant-numeric: tabular-nums !important;
+  white-space: nowrap !important;
+}
+
+/* Daily timer is secondary to the 0/3 status in the circle. */
+body.ui-scale-responsive
+.home-screen-compact
+.home-orbit-action.daily-challenges-launch
+.daily-challenges-launch-timer {
+  color: rgba(223,240,248,.48) !important;
+  font-size: clamp(.46rem, 1.75vw, .54rem) !important;
+  text-shadow: none !important;
+}
+
+/* Keep the verbose translated challenge status available to assistive tech. */
+body.ui-scale-responsive
+.home-screen-compact
+.home-orbit-status {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* Slight vertical staggering makes the four circles hug the bust, not a box. */
+body.ui-scale-responsive
+.home-screen-compact
+.home-orbit-left .home-orbit-action:first-child,
+body.ui-scale-responsive
+.home-screen-compact
+.home-orbit-right .home-orbit-action:first-child {
+  transform: translateY(clamp(.15rem, .7vw, .35rem)) !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-orbit-left .home-orbit-action:last-child,
+body.ui-scale-responsive
+.home-screen-compact
+.home-orbit-right .home-orbit-action:last-child {
+  transform: translateY(clamp(-.15rem, -.6vw, -.3rem)) !important;
+}
+
+/* Keep the Quick Hustle CTA under the central bust, not under the side badges. */
+body.ui-scale-responsive
+.home-screen-compact
+.home-center > .home-tap-zone {
+  grid-row: 2 !important;
+  width: min(100%, 15rem) !important;
+  margin: clamp(.1rem, .7vw, .3rem) auto 0 !important;
+  z-index: 10 !important;
+}
+
+/* Narrow devices: smaller orbit circles, but never stack them vertically. */
+@media (max-width: 390px) {
+  body.ui-scale-responsive
+  .home-screen-compact
+  .home-character-hub {
+    grid-template-columns:
+      minmax(3.8rem, .68fr)
+      minmax(8.8rem, 1.5fr)
+      minmax(3.8rem, .68fr) !important;
+    gap: .08rem !important;
+  }
+
+  body.ui-scale-responsive
+  .home-screen-compact
+  .home-orbit-column {
+    gap: .5rem !important;
+  }
+
+  body.ui-scale-responsive
+  .home-screen-compact
+  .home-orbit-action {
+    width: 4.05rem !important;
+    min-height: 5rem !important;
+  }
+
+  body.ui-scale-responsive
+  .home-screen-compact
+  .home-orbit-circle {
+    width: 3.55rem !important;
+    height: 3.55rem !important;
+    min-width: 3.55rem !important;
+    min-height: 3.55rem !important;
+  }
+}
+
+@media (max-width: 335px) {
+  body.ui-scale-responsive
+  .home-screen-compact
+  .home-left {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    padding-inline: .3rem !important;
+  }
+
+  body.ui-scale-responsive
+  .home-screen-compact
+  .home-left > .social-tasks-launcher.home-left-widget {
+    width: 6.6rem !important;
+    grid-template-columns: 1.75rem minmax(0,1fr) !important;
+  }
+
+  body.ui-scale-responsive
+  .home-screen-compact
+  .home-left > .social-tasks-launcher
+  .mini-feature-value {
+    display: none !important;
+  }
+
+  body.ui-scale-responsive
+  .home-screen-compact
+  .home-character-hub {
+    grid-template-columns: 3.55rem minmax(8rem, 1fr) 3.55rem !important;
+  }
+
+  body.ui-scale-responsive
+  .home-screen-compact
+  .home-orbit-action {
+    width: 3.7rem !important;
+  }
+
+  body.ui-scale-responsive
+  .home-screen-compact
+  .home-orbit-circle {
+    width: 3.25rem !important;
+    height: 3.25rem !important;
+    min-width: 3.25rem !important;
+    min-height: 3.25rem !important;
+  }
+
+  body.ui-scale-responsive
+  .home-screen-compact
+  .home-orbit-label {
+    font-size: .48rem !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.ui-scale-responsive
+  .home-screen-compact
+  .home-orbit-circle {
+    transition: none !important;
+  }
+}
