@@ -757,7 +757,13 @@
     if (!(imageElement instanceof HTMLImageElement)) return false;
 
     const fitMode = imageElement.classList.contains("player-avatar-image") ? "cover" : (imageElement.classList.contains("city-map-image") ? "cover" : "contain");
-    const fitPosition = imageElement.classList.contains("player-avatar-image") ? "center" : (imageElement.classList.contains("home-character") || imageElement.classList.contains("wardrobe-character-image") ? "center bottom" : "center");
+    const fitPosition = imageElement.classList.contains("player-avatar-image")
+      ? "center"
+      : imageElement.classList.contains("home-character")
+        ? "center top"
+        : imageElement.classList.contains("wardrobe-character-image")
+          ? "center bottom"
+          : "center";
     applyTransparentAssetImageDefaults(imageElement, fitMode, fitPosition);
 
     const fallbackArray = normalizeAssetCandidates(
@@ -1315,9 +1321,23 @@
     const cleanPath = normalizeRelativeAssetPath(asset.primary);
     const fallbackPath = normalizeRelativeAssetPath(asset.fallback);
 
+    const isHomeCharacter = element.classList.contains("home-character");
+    const isWardrobeCharacter =
+      element.classList.contains("wardrobe-character-image")
+      || element.classList.contains("wardrobe-character-sprite");
+
     element.dataset.characterGender = gender;
+    element.dataset.characterFraming = isHomeCharacter
+      ? "home-bust"
+      : isWardrobeCharacter
+        ? "wardrobe-full"
+        : "full";
 
     /*
+       Home and Wardrobe deliberately use different framing:
+       - Home = non-destructive half-bust crop/zoom handled by CSS.
+       - Wardrobe = untouched full-body artwork.
+
        The Home and Wardrobe character are NOT sprite nodes.
        Remove every sprite class / dataset that can make old CSS or the
        canvas renderer paint a placeholder/silhouette over the real PNG.
@@ -1359,7 +1379,11 @@
     element.style.setProperty("visibility", "visible", "important");
     element.style.setProperty("opacity", "1", "important");
     element.style.setProperty("object-fit", "contain", "important");
-    element.style.setProperty("object-position", "center bottom", "important");
+    element.style.setProperty(
+      "object-position",
+      isHomeCharacter ? "center top" : "center bottom",
+      "important"
+    );
 
     element.hidden = false;
     element.removeAttribute("aria-hidden");
@@ -2792,7 +2816,7 @@
 
     return {
       schema: 2,
-      appVersion: "19.9",
+      appVersion: "20.0",
       updatedAt,
       state: JSON.parse(JSON.stringify(state))
     };
