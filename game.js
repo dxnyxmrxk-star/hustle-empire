@@ -112,7 +112,7 @@
      CSS/UI frame overlay rendered above it.
   ========================================================== */
 
-  const SPRITE_BUILD_VERSION = "20.2";
+  const SPRITE_BUILD_VERSION = "20.3";
 
   const REAL_GAME_ASSET_PATHS = Object.freeze([
     "assets/acc_epic.png",
@@ -2816,7 +2816,7 @@
 
     return {
       schema: 2,
-      appVersion: "20.2",
+      appVersion: "20.3",
       updatedAt,
       state: JSON.parse(JSON.stringify(state))
     };
@@ -4169,6 +4169,75 @@
     modal.hidden = true;
     modal.setAttribute("aria-hidden", "true");
     document.body.classList.remove("daily-challenges-modal-open");
+  }
+
+
+  /* ==========================================================
+     V20.3 — STEP 4 / MISSIONS DRAWER
+     Mission state remains owned by the existing progression engine.
+     This layer only opens/closes the Home drawer and never duplicates
+     mission progress, rewards, or level-up state.
+  ========================================================== */
+
+  let missionsDrawerPreviouslyFocusedElement = null;
+
+  function isMissionsDrawerOpen() {
+    const modal = document.getElementById("missions-modal");
+    return Boolean(modal && !modal.hidden);
+  }
+
+  function syncMissionsDrawerLauncher(expanded) {
+    document.querySelectorAll("[data-missions-open]").forEach((button) => {
+      button.setAttribute("aria-expanded", expanded ? "true" : "false");
+    });
+  }
+
+  function openMissionsDrawer() {
+    const modal = document.getElementById("missions-modal");
+    if (!modal) return false;
+
+    renderMissions();
+    missionsDrawerPreviouslyFocusedElement =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+
+    modal.hidden = false;
+    modal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("missions-modal-open");
+    syncMissionsDrawerLauncher(true);
+
+    requestAnimationFrame(() => {
+      modal.querySelector("[data-missions-close]")?.focus?.({ preventScroll: true });
+    });
+
+    return true;
+  }
+
+  function closeMissionsDrawer({ restoreFocus = true } = {}) {
+    const modal = document.getElementById("missions-modal");
+    if (!modal) return false;
+
+    modal.hidden = true;
+    modal.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("missions-modal-open");
+    syncMissionsDrawerLauncher(false);
+
+    if (restoreFocus) {
+      requestAnimationFrame(() => {
+        if (
+          missionsDrawerPreviouslyFocusedElement
+          && document.contains(missionsDrawerPreviouslyFocusedElement)
+        ) {
+          missionsDrawerPreviouslyFocusedElement.focus?.({ preventScroll: true });
+        } else {
+          document.querySelector("[data-missions-open]")?.focus?.({ preventScroll: true });
+        }
+        missionsDrawerPreviouslyFocusedElement = null;
+      });
+    } else {
+      missionsDrawerPreviouslyFocusedElement = null;
+    }
+
+    return true;
   }
 
   function renderDailyRetentionUI(status = "") {
@@ -8838,6 +8907,18 @@
         return;
       }
 
+      if (event.target.closest("[data-missions-open]")) {
+        event.preventDefault();
+        openMissionsDrawer();
+        return;
+      }
+
+      if (event.target.closest("[data-missions-close]")) {
+        event.preventDefault();
+        closeMissionsDrawer();
+        return;
+      }
+
       if (event.target.closest("[data-daily-challenges-open]")) {
         event.preventDefault();
         openDailyChallengesModal();
@@ -8882,8 +8963,14 @@
       const nextLevelButton = event.target.closest('[data-action="next-level"]');
       if (nextLevelButton) {
         event.preventDefault();
-        if (!nextLevelButton.disabled) advanceToNextLevel();
-        else renderMissions();
+        if (!nextLevelButton.disabled) {
+          if (nextLevelButton.closest("#missions-modal")) {
+            closeMissionsDrawer({ restoreFocus: false });
+          }
+          advanceToNextLevel();
+        } else {
+          renderMissions();
+        }
         return;
       }
 
@@ -9006,6 +9093,13 @@
         if (notificationsModal && !notificationsModal.hidden) {
           event.preventDefault();
           closeNotificationsModal();
+          return;
+        }
+
+        const missionsModal = document.getElementById("missions-modal");
+        if (missionsModal && !missionsModal.hidden) {
+          event.preventDefault();
+          closeMissionsDrawer();
           return;
         }
 
@@ -9830,4 +9924,6 @@
 
 /* V19.9: one-time first-access gender gate with durable local marker and legacy/cloud migration. */
 
-/* V20.2: Step 3 — circular quick-action badges surround the Home character; Step 4 mission modal is still pending. */
+/* V20.2: Step 3 — circular quick-action badges surround the Home character. */
+
+/* V20.3: Step 4 — full Missions progression moved into a dedicated Home drawer. */

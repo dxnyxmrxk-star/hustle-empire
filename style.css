@@ -15909,3 +15909,473 @@ body.ui-scale-responsive
     transition: none !important;
   }
 }
+
+
+/* ==========================================================
+   V20.3 — STEP 4 / MISSIONS DRAWER
+   - The temporary horizontal mission strip is gone.
+   - A compact side launcher opens the complete mission flow.
+   - Existing mission cards / progression engine are reused.
+========================================================== */
+
+/* Remove Step 2's temporary bridge if stale markup survives a cached HTML shell. */
+body.ui-scale-responsive .home-screen-compact .home-mission-status {
+  display: none !important;
+}
+
+/* Home needs a positioning context for the dedicated side launcher. */
+body.ui-scale-responsive
+.home-screen-compact
+.home-center {
+  position: relative !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-missions-launcher {
+  box-sizing: border-box !important;
+  position: absolute !important;
+  z-index: 24 !important;
+  top: 50% !important;
+  right: clamp(.12rem, .8vw, .32rem) !important;
+  transform: translateY(-50%) !important;
+
+  display: grid !important;
+  grid-template-columns: 2.05rem minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: .32rem !important;
+
+  width: clamp(4.65rem, 19vw, 5.65rem) !important;
+  min-width: 0 !important;
+  min-height: 2.55rem !important;
+  margin: 0 !important;
+  padding: .28rem .38rem .28rem .3rem !important;
+
+  border: 1px solid rgba(84, 218, 255, .24) !important;
+  border-radius: 999px 0 0 999px !important;
+  background:
+    radial-gradient(circle at 15% 50%, rgba(0,230,118,.14), transparent 48%),
+    linear-gradient(180deg, rgba(13,29,42,.96), rgba(6,15,24,.98)) !important;
+  box-shadow:
+    -8px 8px 24px rgba(0,0,0,.26),
+    inset 0 1px 0 rgba(255,255,255,.035),
+    0 0 18px rgba(0,176,255,.06) !important;
+  color: #eef9ff !important;
+  cursor: pointer !important;
+  touch-action: manipulation !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-missions-launcher:hover,
+body.ui-scale-responsive
+.home-screen-compact
+.home-missions-launcher:focus-visible {
+  border-color: rgba(91, 255, 171, .44) !important;
+  background:
+    radial-gradient(circle at 15% 50%, rgba(0,230,118,.2), transparent 50%),
+    linear-gradient(180deg, rgba(15,34,47,.98), rgba(7,18,28,.99)) !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-missions-launcher:active {
+  transform: translateY(-50%) scale(.97) !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-missions-launcher-icon {
+  display: grid !important;
+  place-items: center !important;
+  width: 2.05rem !important;
+  height: 2.05rem !important;
+  border: 1px solid rgba(94,255,167,.28) !important;
+  border-radius: 50% !important;
+  background: rgba(0,230,118,.09) !important;
+  color: #6dffb4 !important;
+  font-size: 1rem !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+  box-shadow: 0 0 14px rgba(0,230,118,.08) !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-missions-launcher-copy {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: .08rem !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-missions-launcher-copy strong {
+  max-width: 100% !important;
+  overflow: hidden !important;
+  color: #f4fbff !important;
+  font-size: clamp(.55rem, 2vw, .66rem) !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-missions-launcher-copy small {
+  display: flex !important;
+  align-items: center !important;
+  gap: .18rem !important;
+  color: rgba(221,239,248,.58) !important;
+  font-size: clamp(.47rem, 1.75vw, .55rem) !important;
+  font-weight: 850 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+/* ---------------- Full-screen overlay + right-side drawer ---------------- */
+#missions-modal[hidden] {
+  display: none !important;
+}
+
+body.missions-modal-open {
+  overflow: hidden !important;
+}
+
+#missions-modal {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 5550 !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: stretch !important;
+}
+
+.missions-modal-backdrop {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background:
+    radial-gradient(circle at 82% 25%, rgba(0,230,118,.08), transparent 30%),
+    rgba(1, 6, 12, .80) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  backdrop-filter: blur(10px) !important;
+  cursor: pointer !important;
+}
+
+.missions-drawer {
+  box-sizing: border-box !important;
+  position: relative !important;
+  z-index: 1 !important;
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) auto !important;
+  width: min(28rem, 92vw) !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  padding:
+    max(.65rem, env(safe-area-inset-top, 0px))
+    .72rem
+    max(.72rem, env(safe-area-inset-bottom, 0px)) !important;
+  border-left: 1px solid rgba(81,219,255,.17) !important;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(0,176,255,.08), transparent 31%),
+    radial-gradient(circle at 0% 34%, rgba(0,230,118,.07), transparent 28%),
+    linear-gradient(180deg, rgba(11,24,35,.995), rgba(4,11,18,.998)) !important;
+  box-shadow: -26px 0 70px rgba(0,0,0,.52) !important;
+  color: #f4fbff !important;
+  overflow: hidden !important;
+  animation: missionsDrawerIn 180ms ease-out both;
+}
+
+@keyframes missionsDrawerIn {
+  from { transform: translateX(16px); opacity: .68; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.missions-drawer-header {
+  display: grid !important;
+  grid-template-columns: minmax(0,1fr) auto !important;
+  align-items: center !important;
+  gap: .65rem !important;
+  padding: .38rem .18rem .72rem !important;
+  border-bottom: 1px solid rgba(255,255,255,.065) !important;
+}
+
+.missions-drawer .missions-title-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: .7rem !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+}
+
+.missions-drawer .missions-title-row > div {
+  min-width: 0 !important;
+}
+
+.missions-drawer .missions-title-row h2 {
+  margin: 0 0 .16rem !important;
+  color: #fff !important;
+  font-size: clamp(1.18rem, 4.8vw, 1.5rem) !important;
+  line-height: 1 !important;
+}
+
+.missions-drawer .missions-title-row span,
+.missions-drawer .missions-title-row > strong {
+  color: #63e8ff !important;
+  font-size: .72rem !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+}
+
+.missions-drawer .missions-title-row > strong {
+  display: grid !important;
+  place-items: center !important;
+  min-width: 2.6rem !important;
+  height: 1.72rem !important;
+  padding: 0 .45rem !important;
+  border: 1px solid rgba(85,230,255,.2) !important;
+  border-radius: 999px !important;
+  background: rgba(0,176,255,.07) !important;
+}
+
+.missions-drawer-close {
+  display: grid !important;
+  place-items: center !important;
+  width: 2.35rem !important;
+  height: 2.35rem !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 1px solid rgba(255,255,255,.09) !important;
+  border-radius: .72rem !important;
+  background: rgba(255,255,255,.04) !important;
+  color: rgba(245,250,255,.78) !important;
+  font-size: 1.45rem !important;
+  line-height: 1 !important;
+  cursor: pointer !important;
+}
+
+.missions-drawer-close:hover,
+.missions-drawer-close:focus-visible {
+  border-color: rgba(255,255,255,.2) !important;
+  background: rgba(255,255,255,.075) !important;
+  color: #fff !important;
+}
+
+.missions-drawer-body {
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: .72rem .06rem !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  overscroll-behavior: contain !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+.missions-drawer-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: .55rem !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+/* Re-frame the existing mission cards for the drawer instead of duplicating them. */
+.missions-drawer .quest-card {
+  box-sizing: border-box !important;
+  display: grid !important;
+  grid-template-columns: minmax(0,1fr) auto !important;
+  align-items: center !important;
+  gap: .55rem !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 4rem !important;
+  padding: .62rem .68rem !important;
+  border: 1px solid rgba(66,184,230,.18) !important;
+  border-radius: .9rem !important;
+  background:
+    linear-gradient(135deg, rgba(15,34,49,.90), rgba(8,19,29,.93)) !important;
+}
+
+.missions-drawer .quest-card-main {
+  display: grid !important;
+  grid-template-columns: 2.15rem minmax(0,1fr) !important;
+  align-items: center !important;
+  gap: .55rem !important;
+  min-width: 0 !important;
+}
+
+.missions-drawer .quest-icon {
+  display: grid !important;
+  place-items: center !important;
+  width: 2.15rem !important;
+  height: 2.15rem !important;
+  margin: 0 !important;
+  border-radius: .65rem !important;
+  background: rgba(0,176,255,.09) !important;
+  font-size: 1rem !important;
+}
+
+.missions-drawer .quest-info {
+  min-width: 0 !important;
+}
+
+.missions-drawer .quest-info strong {
+  display: block !important;
+  margin: 0 0 .32rem !important;
+  overflow: visible !important;
+  color: rgba(244,250,255,.94) !important;
+  font-size: .73rem !important;
+  font-weight: 850 !important;
+  line-height: 1.18 !important;
+  white-space: normal !important;
+  text-overflow: clip !important;
+}
+
+.missions-drawer .mini-progress {
+  width: 100% !important;
+  height: .34rem !important;
+  border-radius: 999px !important;
+}
+
+.missions-drawer .quest-info small {
+  display: block !important;
+  margin-top: .26rem !important;
+  color: rgba(212,232,243,.55) !important;
+  font-size: .61rem !important;
+  line-height: 1.15 !important;
+  text-align: left !important;
+}
+
+.missions-drawer .quest-reward {
+  align-self: center !important;
+  color: #63ffb0 !important;
+  font-size: .67rem !important;
+  font-weight: 950 !important;
+  white-space: nowrap !important;
+}
+
+.missions-drawer .quest-card.completed {
+  border-color: rgba(83,255,157,.24) !important;
+  background:
+    linear-gradient(135deg, rgba(13,47,40,.72), rgba(7,25,25,.88)) !important;
+}
+
+.missions-drawer-footer {
+  padding: .66rem .04rem .04rem !important;
+  border-top: 1px solid rgba(255,255,255,.065) !important;
+}
+
+.missions-drawer .missions-next-level.next-level-button {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: .55rem !important;
+  width: 100% !important;
+  min-height: 3.45rem !important;
+  margin: 0 !important;
+  padding: .55rem .8rem !important;
+  border-radius: .92rem !important;
+}
+
+.missions-drawer .missions-next-level.next-level-button > span:last-child {
+  display: flex !important;
+  align-items: baseline !important;
+  gap: .42rem !important;
+}
+
+.missions-drawer .missions-next-level.next-level-button strong {
+  font-size: .88rem !important;
+}
+
+.missions-drawer .missions-next-level.next-level-button small {
+  font-size: .67rem !important;
+  opacity: .72 !important;
+}
+
+.missions-drawer .missions-next-level.next-level-button:disabled,
+.missions-drawer .missions-next-level.next-level-button[aria-disabled="true"] {
+  cursor: default !important;
+  opacity: .45 !important;
+  filter: saturate(.5) !important;
+}
+
+@media (max-width: 390px) {
+  body.ui-scale-responsive
+  .home-screen-compact
+  .home-missions-launcher {
+    width: 3rem !important;
+    grid-template-columns: 1fr !important;
+    justify-items: center !important;
+    padding: .28rem !important;
+  }
+
+  body.ui-scale-responsive
+  .home-screen-compact
+  .home-missions-launcher-copy strong {
+    display: none !important;
+  }
+
+  body.ui-scale-responsive
+  .home-screen-compact
+  .home-missions-launcher-copy small {
+    gap: .12rem !important;
+    font-size: .48rem !important;
+  }
+
+  body.ui-scale-responsive
+  .home-screen-compact
+  .home-missions-launcher-copy small > span:first-child,
+  body.ui-scale-responsive
+  .home-screen-compact
+  .home-missions-launcher-copy small > span:nth-child(2) {
+    display: none !important;
+  }
+
+  .missions-drawer {
+    width: min(29rem, 96vw) !important;
+    padding-inline: .58rem !important;
+  }
+}
+
+@media (max-width: 335px) {
+  body.ui-scale-responsive
+  .home-screen-compact
+  .home-missions-launcher {
+    width: 2.7rem !important;
+    right: 0 !important;
+  }
+
+  body.ui-scale-responsive
+  .home-screen-compact
+  .home-missions-launcher-icon {
+    width: 1.82rem !important;
+    height: 1.82rem !important;
+  }
+
+  .missions-drawer .quest-card {
+    grid-template-columns: minmax(0,1fr) !important;
+    gap: .32rem !important;
+  }
+
+  .missions-drawer .quest-reward {
+    justify-self: end !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .missions-drawer {
+    animation: none !important;
+  }
+}
