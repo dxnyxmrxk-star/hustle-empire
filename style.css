@@ -18286,3 +18286,171 @@ body.ui-scale-responsive .screen[data-screen="home"].home-screen-v210.active,
     min-height: 52px !important;
   }
 }
+
+/* ==========================================================
+   V20.12 — TOP BAR ONLY
+   Compact player profile + larger right-side action buttons.
+   IMPORTANT: no Home layout selectors in this block.
+========================================================== */
+body.ui-scale-responsive .topbar.topbar-compact {
+  grid-template-columns:
+    clamp(5.8rem, 25vw, 10rem)
+    minmax(0, 1fr)
+    max-content !important;
+  align-items: center !important;
+  column-gap: clamp(.18rem, .55vw, .32rem) !important;
+  padding-left: clamp(.24rem, .7vw, .42rem) !important;
+  padding-right: clamp(.24rem, .7vw, .42rem) !important;
+  overflow: visible !important;
+}
+
+/* PLAYER: use much less horizontal space. */
+body.ui-scale-responsive .topbar.topbar-compact .player-level {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  gap: clamp(.20rem, .45vw, .30rem) !important;
+  overflow: hidden !important;
+}
+
+body.ui-scale-responsive .topbar.topbar-compact .player-avatar,
+body.ui-scale-responsive .topbar.topbar-compact .header-avatar {
+  width: clamp(1.72rem, 4.8vw, 2rem) !important;
+  height: clamp(1.72rem, 4.8vw, 2rem) !important;
+  min-width: clamp(1.72rem, 4.8vw, 2rem) !important;
+  min-height: clamp(1.72rem, 4.8vw, 2rem) !important;
+  flex: 0 0 clamp(1.72rem, 4.8vw, 2rem) !important;
+}
+
+body.ui-scale-responsive .topbar.topbar-compact .player-level-content {
+  flex: 1 1 auto !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  overflow: hidden !important;
+}
+
+body.ui-scale-responsive .topbar.topbar-compact .level-row strong {
+  font-size: clamp(.52rem, 1.7vw, .66rem) !important;
+  line-height: 1 !important;
+}
+
+body.ui-scale-responsive .topbar.topbar-compact .xp-row {
+  grid-template-columns: clamp(.55rem, 1.8vw, .72rem) minmax(1.5rem, 1fr) auto !important;
+  gap: clamp(.08rem, .3vw, .16rem) !important;
+}
+
+body.ui-scale-responsive .topbar.topbar-compact .xp-row .progress-bar {
+  width: 100% !important;
+  min-width: 0 !important;
+  height: clamp(.20rem, .65vw, .27rem) !important;
+}
+
+body.ui-scale-responsive .topbar.topbar-compact .xp-row > span {
+  max-width: clamp(2rem, 7vw, 3.25rem) !important;
+  font-size: clamp(.34rem, 1.08vw, .43rem) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+body.ui-scale-responsive .topbar.topbar-compact .hud-icon-xp {
+  width: clamp(.55rem, 1.8vw, .72rem) !important;
+  height: clamp(.55rem, 1.8vw, .72rem) !important;
+  min-width: clamp(.55rem, 1.8vw, .72rem) !important;
+  flex-basis: clamp(.55rem, 1.8vw, .72rem) !important;
+}
+
+/* RESOURCES: stay centered in the space left between profile and actions. */
+body.ui-scale-responsive .topbar.topbar-compact .topbar-resources {
+  width: 100% !important;
+  min-width: 0 !important;
+  justify-content: flex-end !important;
+  gap: clamp(.12rem, .42vw, .24rem) !important;
+  overflow: hidden !important;
+}
+
+/* ACTIONS: this is where the recovered profile width goes. */
+body.ui-scale-responsive .topbar.topbar-compact .topbar-actions {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  flex-wrap: nowrap !important;
+  gap: clamp(.13rem, .45vw, .25rem) !important;
+  min-width: max-content !important;
+  overflow: visible !important;
+}
+
+body.ui-scale-responsive .topbar.topbar-compact .top-action,
+body.ui-scale-responsive .topbar.topbar-compact .language-button {
+  flex: 0 0 clamp(1.9rem, 6.7vw, 2.28rem) !important;
+  width: clamp(1.9rem, 6.7vw, 2.28rem) !important;
+  min-width: clamp(1.9rem, 6.7vw, 2.28rem) !important;
+  height: clamp(1.9rem, 6.7vw, 2.28rem) !important;
+  min-height: clamp(1.9rem, 6.7vw, 2.28rem) !important;
+  padding: 0 !important;
+  border-radius: clamp(.48rem, 1.5vw, .62rem) !important;
+  font-size: clamp(.92rem, 3.25vw, 1.13rem) !important;
+  line-height: 1 !important;
+}
+
+body.ui-scale-responsive .topbar.topbar-compact .language-button {
+  flex-basis: clamp(2.05rem, 7vw, 2.42rem) !important;
+  width: clamp(2.05rem, 7vw, 2.42rem) !important;
+  min-width: clamp(2.05rem, 7vw, 2.42rem) !important;
+  font-size: clamp(.54rem, 1.9vw, .68rem) !important;
+  font-weight: 950 !important;
+}
+
+body.ui-scale-responsive .topbar.topbar-compact .notification-button .badge,
+body.ui-scale-responsive .topbar.topbar-compact .badge {
+  top: -.22rem !important;
+  right: -.18rem !important;
+  min-width: clamp(.78rem, 2.6vw, .94rem) !important;
+  height: clamp(.78rem, 2.6vw, .94rem) !important;
+  line-height: clamp(.78rem, 2.6vw, .94rem) !important;
+  padding: 0 .12rem !important;
+  font-size: clamp(.43rem, 1.5vw, .56rem) !important;
+}
+
+/* Extra guard for very narrow phones: preserve all four action buttons. */
+@media (max-width: 370px) {
+  body.ui-scale-responsive .topbar.topbar-compact {
+    grid-template-columns: minmax(4.7rem, 5.25rem) minmax(0, 1fr) max-content !important;
+    column-gap: .12rem !important;
+    padding-left: .18rem !important;
+    padding-right: .18rem !important;
+  }
+
+  body.ui-scale-responsive .topbar.topbar-compact .xp-row > span {
+    display: none !important;
+  }
+
+  body.ui-scale-responsive .topbar.topbar-compact .resource-card {
+    min-width: 2.35rem !important;
+    max-width: 3.15rem !important;
+    padding-inline: .18rem !important;
+  }
+
+  body.ui-scale-responsive .topbar.topbar-compact .energy-card {
+    min-width: 2.85rem !important;
+    max-width: 3.65rem !important;
+  }
+
+  body.ui-scale-responsive .topbar.topbar-compact .top-action,
+  body.ui-scale-responsive .topbar.topbar-compact .language-button {
+    flex-basis: 1.72rem !important;
+    width: 1.72rem !important;
+    min-width: 1.72rem !important;
+    height: 1.72rem !important;
+    min-height: 1.72rem !important;
+    font-size: .84rem !important;
+  }
+
+  body.ui-scale-responsive .topbar.topbar-compact .language-button {
+    flex-basis: 1.86rem !important;
+    width: 1.86rem !important;
+    min-width: 1.86rem !important;
+    font-size: .50rem !important;
+  }
+}
