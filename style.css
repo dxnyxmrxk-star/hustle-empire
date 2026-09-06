@@ -16554,3 +16554,107 @@ body.ui-scale-responsive
     max-width: 3.25rem !important;
   }
 }
+
+/* ==========================================================
+   V20.6 — HOME ORBIT GRID FIX ONLY
+   Explicitly locks the Home hub into:
+   LEFT ACTIONS | CHARACTER | RIGHT ACTIONS
+   No visual/behavior changes to character or buttons.
+========================================================== */
+body.ui-scale-responsive
+.home-screen-compact
+.home-character-hub {
+  display: grid !important;
+  grid-template-areas: "orbit-left character orbit-right" !important;
+  grid-template-columns:
+    clamp(3.9rem, 17vw, 4.8rem)
+    minmax(9.6rem, 1fr)
+    clamp(3.9rem, 17vw, 4.8rem) !important;
+  align-items: center !important;
+  justify-items: center !important;
+  justify-content: center !important;
+  column-gap: clamp(.55rem, 2.5vw, .95rem) !important;
+  width: min(100%, 28rem) !important;
+  margin-inline: auto !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-orbit-left {
+  grid-area: orbit-left !important;
+  align-self: center !important;
+  justify-self: end !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-character-hub > .home-character-stage {
+  grid-area: character !important;
+  align-self: center !important;
+  justify-self: center !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-orbit-right {
+  grid-area: orbit-right !important;
+  align-self: center !important;
+  justify-self: start !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-orbit-left,
+body.ui-scale-responsive
+.home-screen-compact
+.home-orbit-right {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  grid-template-rows: repeat(2, auto) !important;
+  align-content: center !important;
+  justify-items: center !important;
+  gap: clamp(.72rem, 2.8vw, 1rem) !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  transform: none !important;
+}
+
+/* Never let an orbit action drift into the character lane. */
+body.ui-scale-responsive
+.home-screen-compact
+.home-orbit-left .home-orbit-action,
+body.ui-scale-responsive
+.home-screen-compact
+.home-orbit-right .home-orbit-action {
+  position: relative !important;
+  left: auto !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: auto !important;
+  margin-inline: auto !important;
+  transform: none !important;
+}
+
+@media (max-width: 390px) {
+  body.ui-scale-responsive
+  .home-screen-compact
+  .home-character-hub {
+    grid-template-areas: "orbit-left character orbit-right" !important;
+    grid-template-columns:
+      clamp(3.45rem, 15.5vw, 4rem)
+      minmax(8.9rem, 1fr)
+      clamp(3.45rem, 15.5vw, 4rem) !important;
+    column-gap: clamp(.32rem, 1.7vw, .55rem) !important;
+  }
+}
+
+@media (max-width: 335px) {
+  body.ui-scale-responsive
+  .home-screen-compact
+  .home-character-hub {
+    grid-template-areas: "orbit-left character orbit-right" !important;
+    grid-template-columns: 3.25rem minmax(8.2rem, 1fr) 3.25rem !important;
+    column-gap: .24rem !important;
+  }
+}
