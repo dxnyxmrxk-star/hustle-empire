@@ -17,6 +17,25 @@
   if (!CONFIG) throw new Error("[Hustle Empire] config.js must load before game.js");
 
   /*
+     V19.8 — resolve repository assets from the actual game.js location.
+     document.baseURI can be rewritten by <base>, GitHub Pages routing or a
+     Telegram WebView wrapper. game.js and /assets live in the same app root,
+     so the script URL is the stable source of truth.
+  */
+  const GAME_SCRIPT_URL = (() => {
+    const current = document.currentScript?.src;
+    if (current) return current;
+
+    const script = [...document.scripts].find((node) =>
+      /(?:^|\/)game\.js(?:[?#]|$)/i.test(node.src || "")
+    );
+
+    return script?.src || new URL("game.js", window.location.href).href;
+  })();
+
+  const APP_ROOT_URL = new URL("./", GAME_SCRIPT_URL);
+
+  /*
      script.js is loaded before game.js and older builds overwrite window.i18n.
      Restore the canonical V18 flat i18n API while leaving window.LOCALES
      available in the nested legacy format for script.js itself.
@@ -84,7 +103,7 @@
      CSS/UI frame overlay rendered above it.
   ========================================================== */
 
-  const SPRITE_BUILD_VERSION = "19.7";
+  const SPRITE_BUILD_VERSION = "19.8";
 
   const REAL_GAME_ASSET_PATHS = Object.freeze([
     "assets/acc_epic.png",
@@ -144,10 +163,9 @@
     characterMain: "assets/hero_lvl1.png",
 
     /*
-       Male assets are the existing production character.
-       Female paths are intentionally separate. If those PNGs are not yet
-       present in /assets, rendering falls back to the matching male stage
-       without touching the saved gender choice or player progress.
+       Male and female assets are separate production sets. Female fallbacks
+       stay inside the female set so a saved female choice can never be
+       visually replaced by the male character after an asset load failure.
     */
     avatarsByGender: Object.freeze({
       male: Object.freeze({
@@ -156,7 +174,7 @@
       }),
       female: Object.freeze({
         primary: "assets/female_ui_icon.png",
-        fallback: "assets/avatar_face.png"
+        fallback: "assets/female_level_1.png"
       })
     }),
 
@@ -178,19 +196,19 @@
       female: Object.freeze({
         1: Object.freeze({
           primary: "assets/female_level_1.png",
-          fallback: "assets/hero_lvl1.png"
+          fallback: ""
         }),
         2: Object.freeze({
           primary: "assets/female_level_10.png",
-          fallback: "assets/hero_lvl2.png"
+          fallback: "assets/female_level_1.png"
         }),
         3: Object.freeze({
           primary: "assets/female_level_30.png",
-          fallback: "assets/hero_lvl3.png"
+          fallback: "assets/female_level_10.png"
         }),
         4: Object.freeze({
           primary: "assets/female_level_30.png",
-          fallback: "assets/hero_lvl3.png"
+          fallback: "assets/female_level_10.png"
         })
       })
     }),
@@ -501,12 +519,21 @@
 
   function resolveAssetUrl(relativePath) {
     const safePath = normalizeRelativeAssetPath(relativePath);
-    const url = new URL(safePath, document.baseURI);
+    if (!safePath) return "";
+
+    /*
+       Always resolve from the directory that actually served game.js.
+       Example GitHub Pages:
+       https://user.github.io/urban-tycoon/game.js
+       -> https://user.github.io/urban-tycoon/assets/female_level_1.png
+    */
+    const url = new URL(safePath, APP_ROOT_URL);
 
     /* Query cache-busting is safe on HTTP(S), but not on every file:// preview. */
     if (url.protocol === "http:" || url.protocol === "https:") {
       url.searchParams.set("v", SPRITE_BUILD_VERSION);
     }
+
     return url.href;
   }
 
@@ -863,6 +890,7 @@
     return rows;
   }
 
+  window.HustleAssetRoot = APP_ROOT_URL.href;
   window.HustleAssetAudit = logAssetAudit;
   window.HustleAssetPathsExact = REAL_GAME_ASSET_PATHS;
   window.HustleImagePaths = REAL_GAME_ASSET_PATHS;
@@ -1127,18 +1155,56 @@
   const DEFAULT_CHARACTER_GENDER = "male";
 
   function normalizeCharacterGender(value) {
-    const gender = String(value || "").toLowerCase();
+    const gender = String(value || "").trim().toLowerCase();
     return CHARACTER_GENDERS.includes(gender)
       ? gender
       : DEFAULT_CHARACTER_GENDER;
   }
 
+  function readPersistedCharacterGender(source) {
+    if (!source || typeof source !== "object") return null;
+
+    const candidates = [
+      source?.profile?.characterGender,
+      source?.gender,
+      source?.profile?.gender
+    ];
+
+    for (const candidate of candidates) {
+      const gender = String(candidate || "").trim().toLowerCase();
+      if (CHARACTER_GENDERS.includes(gender)) return gender;
+    }
+
+    return null;
+  }
+
   function getSelectedCharacterGender(targetState = state) {
     return normalizeCharacterGender(
-      targetState?.profile?.characterGender
-      ?? targetState?.profile?.gender
-      ?? targetState?.gender
+      readPersistedCharacterGender(targetState)
+      ?? DEFAULT_CHARACTER_GENDER
     );
+  }
+
+  function setSelectedCharacterGender(targetState, gender, selected = true) {
+    if (!targetState || typeof targetState !== "object") {
+      return DEFAULT_CHARACTER_GENDER;
+    }
+
+    const normalized = normalizeCharacterGender(gender);
+
+    targetState.profile ||= {};
+    targetState.profile.characterGender = normalized;
+    targetState.gender = normalized;
+
+    if (selected) {
+      targetState.profile.characterSelected = true;
+    }
+
+    /* Remove the obsolete nested alias while keeping top-level gender as the
+       canonical compatibility field requested by the current save schema. */
+    delete targetState.profile.gender;
+
+    return normalized;
   }
 
   function getCharacterStage(level = state?.level || 1) {
@@ -1258,8 +1324,8 @@
     element.onerror = () => {
       /*
          A gender-specific asset may not exist yet in an older deployment.
-         Keep the saved choice, but fall back to the equivalent production
-         male stage instead of blanking the character or corrupting state.
+         Keep the saved choice and only fall back inside the SAME gender.
+         A female selection must never silently render the male character.
       */
       if (
         fallbackPath
@@ -2289,6 +2355,7 @@
       characterGender: DEFAULT_CHARACTER_GENDER,
       characterSelected: false
     },
+    gender: DEFAULT_CHARACTER_GENDER,
 
     money: 0,
     gems: 0,
@@ -2522,23 +2589,34 @@
     };
   }
 
-  function sanitizeState(s) {
+  function sanitizeState(s, sourceState = s) {
     s.profile ||= {};
 
+    /*
+       IMPORTANT: read the gender from the RAW snapshot first. Deep-merging
+       DEFAULT_STATE adds "male" fields, which must never mask a persisted
+       "female" value from an older save shape.
+    */
     const persistedGender =
-      s.profile.characterGender
-      ?? s.profile.gender
-      ?? s.gender;
+      readPersistedCharacterGender(sourceState)
+      ?? readPersistedCharacterGender(s)
+      ?? DEFAULT_CHARACTER_GENDER;
 
-    s.profile.characterGender =
-      normalizeCharacterGender(persistedGender);
+    const normalizedGender = normalizeCharacterGender(persistedGender);
+
+    s.profile.characterGender = normalizedGender;
+    s.gender = normalizedGender;
 
     s.profile.characterSelected =
-      Boolean(s.profile.characterSelected);
+      Boolean(
+        sourceState?.profile?.characterSelected
+        ?? sourceState?.characterSelected
+        ?? s.profile.characterSelected
+      );
 
     // Remove obsolete aliases after migration so future saves stay clean.
     delete s.profile.gender;
-    delete s.gender;
+    delete s.characterSelected;
 
     s.money = Math.max(0, Number(s.money) || 0);
     s.gems = Math.max(0, Number(s.gems) || 0);
@@ -2649,7 +2727,7 @@
 
     return {
       schema: 2,
-      appVersion: "19.7",
+      appVersion: "19.8",
       updatedAt,
       state: JSON.parse(JSON.stringify(state))
     };
@@ -2686,7 +2764,8 @@
     try {
       return {
         state: sanitizeState(
-          deepMerge(clone(DEFAULT_STATE), best.state)
+          deepMerge(clone(DEFAULT_STATE), best.state),
+          best.state
         ),
         updatedAt: best.updatedAt,
         source: best.key
@@ -2958,7 +3037,8 @@
 
     try {
       sanitized = sanitizeState(
-        deepMerge(clone(DEFAULT_STATE), snapshot.state)
+        deepMerge(clone(DEFAULT_STATE), snapshot.state),
+        snapshot.state
       );
     } catch (error) {
       console.warn(
@@ -6285,8 +6365,27 @@
       });
   }
 
+  function refreshCharacterSelectionPreviews(root = document) {
+    root
+      .querySelectorAll?.(".character-choice-preview-image[data-character-preview]")
+      .forEach((image) => {
+        const gender = normalizeCharacterGender(
+          image.dataset.characterPreview
+        );
+        const asset = getRealCharacterAsset(1, gender);
+
+        setDirectImageAsset(
+          image,
+          asset.primary,
+          [asset.fallback]
+        );
+      });
+  }
+
   function applySelectedCharacterToUI() {
     const gender = getSelectedCharacterGender();
+
+    refreshCharacterSelectionPreviews(document);
 
     document.body.dataset.characterGender = gender;
     document.documentElement.dataset.characterGender = gender;
@@ -6379,9 +6478,7 @@
     const normalized =
       normalizeCharacterGender(gender);
 
-    state.profile ||= {};
-    state.profile.characterGender = normalized;
-    state.profile.characterSelected = true;
+    setSelectedCharacterGender(state, normalized, true);
 
     /*
        Persist immediately. The deep Proxy also observes these assignments,
@@ -9528,3 +9625,5 @@
 /* V19.5: Home widgets/cards use explicit non-overlapping media/content/stat regions. */
 
 /* V19.7: production female assets integrated (LV 1 / 10 / 30 + HUD icon) with persistent gender selection. */
+
+/* V19.8: repo-root asset URL resolver + canonical gender migration/persistence hardening. */
