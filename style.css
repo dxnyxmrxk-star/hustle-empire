@@ -16379,3 +16379,54 @@ body.missions-modal-open {
     animation: none !important;
   }
 }
+
+/* ==========================================================
+   HOME CHARACTER — BUST CROP ONLY
+   Scope is intentionally limited to the Home character.
+   Wardrobe keeps the original full-body artwork untouched.
+========================================================== */
+body.ui-scale-responsive
+.home-screen-compact
+.home-character-hub > .home-character-stage {
+  position: relative !important;
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  aspect-ratio: 1 / 1.12 !important;
+  align-self: center !important;
+  justify-self: center !important;
+  overflow: hidden !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-character-stage
+.home-character-sprite.character-real-image[data-character-framing="home-bust"] {
+  position: absolute !important;
+  top: -3% !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  inset: auto !important;
+
+  width: 190% !important;
+  height: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: none !important;
+  max-height: none !important;
+
+  margin: 0 !important;
+  transform: translateX(-50%) !important;
+  transform-origin: 50% 0 !important;
+
+  object-fit: contain !important;
+  object-position: center top !important;
+  background: transparent !important;
+
+  filter:
+    drop-shadow(0 14px 20px rgba(0,0,0,.42))
+    drop-shadow(0 0 10px rgba(0,176,255,.07)) !important;
+}
