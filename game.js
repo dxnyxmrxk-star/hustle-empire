@@ -112,7 +112,7 @@
      CSS/UI frame overlay rendered above it.
   ========================================================== */
 
-  const SPRITE_BUILD_VERSION = "19.8";
+  const SPRITE_BUILD_VERSION = "20.1";
 
   const REAL_GAME_ASSET_PATHS = Object.freeze([
     "assets/acc_epic.png",
@@ -2816,7 +2816,7 @@
 
     return {
       schema: 2,
-      appVersion: "20.0",
+      appVersion: "20.1",
       updatedAt,
       state: JSON.parse(JSON.stringify(state))
     };
@@ -6899,6 +6899,9 @@
     document.querySelectorAll(".missions-title-row span").forEach((el) => { el.textContent = `${tr("common.levelShort")} ${state.level}`; });
     const hiddenLevel = document.querySelector(".quest-level-top strong:first-child");
     if (hiddenLevel) hiddenLevel.textContent = `${tr("common.levelShort")} ${state.level}`;
+    document.querySelectorAll("[data-home-mission-level]").forEach((el) => {
+      el.textContent = `${tr("common.levelShort")} ${state.level}`;
+    });
     const next = document.querySelector(".next-level-button small");
     if (next) next.textContent = `${tr("common.levelShort")} ${state.level + 1}`;
   }
@@ -6951,6 +6954,13 @@
 
     const completedCount = definitions.filter((mission) => Boolean(missionState.completed[mission.id])).length;
     const total = definitions.length;
+
+    document.querySelectorAll("[data-home-mission-count]").forEach((element) => {
+      element.textContent = `${completedCount}/${total}`;
+    });
+    document.querySelectorAll("[data-home-mission-level]").forEach((element) => {
+      element.textContent = `${tr("common.levelShort")} ${state.level}`;
+    });
 
     document.querySelectorAll(".missions-title-row > strong, .quest-level-top strong:last-child").forEach((element) => {
       element.textContent = `${completedCount}/${total}`;
@@ -9819,3 +9829,5 @@
 /* V19.8: repo-root asset URL resolver + canonical gender migration/persistence hardening. */
 
 /* V19.9: one-time first-access gender gate with durable local marker and legacy/cloud migration. */
+
+/* V20.1: Step 2 — removed legacy vertical Home mission panel; compact progression strip preserves level-up flow. */

@@ -15147,3 +15147,246 @@ body.ui-scale-responsive
     height: clamp(15.5rem, 40svh, 18.5rem) !important;
   }
 }
+
+/* ==========================================================
+   V20.1 — STEP 2 / CLEAN HOME HUB + REMOVE VERTICAL MISSIONS
+   Scope intentionally limited to layout cleanup.
+   - Legacy right-side mission column removed.
+   - Home becomes a clean two-column hub: utilities + character.
+   - A slim progression strip remains below the hub so level-up
+     mechanics stay usable until Step 4 moves missions to a modal.
+   - Step 3 circular side widgets are NOT implemented here.
+========================================================== */
+
+/* The main Home hub no longer reserves a third column for Missions. */
+body.ui-scale-responsive
+.home-screen-compact
+.home-layout-balanced {
+  grid-template-columns:
+    minmax(8rem, .78fr)
+    minmax(0, 1.72fr) !important;
+  grid-template-areas:
+    "left center" !important;
+  align-items: stretch !important;
+}
+
+/* Defensive kill switch for any stale/legacy mission panel markup. */
+body.ui-scale-responsive
+.home-screen-compact
+.home-layout-balanced > .home-missions,
+body.ui-scale-responsive
+.home-screen-compact
+.home-layout-balanced > .quests-panel.home-missions {
+  display: none !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  overflow: hidden !important;
+}
+
+/* The character owns the newly freed center/right area. */
+body.ui-scale-responsive
+.home-screen-compact
+.home-center {
+  grid-area: center !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  justify-items: center !important;
+}
+
+/*
+  Keep Step 1's bust crop visually stable even though the center column is
+  wider now. The stage stays centered while the empty area around it is free
+  for the circular quick-action badges planned for Step 3.
+*/
+body.ui-scale-responsive
+.screen[data-screen="home"]
+.home-character-stage {
+  width: min(100%, clamp(10.75rem, 48vw, 12rem)) !important;
+  margin-inline: auto !important;
+}
+
+/* Compact bridge between Step 2 and the Step 4 mission modal. */
+body.ui-scale-responsive
+.home-screen-compact
+.home-mission-status {
+  box-sizing: border-box !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: clamp(.5rem, 1.8vw, .8rem) !important;
+
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 3rem !important;
+  margin: clamp(.42rem, 1.5vw, .65rem) 0 0 !important;
+  padding: clamp(.42rem, 1.5vw, .58rem) clamp(.52rem, 2vw, .72rem) !important;
+
+  border: 1px solid rgba(255,255,255,.08) !important;
+  border-radius: clamp(.72rem, 2.6vw, 1rem) !important;
+  background: linear-gradient(180deg, rgba(15,23,33,.90), rgba(9,15,23,.92)) !important;
+  box-shadow: inset 0 1px rgba(255,255,255,.025) !important;
+  overflow: hidden !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-mission-status-summary {
+  display: flex !important;
+  align-items: center !important;
+  gap: clamp(.42rem, 1.4vw, .58rem) !important;
+  min-width: 0 !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-mission-status-icon {
+  flex: 0 0 auto !important;
+  display: grid !important;
+  place-items: center !important;
+  width: clamp(1.85rem, 7vw, 2.15rem) !important;
+  height: clamp(1.85rem, 7vw, 2.15rem) !important;
+  border-radius: 50% !important;
+  background: rgba(93,255,145,.10) !important;
+  border: 1px solid rgba(93,255,145,.22) !important;
+  font-size: clamp(.9rem, 3.5vw, 1.05rem) !important;
+  line-height: 1 !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-mission-status-copy {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: .08rem !important;
+  min-width: 0 !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-mission-status-copy small {
+  margin: 0 !important;
+  font-size: clamp(.58rem, 2.2vw, .68rem) !important;
+  line-height: 1.15 !important;
+  opacity: .66 !important;
+  white-space: nowrap !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-mission-status-copy strong {
+  display: flex !important;
+  align-items: center !important;
+  gap: .3rem !important;
+  min-width: 0 !important;
+  font-size: clamp(.74rem, 2.8vw, .88rem) !important;
+  line-height: 1.15 !important;
+  white-space: nowrap !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-mission-status-separator {
+  opacity: .35 !important;
+}
+
+/* Override the old large mission-button rules with a small horizontal CTA. */
+body.ui-scale-responsive
+.home-screen-compact
+.home-mission-status-action.next-level-button {
+  flex: 0 0 auto !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: clamp(.28rem, 1vw, .4rem) !important;
+
+  width: auto !important;
+  min-width: 0 !important;
+  min-height: 2.15rem !important;
+  max-width: 48% !important;
+  margin: 0 !important;
+  padding: .36rem .58rem !important;
+
+  border-radius: .7rem !important;
+  font-size: clamp(.64rem, 2.4vw, .74rem) !important;
+  overflow: hidden !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-mission-status-action.next-level-button > span:last-child {
+  display: flex !important;
+  align-items: baseline !important;
+  gap: .28rem !important;
+  min-width: 0 !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-mission-status-action.next-level-button strong,
+body.ui-scale-responsive
+.home-screen-compact
+.home-mission-status-action.next-level-button small {
+  margin: 0 !important;
+  white-space: nowrap !important;
+  font-size: inherit !important;
+  line-height: 1 !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-mission-status-action.next-level-button small {
+  opacity: .65 !important;
+}
+
+/* Narrow phones: preserve the open center area instead of restoring 3 cols. */
+@media (max-width: 430px) {
+  body.ui-scale-responsive
+  .home-screen-compact
+  .home-layout-balanced {
+    grid-template-columns:
+      minmax(7.35rem, .72fr)
+      minmax(0, 1.55fr) !important;
+  }
+
+  body.ui-scale-responsive
+  .home-screen-compact
+  .home-mission-status {
+    gap: .38rem !important;
+    padding-inline: .46rem !important;
+  }
+
+  body.ui-scale-responsive
+  .home-screen-compact
+  .home-mission-status-action.next-level-button {
+    padding-inline: .45rem !important;
+    max-width: 50% !important;
+  }
+}
+
+@media (max-width: 350px) {
+  body.ui-scale-responsive
+  .home-screen-compact
+  .home-layout-balanced {
+    grid-template-columns:
+      minmax(6.9rem, .76fr)
+      minmax(0, 1.34fr) !important;
+  }
+
+  body.ui-scale-responsive
+  .home-screen-compact
+  .home-mission-status-copy small {
+    display: none !important;
+  }
+
+  body.ui-scale-responsive
+  .home-screen-compact
+  .home-mission-status-action.next-level-button strong {
+    display: none !important;
+  }
+}
