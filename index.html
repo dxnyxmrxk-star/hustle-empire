@@ -19,7 +19,7 @@
 <link rel="icon" href="data:,"/>
 <link rel="shortcut icon" href="data:,"/>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<link href="style.css?v=20.10-home-rebuild" rel="stylesheet"/>
+<link href="style.css?v=20.11-bottom-panels" rel="stylesheet"/>
 <script defer="" src="translations.js?v=20.3"></script>
 <script defer="" src="config.js?v=20.3"></script>
 <script defer="" src="script.js?v=20.3"></script>
@@ -459,6 +459,25 @@
         <span class="home-side-label-v210" data-i18n="home.offlineEarnings">Offline Earnings</span>
       </button>
     </nav>
+
+    <!-- V20.11: compact activity panels live ONLY in the free lower Home area. -->
+    <div class="home-bottom-panels-v211" aria-label="Home activity panels">
+      <section class="home-activity-panel-v211 quick-jobs-panel-v211" aria-labelledby="quick-jobs-title-v211">
+        <header class="home-activity-header-v211">
+          <h2 id="quick-jobs-title-v211" data-i18n="home.quickJobs">Quick Jobs</h2>
+          <strong id="quick-jobs-total">0</strong>
+        </header>
+        <div class="quick-jobs-grid home-activity-list-v211" id="quick-jobs-list"></div>
+      </section>
+
+      <section class="home-activity-panel-v211 home-businesses-panel-v211" aria-labelledby="active-businesses-title-v211">
+        <header class="home-activity-header-v211">
+          <h2 id="active-businesses-title-v211" data-i18n="home.activeBusinesses">Active Businesses</h2>
+          <strong id="home-total-income">$0/s</strong>
+        </header>
+        <div class="home-business-grid home-activity-list-v211" id="home-business-list"></div>
+      </section>
+    </div>
   </div>
 </section>
 <!-- CITY -->

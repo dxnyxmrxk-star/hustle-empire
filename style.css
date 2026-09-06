@@ -17910,3 +17910,379 @@ body.ui-scale-responsive .screen[data-screen="home"].home-screen-v210.active,
     width: calc(100% - 104px) !important;
   }
 }
+
+/* ==========================================================
+   V20.11 — HOME LOWER ACTIVITY AREA ONLY
+   The V20.10 top hub (edge rails + bust + Tap) is untouched.
+   Quick Jobs / Active Businesses occupy only the previously
+   empty lower strip, in two equal compact columns.
+========================================================== */
+.home-screen-v210 .home-bottom-panels-v211 {
+  position: absolute !important;
+  z-index: 55 !important;
+  left: clamp(4px, 1.1vw, 8px) !important;
+  right: clamp(4px, 1.1vw, 8px) !important;
+  bottom: clamp(4px, .8dvh, 7px) !important;
+  height: clamp(150px, 19.5dvh, 178px) !important;
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  gap: clamp(5px, 1.4vw, 9px) !important;
+  margin: 0 !important;
+  padding: clamp(5px, 1.2vw, 8px) 0 0 !important;
+  border-top: 1px solid rgba(93, 213, 255, .42) !important;
+  background: linear-gradient(180deg, rgba(3, 15, 25, .12), rgba(3, 15, 25, .72) 16%, rgba(3, 15, 25, .94)) !important;
+  pointer-events: auto !important;
+  overflow: hidden !important;
+}
+
+.home-screen-v210 .home-activity-panel-v211 {
+  min-width: 0 !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) !important;
+  gap: 4px !important;
+  margin: 0 !important;
+  padding: clamp(5px, 1.3vw, 8px) !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(34, 177, 235, .30) !important;
+  border-radius: clamp(9px, 2.3vw, 13px) !important;
+  background: linear-gradient(160deg, rgba(8, 31, 48, .94), rgba(5, 19, 31, .97)) !important;
+  box-shadow: inset 0 0 0 1px rgba(95, 220, 255, .02) !important;
+}
+
+.home-screen-v210 .home-activity-header-v211 {
+  min-width: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 5px !important;
+  margin: 0 !important;
+  padding: 0 1px 3px !important;
+  border-bottom: 1px solid rgba(70, 183, 229, .12) !important;
+}
+
+.home-screen-v210 .home-activity-header-v211 h2 {
+  min-width: 0 !important;
+  margin: 0 !important;
+  color: #eaf7ff !important;
+  font-size: clamp(9px, 2.55vw, 12px) !important;
+  font-weight: 950 !important;
+  line-height: 1.05 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.home-screen-v210 .home-activity-header-v211 strong {
+  flex: 0 0 auto !important;
+  margin: 0 !important;
+  color: #25ef91 !important;
+  font-size: clamp(9px, 2.45vw, 12px) !important;
+  font-weight: 1000 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+/* Only the two panel lists scroll. The Home screen itself never scrolls. */
+.home-screen-v210 .home-activity-list-v211,
+.home-screen-v210 .quick-jobs-grid.home-activity-list-v211,
+.home-screen-v210 .home-business-grid.home-activity-list-v211 {
+  min-width: 0 !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  justify-content: flex-start !important;
+  gap: 4px !important;
+  margin: 0 !important;
+  padding: 0 1px 1px 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  scrollbar-width: none !important;
+}
+
+.home-screen-v210 .home-activity-list-v211::-webkit-scrollbar {
+  display: none !important;
+}
+
+/* Compact Quick Job rows. */
+.home-screen-v210 .home-activity-list-v211 .quick-job-card {
+  flex: 0 0 auto !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 52px !important;
+  height: 52px !important;
+  display: grid !important;
+  grid-template-columns: 34px minmax(0, 1fr) !important;
+  gap: 5px !important;
+  margin: 0 !important;
+  padding: 5px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(64, 163, 214, .22) !important;
+  border-radius: 9px !important;
+  background: rgba(7, 25, 39, .94) !important;
+  box-shadow: none !important;
+}
+
+.home-screen-v210 .home-activity-list-v211 .quick-job-card.locked {
+  opacity: .52 !important;
+}
+
+.home-screen-v210 .home-activity-list-v211 .quick-job-media {
+  width: 34px !important;
+  min-width: 34px !important;
+  height: 40px !important;
+  display: grid !important;
+  place-items: center !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 1px solid rgba(0, 176, 255, .25) !important;
+  border-radius: 7px !important;
+  background: rgba(8, 40, 58, .68) !important;
+}
+
+.home-screen-v210 .home-activity-list-v211 .quick-job-icon {
+  width: auto !important;
+  height: auto !important;
+  font-size: 20px !important;
+  line-height: 1 !important;
+  transform: none !important;
+}
+
+.home-screen-v210 .home-activity-list-v211 .quick-job-content {
+  min-width: 0 !important;
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  grid-template-rows: auto 1fr !important;
+  column-gap: 4px !important;
+  row-gap: 2px !important;
+  align-items: center !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.home-screen-v210 .home-activity-list-v211 .quick-job-content > strong {
+  grid-column: 1 / -1 !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  color: #f1f8fd !important;
+  font-size: clamp(7.5px, 2vw, 9px) !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.home-screen-v210 .home-activity-list-v211 .quick-job-rewards {
+  min-width: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 3px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  font-size: clamp(5.5px, 1.55vw, 7px) !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+.home-screen-v210 .home-activity-list-v211 .quick-job-content > small {
+  display: none !important;
+}
+
+.home-screen-v210 .home-activity-list-v211 .quick-job-button {
+  align-self: end !important;
+  width: clamp(46px, 13.5vw, 64px) !important;
+  min-width: 0 !important;
+  height: 24px !important;
+  min-height: 24px !important;
+  margin: 0 !important;
+  padding: 0 4px !important;
+  border-radius: 6px !important;
+  font-size: clamp(6px, 1.65vw, 7.5px) !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+}
+
+/* Compact Active Business rows. */
+.home-screen-v210 .home-activity-list-v211 .business-live-card {
+  flex: 0 0 auto !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 58px !important;
+  height: 58px !important;
+  display: grid !important;
+  grid-template-columns: 36px minmax(0, 1fr) !important;
+  gap: 5px !important;
+  margin: 0 !important;
+  padding: 5px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(36, 182, 236, .28) !important;
+  border-radius: 9px !important;
+  background: rgba(7, 28, 43, .95) !important;
+  box-shadow: none !important;
+}
+
+.home-screen-v210 .home-activity-list-v211 .business-live-media {
+  width: 36px !important;
+  min-width: 36px !important;
+  height: 46px !important;
+  display: grid !important;
+  place-items: center !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border-radius: 8px !important;
+  background: rgba(7, 38, 56, .78) !important;
+}
+
+.home-screen-v210 .home-activity-list-v211 .business-live-image {
+  width: 32px !important;
+  min-width: 32px !important;
+  max-width: 32px !important;
+  height: 32px !important;
+  min-height: 32px !important;
+  max-height: 32px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+.home-screen-v210 .home-activity-list-v211 .business-live-image > *,
+.home-screen-v210 .home-activity-list-v211 .business-live-image .sprite-business,
+.home-screen-v210 .home-activity-list-v211 .business-live-image img,
+.home-screen-v210 .home-activity-list-v211 .business-live-image canvas {
+  width: 32px !important;
+  min-width: 32px !important;
+  max-width: 32px !important;
+  height: 32px !important;
+  min-height: 32px !important;
+  max-height: 32px !important;
+  object-fit: contain !important;
+}
+
+.home-screen-v210 .home-activity-list-v211 .business-live-content {
+  min-width: 0 !important;
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  grid-template-rows: auto auto 1fr !important;
+  column-gap: 4px !important;
+  row-gap: 1px !important;
+  align-items: center !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.home-screen-v210 .home-activity-list-v211 .business-live-top {
+  grid-column: 1 / -1 !important;
+  min-width: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 4px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.home-screen-v210 .home-activity-list-v211 .business-live-top > strong {
+  min-width: 0 !important;
+  margin: 0 !important;
+  color: #f0f9ff !important;
+  font-size: clamp(7.5px, 2vw, 9px) !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.home-screen-v210 .home-activity-list-v211 .business-level-badge {
+  flex: 0 0 auto !important;
+  margin: 0 !important;
+  padding: 1px 4px !important;
+  border-radius: 999px !important;
+  font-size: 5.5px !important;
+  line-height: 1 !important;
+}
+
+.home-screen-v210 .home-activity-list-v211 .business-live-stats {
+  min-width: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 3px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.home-screen-v210 .home-activity-list-v211 .business-income-label {
+  display: none !important;
+}
+
+.home-screen-v210 .home-activity-list-v211 .business-income-second {
+  margin: 0 !important;
+  color: #32ee94 !important;
+  font-size: clamp(6px, 1.7vw, 8px) !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+.home-screen-v210 .home-activity-list-v211 .business-income-progress {
+  display: none !important;
+}
+
+.home-screen-v210 .home-activity-list-v211 .business-upgrade-button {
+  grid-column: 2 !important;
+  grid-row: 2 / 4 !important;
+  align-self: center !important;
+  width: clamp(52px, 14.5vw, 68px) !important;
+  min-width: 0 !important;
+  height: 27px !important;
+  min-height: 27px !important;
+  margin: 0 !important;
+  padding: 0 4px !important;
+  border-radius: 6px !important;
+  font-size: clamp(5.5px, 1.5vw, 7px) !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+.home-screen-v210 .home-activity-list-v211 .home-business-empty {
+  width: 100% !important;
+  min-height: 52px !important;
+  display: grid !important;
+  place-items: center !important;
+  margin: 0 !important;
+  padding: 8px !important;
+  border: 1px dashed rgba(62, 183, 234, .22) !important;
+  border-radius: 9px !important;
+  color: #7897aa !important;
+  background: rgba(7, 25, 39, .65) !important;
+  font-size: clamp(6.5px, 1.8vw, 8px) !important;
+  text-align: center !important;
+}
+
+/* On short phones, shrink ONLY the lower panels. The upper Home stays intact. */
+@media (max-height: 760px) {
+  .home-screen-v210 .home-bottom-panels-v211 {
+    height: clamp(136px, 20dvh, 156px) !important;
+  }
+
+  .home-screen-v210 .home-activity-list-v211 .quick-job-card {
+    height: 48px !important;
+    min-height: 48px !important;
+  }
+
+  .home-screen-v210 .home-activity-list-v211 .business-live-card {
+    height: 52px !important;
+    min-height: 52px !important;
+  }
+}
