@@ -17240,3 +17240,249 @@ body.ui-scale-responsive .home-screen-compact .home-orbit-action > .home-orbit-d
 body.ui-scale-responsive .home-screen-compact .home-tap-zone {
   width: min(51vw, 13.4rem) !important;
 }
+
+/* ==========================================================
+   V20.8 — COMPACT HOME / SIDE RAILS + CENTER BUST + TAP
+   Requested layout correction only:
+   - Side quick-actions stay independently stacked at the edges.
+   - Center lane contains ONLY the half-bust character + Tap CTA.
+   - Character viewport is tall enough to show shoulders + torso.
+   - Main Home cluster is pulled upward and dead vertical space removed.
+========================================================== */
+
+/* Let the compact Home consume only the height its central hub needs;
+   the lower panels take the remaining viewport instead of forcing a
+   giant empty gap between character and Tap. */
+body.ui-scale-responsive
+.screen[data-screen="home"].home-screen-compact.active {
+  grid-template-rows: auto minmax(5.2rem, 1fr) !important;
+  align-content: stretch !important;
+  gap: clamp(.22rem, .9vw, .34rem) !important;
+  overflow: hidden !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-layout-balanced {
+  height: auto !important;
+  min-height: 0 !important;
+  align-self: start !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-center {
+  height: auto !important;
+  min-height: 0 !important;
+  grid-template-rows: auto auto auto !important;
+  align-content: start !important;
+  padding-top: clamp(.16rem, .7vw, .26rem) !important;
+  padding-bottom: clamp(.22rem, .8vw, .32rem) !important;
+}
+
+/* Keep the tiny brand from creating a fake spacer above the hub. */
+body.ui-scale-responsive
+.home-screen-compact
+.home-hub-brand {
+  min-height: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: .08rem !important;
+  line-height: 1 !important;
+}
+
+/* Three independent lanes remain: left rail | center | right rail.
+   The side rails DO NOT follow the character crop/height visually. */
+body.ui-scale-responsive
+.home-screen-compact
+.home-center > .home-character-hub,
+body.ui-scale-responsive
+.home-screen-compact
+.home-character-hub {
+  grid-template-areas: "orbit-left character orbit-right" !important;
+  grid-template-columns:
+    clamp(3.35rem, 14vw, 4.2rem)
+    minmax(0, 1fr)
+    clamp(3.35rem, 14vw, 4.2rem) !important;
+  align-items: start !important;
+  column-gap: clamp(.18rem, .9vw, .36rem) !important;
+  height: clamp(17.5rem, 39svh, 20.5rem) !important;
+  min-height: clamp(17.5rem, 39svh, 20.5rem) !important;
+  overflow: hidden !important;
+}
+
+/* LEFT / RIGHT: compact vertical stacks pinned to the screen edges.
+   No equal-height rows, so the buttons no longer float around the bust. */
+body.ui-scale-responsive
+.home-screen-compact
+.home-orbit-left,
+body.ui-scale-responsive
+.home-screen-compact
+.home-orbit-right {
+  align-self: start !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: clamp(.22rem, 1.05vw, .38rem) !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding-top: clamp(.12rem, .6vw, .24rem) !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-orbit-action,
+body.ui-scale-responsive
+.home-screen-compact
+a.home-orbit-action,
+body.ui-scale-responsive
+.home-screen-compact
+.home-orbit-missions.home-missions-launcher,
+body.ui-scale-responsive
+.home-screen-compact
+.home-orbit-social.social-tasks-launcher {
+  flex: 0 0 auto !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+}
+
+/* CENTER: real tall crop viewport. The previous 1/1.08 aspect ratio was
+   effectively collapsing the stage and leaving only the head visible. */
+body.ui-scale-responsive
+.home-screen-compact
+.home-character-hub > .home-character-stage {
+  grid-area: character !important;
+  align-self: start !important;
+  justify-self: center !important;
+  width: 100% !important;
+  max-width: clamp(9.4rem, 43vw, 13.1rem) !important;
+  height: 100% !important;
+  max-height: none !important;
+  min-height: 0 !important;
+  aspect-ratio: auto !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Half-bust crop: head + shoulders + full upper torso/hoodie area.
+   Values are normalized per gender/stage because source PNG margins differ. */
+body.ui-scale-responsive
+.home-screen-compact
+.home-character-stage
+.home-character-sprite.character-real-image[data-character-framing="home-bust"] {
+  top: -.2rem !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  inset: auto !important;
+  width: var(--home-v208-bust-width, 260%) !important;
+  height: auto !important;
+  max-width: none !important;
+  max-height: none !important;
+  transform: translate3d(-50%, 0, 0) !important;
+  transform-origin: 50% 0 !important;
+  object-fit: contain !important;
+  object-position: center top !important;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-character[data-character-framing="home-bust"][data-character-gender="male"][data-character-stage="1"],
+body.ui-scale-responsive
+.home-screen-compact
+.home-character[data-character-framing="home-bust"][data-character-gender="male"][data-character-stage="2"] {
+  --home-v208-bust-width: 260%;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-character[data-character-framing="home-bust"][data-character-gender="male"][data-character-stage="3"],
+body.ui-scale-responsive
+.home-screen-compact
+.home-character[data-character-framing="home-bust"][data-character-gender="male"][data-character-stage="4"] {
+  --home-v208-bust-width: 245%;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-character[data-character-framing="home-bust"][data-character-gender="female"][data-character-stage="1"] {
+  --home-v208-bust-width: 270%;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-character[data-character-framing="home-bust"][data-character-gender="female"][data-character-stage="2"] {
+  --home-v208-bust-width: 265%;
+}
+
+body.ui-scale-responsive
+.home-screen-compact
+.home-character[data-character-framing="home-bust"][data-character-gender="female"][data-character-stage="3"],
+body.ui-scale-responsive
+.home-screen-compact
+.home-character[data-character-framing="home-bust"][data-character-gender="female"][data-character-stage="4"] {
+  --home-v208-bust-width: 275%;
+}
+
+/* TAP belongs to the center lane only and immediately follows the bust. */
+body.ui-scale-responsive
+.home-screen-compact
+.home-center > .home-tap-zone,
+body.ui-scale-responsive
+.home-screen-compact
+.home-tap-zone {
+  align-self: start !important;
+  justify-self: center !important;
+  width: min(52vw, 13.4rem) !important;
+  min-width: 9.3rem !important;
+  margin: clamp(-.18rem, -.45vw, -.06rem) auto 0 !important;
+  padding: 0 !important;
+  transform: none !important;
+}
+
+/* Lower content starts immediately after Tap; no artificial vertical gap. */
+body.ui-scale-responsive
+.home-screen-compact
+.home-bottom-panels {
+  align-self: stretch !important;
+  min-height: 5.2rem !important;
+  height: 100% !important;
+  margin-top: 0 !important;
+}
+
+/* Short phones keep the architecture, only tighten the center vertically. */
+@media (max-height: 720px) {
+  body.ui-scale-responsive
+  .home-screen-compact
+  .home-character-hub {
+    height: clamp(15.7rem, 38svh, 17.2rem) !important;
+    min-height: clamp(15.7rem, 38svh, 17.2rem) !important;
+  }
+
+  body.ui-scale-responsive
+  .home-screen-compact
+  .home-orbit-left,
+  body.ui-scale-responsive
+  .home-screen-compact
+  .home-orbit-right {
+    gap: .16rem !important;
+  }
+
+  body.ui-scale-responsive
+  .home-screen-compact
+  .home-tap-zone {
+    margin-top: -.16rem !important;
+  }
+}
+
+@supports not (height: 1svh) {
+  body.ui-scale-responsive
+  .home-screen-compact
+  .home-character-hub {
+    height: clamp(17.5rem, 39vh, 20.5rem) !important;
+    min-height: clamp(17.5rem, 39vh, 20.5rem) !important;
+  }
+}
