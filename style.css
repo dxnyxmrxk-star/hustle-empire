@@ -16658,3 +16658,585 @@ body.ui-scale-responsive
     column-gap: .24rem !important;
   }
 }
+
+/* ==========================================================
+   V20.7 — HOME REFERENCE LAYOUT
+   Structure follows the supplied mobile-game reference:
+   LEFT ICON RAIL | CENTER BUST | RIGHT ICON RAIL
+                    TAP TO EARN
+              COMPACT BOTTOM ACTIVITY STRIPS
+   Home only. Game logic is unchanged.
+========================================================== */
+
+body.ui-scale-responsive .screen[data-screen="home"].home-screen-compact.active {
+  box-sizing: border-box !important;
+  display: grid !important;
+  grid-template-rows: minmax(0, 1fr) clamp(5.4rem, 13svh, 6.8rem) !important;
+  gap: clamp(.28rem, 1.2vw, .42rem) !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  padding: clamp(.28rem, 1.2vw, .42rem) !important;
+  overflow: hidden !important;
+}
+
+body.ui-scale-responsive .home-screen-compact .home-layout-balanced {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+body.ui-scale-responsive .home-screen-compact .home-center {
+  box-sizing: border-box !important;
+  position: relative !important;
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) auto !important;
+  align-items: stretch !important;
+  justify-items: center !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: clamp(.28rem, 1.1vw, .42rem) clamp(.24rem, 1vw, .38rem) clamp(.34rem, 1.2vw, .48rem) !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(0,176,255,.34) !important;
+  border-radius: clamp(.72rem, 2.6vw, 1rem) !important;
+  background:
+    radial-gradient(ellipse at 50% 38%, rgba(0,176,255,.12), transparent 46%),
+    radial-gradient(ellipse at 50% 78%, rgba(0,230,118,.07), transparent 42%),
+    linear-gradient(180deg, #071a28, #07131d 72%, #06111a) !important;
+}
+
+body.ui-scale-responsive .home-screen-compact .home-center::before,
+body.ui-scale-responsive .home-screen-compact .home-center::after {
+  pointer-events: none !important;
+}
+
+body.ui-scale-responsive .home-screen-compact .home-hub-brand {
+  position: relative !important;
+  z-index: 12 !important;
+  display: flex !important;
+  align-items: baseline !important;
+  justify-content: center !important;
+  gap: .38rem !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: .02rem .15rem .12rem !important;
+  color: #f6fbff !important;
+  text-align: center !important;
+}
+
+body.ui-scale-responsive .home-screen-compact .home-hub-brand strong {
+  font-size: clamp(.7rem, 2.7vw, .92rem) !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+  letter-spacing: -.02em !important;
+  white-space: nowrap !important;
+}
+
+body.ui-scale-responsive .home-screen-compact .home-hub-brand span {
+  color: rgba(210,230,241,.48) !important;
+  font-size: clamp(.43rem, 1.7vw, .55rem) !important;
+  font-weight: 750 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+/* Three strict lanes, like the reference screenshot. */
+body.ui-scale-responsive .home-screen-compact .home-center > .home-character-hub,
+body.ui-scale-responsive .home-screen-compact .home-character-hub {
+  box-sizing: border-box !important;
+  position: relative !important;
+  z-index: 5 !important;
+  display: grid !important;
+  grid-template-areas: "orbit-left character orbit-right" !important;
+  grid-template-columns:
+    clamp(3.5rem, 15.2vw, 4.45rem)
+    minmax(0, 1fr)
+    clamp(3.5rem, 15.2vw, 4.45rem) !important;
+  align-items: stretch !important;
+  justify-items: center !important;
+  column-gap: clamp(.26rem, 1.4vw, .55rem) !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+}
+
+body.ui-scale-responsive .home-screen-compact .home-orbit-left {
+  grid-area: orbit-left !important;
+}
+
+body.ui-scale-responsive .home-screen-compact .home-character-hub > .home-character-stage {
+  grid-area: character !important;
+}
+
+body.ui-scale-responsive .home-screen-compact .home-orbit-right {
+  grid-area: orbit-right !important;
+}
+
+/* True vertical side rails: three equally spaced actions per side. */
+body.ui-scale-responsive .home-screen-compact .home-orbit-left,
+body.ui-scale-responsive .home-screen-compact .home-orbit-right {
+  position: relative !important;
+  z-index: 15 !important;
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  grid-template-rows: repeat(3, minmax(0, 1fr)) !important;
+  align-items: center !important;
+  align-content: stretch !important;
+  justify-items: center !important;
+  gap: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  transform: none !important;
+}
+
+body.ui-scale-responsive .home-screen-compact .home-orbit-action,
+body.ui-scale-responsive .home-screen-compact a.home-orbit-action,
+body.ui-scale-responsive .home-screen-compact .home-orbit-missions.home-missions-launcher,
+body.ui-scale-responsive .home-screen-compact .home-orbit-social.social-tasks-launcher {
+  --orbit-accent: 78, 216, 255;
+  box-sizing: border-box !important;
+  position: relative !important;
+  inset: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: .10rem !important;
+  width: 100% !important;
+  max-width: 4.45rem !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: .06rem 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #eef8ff !important;
+  text-decoration: none !important;
+  overflow: hidden !important;
+  transform: none !important;
+}
+
+body.ui-scale-responsive .home-screen-compact .home-orbit-social { --orbit-accent: 255, 215, 0; }
+body.ui-scale-responsive .home-screen-compact .daily-challenges-launch { --orbit-accent: 0, 230, 118; }
+body.ui-scale-responsive .home-screen-compact .daily-chest { --orbit-accent: 255, 188, 61; }
+body.ui-scale-responsive .home-screen-compact .home-orbit-missions { --orbit-accent: 90, 195, 255; }
+body.ui-scale-responsive .home-screen-compact .hustle-streak { --orbit-accent: 255, 116, 72; }
+body.ui-scale-responsive .home-screen-compact .offline-income { --orbit-accent: 78, 216, 255; }
+
+body.ui-scale-responsive .home-screen-compact .home-orbit-circle {
+  box-sizing: border-box !important;
+  flex: 0 0 auto !important;
+  display: grid !important;
+  place-items: center !important;
+  align-content: center !important;
+  gap: .04rem !important;
+  width: clamp(2.75rem, 11.8vw, 3.35rem) !important;
+  height: clamp(2.75rem, 11.8vw, 3.35rem) !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  border: 1px solid rgba(var(--orbit-accent), .48) !important;
+  border-radius: 50% !important;
+  background:
+    radial-gradient(circle at 32% 24%, rgba(255,255,255,.12), transparent 32%),
+    radial-gradient(circle at 50% 84%, rgba(var(--orbit-accent), .15), transparent 58%),
+    linear-gradient(180deg, rgba(15,31,45,.99), rgba(7,15,24,.99)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 .25rem .7rem rgba(0,0,0,.30),
+    0 0 .7rem rgba(var(--orbit-accent), .11) !important;
+  overflow: hidden !important;
+}
+
+body.ui-scale-responsive .home-screen-compact .home-orbit-icon {
+  font-size: clamp(1.05rem, 4.4vw, 1.35rem) !important;
+  line-height: 1 !important;
+}
+
+body.ui-scale-responsive .home-screen-compact .home-orbit-metric,
+body.ui-scale-responsive .home-screen-compact .home-orbit-action .daily-challenges-launch-badge,
+body.ui-scale-responsive .home-screen-compact .home-orbit-action .daily-challenges-launch-timer,
+body.ui-scale-responsive .home-screen-compact .home-orbit-action .countdown,
+body.ui-scale-responsive .home-screen-compact .home-orbit-action .offline-value,
+body.ui-scale-responsive .home-screen-compact .home-orbit-action .feature-value,
+body.ui-scale-responsive .home-screen-compact .social-tasks-launcher-badge {
+  position: static !important;
+  inset: auto !important;
+  display: block !important;
+  width: auto !important;
+  min-width: 0 !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: rgb(var(--orbit-accent)) !important;
+  font-size: clamp(.45rem, 1.75vw, .56rem) !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+body.ui-scale-responsive .home-screen-compact .home-orbit-micro {
+  font-size: clamp(.38rem, 1.45vw, .47rem) !important;
+}
+
+body.ui-scale-responsive .home-screen-compact .home-orbit-label {
+  display: -webkit-box !important;
+  width: 100% !important;
+  max-width: 4.2rem !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 .08rem !important;
+  overflow: hidden !important;
+  -webkit-box-orient: vertical !important;
+  -webkit-line-clamp: 2 !important;
+  color: rgba(239,248,255,.86) !important;
+  font-size: clamp(.43rem, 1.65vw, .53rem) !important;
+  font-weight: 850 !important;
+  line-height: 1.02 !important;
+  text-align: center !important;
+  overflow-wrap: anywhere !important;
+}
+
+body.ui-scale-responsive .home-screen-compact .home-orbit-detail {
+  margin: 0 !important;
+  color: rgba(213,234,244,.48) !important;
+  font-size: clamp(.39rem, 1.45vw, .47rem) !important;
+  line-height: 1 !important;
+}
+
+body.ui-scale-responsive .home-screen-compact .home-orbit-status {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0,0,0,0) !important;
+  white-space: nowrap !important;
+}
+
+/* Center bust owns only the protected middle lane. */
+body.ui-scale-responsive .home-screen-compact .home-character-hub > .home-character-stage {
+  position: relative !important;
+  z-index: 5 !important;
+  align-self: center !important;
+  justify-self: center !important;
+  display: block !important;
+  width: 100% !important;
+  max-width: clamp(9.5rem, 43vw, 13.2rem) !important;
+  height: min(100%, clamp(10.8rem, 29svh, 15.2rem)) !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  aspect-ratio: 1 / 1.08 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  isolation: isolate !important;
+}
+
+/* Preserve the already-approved half-bust crop. */
+body.ui-scale-responsive .home-screen-compact
+.home-character-stage
+.home-character-sprite.character-real-image[data-character-framing="home-bust"] {
+  position: absolute !important;
+  top: -3% !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  inset: auto !important;
+  width: 190% !important;
+  height: auto !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  transform: translateX(-50%) !important;
+  transform-origin: 50% 0 !important;
+  object-fit: contain !important;
+  object-position: center top !important;
+}
+
+/* Tap CTA sits immediately under the bust and never under the side rails. */
+body.ui-scale-responsive .home-screen-compact .home-center > .home-tap-zone,
+body.ui-scale-responsive .home-screen-compact .home-tap-zone {
+  position: relative !important;
+  z-index: 20 !important;
+  grid-row: auto !important;
+  left: auto !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: auto !important;
+  align-self: end !important;
+  width: min(54vw, 14.2rem) !important;
+  min-width: 9.5rem !important;
+  margin: .08rem auto 0 !important;
+  padding: 0 !important;
+  transform: none !important;
+  pointer-events: none !important;
+}
+
+body.ui-scale-responsive .home-screen-compact .home-main-tap {
+  width: 100% !important;
+  min-height: clamp(3.15rem, 8.7svh, 3.85rem) !important;
+  padding: .4rem .65rem !important;
+  gap: .38rem !important;
+  border-radius: 999px !important;
+  pointer-events: auto !important;
+}
+
+body.ui-scale-responsive .home-screen-compact .home-main-tap-icon {
+  width: clamp(1.75rem, 7vw, 2.15rem) !important;
+  height: clamp(1.75rem, 7vw, 2.15rem) !important;
+  font-size: clamp(.95rem, 3.8vw, 1.2rem) !important;
+}
+
+body.ui-scale-responsive .home-screen-compact .home-main-tap-copy > small {
+  font-size: clamp(.42rem, 1.6vw, .51rem) !important;
+  margin-bottom: .06rem !important;
+}
+
+body.ui-scale-responsive .home-screen-compact .home-main-tap-copy > strong {
+  font-size: clamp(.83rem, 3.1vw, 1rem) !important;
+}
+
+body.ui-scale-responsive .home-screen-compact .home-main-tap-value {
+  margin-top: .07rem !important;
+  font-size: clamp(.5rem, 1.9vw, .61rem) !important;
+}
+
+/* Bottom content uses one compact row, not a vertical page. */
+body.ui-scale-responsive .home-screen-compact .home-bottom-panels {
+  box-sizing: border-box !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  gap: clamp(.28rem, 1.2vw, .42rem) !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+}
+
+body.ui-scale-responsive .home-screen-compact .quick-jobs-panel,
+body.ui-scale-responsive .home-screen-compact .home-businesses-panel {
+  box-sizing: border-box !important;
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) !important;
+  gap: .18rem !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: .3rem .34rem !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(0,176,255,.25) !important;
+  border-radius: .68rem !important;
+  background: linear-gradient(145deg, rgba(8,28,43,.95), rgba(5,17,27,.98)) !important;
+}
+
+body.ui-scale-responsive .home-screen-compact .business-section-heading {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: .2rem !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+}
+
+body.ui-scale-responsive .home-screen-compact .business-section-heading .section-eyebrow,
+body.ui-scale-responsive .home-screen-compact .business-section-heading .home-business-total small {
+  display: none !important;
+}
+
+body.ui-scale-responsive .home-screen-compact .business-section-heading h2 {
+  overflow: hidden !important;
+  color: rgba(236,247,255,.82) !important;
+  font-size: clamp(.48rem, 1.85vw, .59rem) !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  text-overflow: ellipsis !important;
+}
+
+body.ui-scale-responsive .home-screen-compact .home-business-total strong {
+  font-size: clamp(.48rem, 1.85vw, .6rem) !important;
+  white-space: nowrap !important;
+}
+
+body.ui-scale-responsive .home-screen-compact .quick-jobs-grid,
+body.ui-scale-responsive .home-screen-compact .home-business-grid {
+  display: grid !important;
+  grid-auto-flow: column !important;
+  grid-auto-columns: minmax(7.2rem, 86%) !important;
+  grid-template-columns: none !important;
+  grid-template-rows: minmax(0, 1fr) !important;
+  gap: .24rem !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  scrollbar-width: none !important;
+  overscroll-behavior-inline: contain !important;
+  scroll-snap-type: x proximity !important;
+}
+
+body.ui-scale-responsive .home-screen-compact .quick-jobs-grid::-webkit-scrollbar,
+body.ui-scale-responsive .home-screen-compact .home-business-grid::-webkit-scrollbar {
+  display: none !important;
+}
+
+body.ui-scale-responsive .home-screen-compact .quick-job-card,
+body.ui-scale-responsive .home-screen-compact .business-live-card,
+body.ui-scale-responsive .home-screen-compact .home-business-empty {
+  box-sizing: border-box !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  padding: .22rem .26rem !important;
+  gap: .22rem !important;
+  border-radius: .5rem !important;
+  scroll-snap-align: start !important;
+  overflow: hidden !important;
+}
+
+body.ui-scale-responsive .home-screen-compact .quick-job-card {
+  grid-template-columns: 1.55rem minmax(0,1fr) !important;
+}
+
+body.ui-scale-responsive .home-screen-compact .quick-job-media,
+body.ui-scale-responsive .home-screen-compact .business-live-media {
+  width: 1.55rem !important;
+  height: 1.55rem !important;
+  min-width: 1.55rem !important;
+  min-height: 1.55rem !important;
+}
+
+body.ui-scale-responsive .home-screen-compact .quick-job-icon {
+  font-size: 1rem !important;
+}
+
+body.ui-scale-responsive .home-screen-compact .quick-job-content,
+body.ui-scale-responsive .home-screen-compact .business-live-content {
+  gap: .08rem !important;
+  min-width: 0 !important;
+}
+
+body.ui-scale-responsive .home-screen-compact .quick-job-content strong,
+body.ui-scale-responsive .home-screen-compact .business-live-top strong,
+body.ui-scale-responsive .home-screen-compact .business-income-second {
+  font-size: clamp(.42rem, 1.55vw, .5rem) !important;
+  line-height: 1 !important;
+}
+
+body.ui-scale-responsive .home-screen-compact .quick-job-rewards,
+body.ui-scale-responsive .home-screen-compact .business-live-stats,
+body.ui-scale-responsive .home-screen-compact .business-level-badge {
+  font-size: clamp(.36rem, 1.3vw, .43rem) !important;
+  line-height: 1 !important;
+}
+
+body.ui-scale-responsive .home-screen-compact .quick-job-content > small,
+body.ui-scale-responsive .home-screen-compact .business-income-label,
+body.ui-scale-responsive .home-screen-compact .business-income-progress {
+  display: none !important;
+}
+
+body.ui-scale-responsive .home-screen-compact .quick-job-button,
+body.ui-scale-responsive .home-screen-compact .business-upgrade-button {
+  min-height: 1.35rem !important;
+  padding: .14rem .2rem !important;
+  border-radius: .35rem !important;
+  font-size: clamp(.36rem, 1.3vw, .43rem) !important;
+  line-height: 1 !important;
+}
+
+/* Short phones: preserve the same architecture, only tighten proportions. */
+@media (max-height: 720px) {
+  body.ui-scale-responsive .screen[data-screen="home"].home-screen-compact.active {
+    grid-template-rows: minmax(0, 1fr) 4.95rem !important;
+  }
+
+  body.ui-scale-responsive .home-screen-compact .home-hub-brand span {
+    display: none !important;
+  }
+
+  body.ui-scale-responsive .home-screen-compact .home-character-hub > .home-character-stage {
+    max-width: 10.8rem !important;
+    height: min(100%, 12.2rem) !important;
+  }
+
+  body.ui-scale-responsive .home-screen-compact .home-orbit-circle {
+    width: 2.68rem !important;
+    height: 2.68rem !important;
+  }
+
+  body.ui-scale-responsive .home-screen-compact .home-orbit-label {
+    font-size: .41rem !important;
+  }
+
+  body.ui-scale-responsive .home-screen-compact .home-main-tap {
+    min-height: 3rem !important;
+  }
+}
+
+@media (max-width: 360px) {
+  body.ui-scale-responsive .home-screen-compact .home-character-hub {
+    grid-template-columns: 3.15rem minmax(0,1fr) 3.15rem !important;
+    column-gap: .14rem !important;
+  }
+
+  body.ui-scale-responsive .home-screen-compact .home-orbit-action,
+  body.ui-scale-responsive .home-screen-compact a.home-orbit-action {
+    max-width: 3.15rem !important;
+  }
+
+  body.ui-scale-responsive .home-screen-compact .home-orbit-circle {
+    width: 2.55rem !important;
+    height: 2.55rem !important;
+  }
+
+  body.ui-scale-responsive .home-screen-compact .home-orbit-label {
+    max-width: 3.1rem !important;
+    font-size: .40rem !important;
+  }
+
+  body.ui-scale-responsive .home-screen-compact .home-tap-zone {
+    width: min(56vw, 11.8rem) !important;
+    min-width: 8.9rem !important;
+  }
+
+  body.ui-scale-responsive .home-screen-compact .home-bottom-panels {
+    gap: .22rem !important;
+  }
+}
+
+/* V20.7 reference polish: side rails are icon-first like the supplied UI. */
+body.ui-scale-responsive .home-screen-compact .home-hub-brand > span,
+body.ui-scale-responsive .home-screen-compact .home-orbit-action > .home-orbit-label,
+body.ui-scale-responsive .home-screen-compact .home-orbit-action > .home-orbit-detail {
+  display: none !important;
+}
+
+body.ui-scale-responsive .home-screen-compact .home-tap-zone {
+  width: min(51vw, 13.4rem) !important;
+}

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<html lang="en" data-app-version="20.3">
+<html lang="en" data-app-version="20.7">
 <head>
 <meta charset="utf-8"/>
 <base href="./"/>
@@ -19,7 +19,7 @@
 <link rel="icon" href="data:,"/>
 <link rel="shortcut icon" href="data:,"/>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<link href="style.css?v=20.4-bust" rel="stylesheet"/>
+<link href="style.css?v=20.7-reference-layout" rel="stylesheet"/>
 <script defer="" src="translations.js?v=20.3"></script>
 <script defer="" src="config.js?v=20.3"></script>
 <script defer="" src="script.js?v=20.3"></script>
@@ -337,156 +337,152 @@
 <main class="screens screen-content">
 <!-- HOME -->
 <section class="screen active home-screen-compact" data-screen="home">
-<div class="home-layout page-layout home-layout-balanced">
-<aside class="home-left">
-<div class="home-logo">
-<div class="home-logo-main">HUSTLE</div>
-<div class="home-logo-main">EMPIRE</div>
-<div class="home-logo-sub" data-i18n="home.tagline">Small steps. Big empire.</div>
-</div>
+  <div class="home-layout page-layout home-layout-balanced">
+    <div class="home-center image-fallback">
+      <div class="home-hub-brand" aria-hidden="true">
+        <strong>HUSTLE EMPIRE</strong>
+        <span data-i18n="home.tagline">Small steps. Big empire.</span>
+      </div>
 
-<a
-  class="mini-feature home-left-widget social-tasks-launcher"
-  href="#social-tasks-modal"
-  role="button"
-  aria-label="Open Daily Tasks & Rewards" data-i18n-aria-label="social.openAria"
-  aria-controls="social-tasks-modal"
-  aria-expanded="false"
-  data-social-tasks-open
->
-  <div class="home-widget-media" aria-hidden="true"><div class="mini-feature-icon social-tasks-launcher-icon">⭐</div></div>
-  <div class="mini-feature-copy social-tasks-launcher-copy">
-    <div class="mini-feature-heading home-widget-header">
-      <strong data-i18n="home.socialTasks">Social Tasks</strong>
-      <span class="social-tasks-launcher-badge" data-i18n="common.new">NEW</span>
+      <div class="home-character-hub">
+        <div class="home-orbit-column home-orbit-left" aria-label="Left quick actions">
+          <a
+            class="home-orbit-action home-orbit-social social-tasks-launcher"
+            href="#social-tasks-modal"
+            role="button"
+            aria-label="Open Daily Tasks & Rewards" data-i18n-aria-label="social.openAria"
+            aria-controls="social-tasks-modal"
+            aria-expanded="false"
+            data-social-tasks-open
+          >
+            <span class="home-orbit-circle">
+              <span class="home-orbit-icon" aria-hidden="true">⭐</span>
+              <span class="home-orbit-metric social-tasks-launcher-badge" data-i18n="common.new">NEW</span>
+            </span>
+            <strong class="home-orbit-label" data-i18n="home.socialTasks">Social Tasks</strong>
+          </a>
+
+          <button
+            class="home-orbit-action daily-challenges-launch"
+            data-daily-challenges-open
+            type="button"
+            aria-haspopup="dialog"
+            aria-controls="daily-challenges-modal"
+            aria-label="Daily Challenges"
+            data-i18n-aria-label="home.dailyChallenges"
+          >
+            <span class="home-orbit-circle">
+              <span class="home-orbit-icon" aria-hidden="true">🎯</span>
+              <span id="daily-challenges-button-badge" class="home-orbit-metric daily-challenges-launch-badge">0/3</span>
+            </span>
+            <strong class="home-orbit-label" data-i18n="home.dailyChallenges">Daily Challenges</strong>
+            <span id="daily-challenges-button-timer" class="home-orbit-detail daily-challenges-launch-timer">24:00:00</span>
+            <small id="daily-challenges-button-status" class="home-orbit-status" data-i18n="home.dailyChallengesProgressZero">0/3 completed</small>
+          </button>
+
+          <button
+            class="home-orbit-action daily-chest"
+            data-action="daily-chest"
+            type="button"
+            aria-label="Daily Chest"
+            data-i18n-aria-label="home.dailyChest"
+          >
+            <span class="home-orbit-circle">
+              <span class="home-orbit-icon" aria-hidden="true">🎁</span>
+              <span class="countdown home-orbit-metric" data-countdown="11658">03:14:18</span>
+            </span>
+            <strong class="home-orbit-label" data-i18n="home.dailyChest">Daily Chest</strong>
+          </button>
+        </div>
+
+        <div class="home-character-stage">
+          <img aria-label="Hustle Empire character" alt="Hustle Empire character" class="home-character home-character-sprite direct-character-image character-real-image" data-character-sprite="" data-character-stage="1" src="assets/hero_lvl1.png?v=20.7" draggable="false" decoding="async" style="object-fit:contain;display:block;" />
+        </div>
+
+        <div class="home-orbit-column home-orbit-right" aria-label="Right quick actions">
+          <button
+            class="home-orbit-action home-orbit-missions home-missions-launcher"
+            type="button"
+            data-missions-open
+            aria-haspopup="dialog"
+            aria-controls="missions-modal"
+            aria-expanded="false"
+            aria-label="Missions"
+            data-i18n-aria-label="home.missions"
+          >
+            <span class="home-orbit-circle">
+              <span class="home-orbit-icon" aria-hidden="true">✓</span>
+              <span class="home-orbit-metric" data-home-mission-count>0/4</span>
+            </span>
+            <strong class="home-orbit-label" data-i18n="home.missions">Missions</strong>
+            <span class="home-orbit-detail" data-home-mission-level>LV 1</span>
+          </button>
+
+          <button
+            class="home-orbit-action hustle-streak"
+            data-daily-challenges-open
+            type="button"
+            aria-haspopup="dialog"
+            aria-controls="daily-challenges-modal"
+            aria-label="Hustle Streak"
+            data-i18n-aria-label="home.streak"
+          >
+            <span class="home-orbit-circle">
+              <span class="home-orbit-icon fire" aria-hidden="true">🔥</span>
+              <span class="home-orbit-metric feature-value">0</span>
+              <small class="home-orbit-micro">+0%</small>
+            </span>
+            <strong class="home-orbit-label" data-i18n="home.streak">Hustle Streak</strong>
+          </button>
+
+          <button
+            class="home-orbit-action offline-income"
+            data-action="offline-income"
+            type="button"
+            aria-label="Offline Earnings"
+            data-i18n-aria-label="home.offlineEarnings"
+          >
+            <span class="home-orbit-circle">
+              <span class="home-orbit-icon" aria-hidden="true">⏱</span>
+              <span class="offline-value home-orbit-metric">$0</span>
+            </span>
+            <strong class="home-orbit-label" data-i18n="home.offlineEarnings">Offline Earnings</strong>
+          </button>
+        </div>
+      </div>
+
+      <div class="home-tap-zone">
+        <div aria-hidden="true" class="tap-float-layer" id="tap-float-layer"></div>
+        <button class="tap-button home-main-tap" type="button">
+          <span class="home-main-tap-glow"></span>
+          <span class="home-main-tap-icon">⚡</span>
+          <span class="home-main-tap-copy">
+            <small data-i18n="home.quickHustle">Quick Hustle</small>
+            <strong data-i18n="home.tapToEarn">Tap to Earn</strong>
+            <span class="home-main-tap-value">+$1 / tap</span>
+          </span>
+        </button>
+      </div>
     </div>
-    <span class="mini-feature-value" data-i18n="home.dailyRewards">Daily Rewards</span>
-    <small data-i18n="home.socialTasksHint">Complete tasks and claim rewards</small>
-  </div>
-</a>
-</aside>
-<div class="home-center image-fallback">
-<div class="home-character-hub">
-  <div class="home-orbit-column home-orbit-left" aria-label="Left quick actions">
-    <button
-      class="home-orbit-action daily-challenges-launch"
-      data-daily-challenges-open
-      type="button"
-      aria-haspopup="dialog"
-      aria-controls="daily-challenges-modal"
-      aria-label="Daily Challenges"
-      data-i18n-aria-label="home.dailyChallenges"
-    >
-      <span class="home-orbit-circle">
-        <span class="home-orbit-icon" aria-hidden="true">🎯</span>
-        <span id="daily-challenges-button-badge" class="home-orbit-metric daily-challenges-launch-badge">0/3</span>
-      </span>
-      <strong class="home-orbit-label" data-i18n="home.dailyChallenges">Daily Challenges</strong>
-      <span id="daily-challenges-button-timer" class="home-orbit-detail daily-challenges-launch-timer">24:00:00</span>
-      <small id="daily-challenges-button-status" class="home-orbit-status" data-i18n="home.dailyChallengesProgressZero">0/3 completed</small>
-    </button>
-
-    <button
-      class="home-orbit-action daily-chest"
-      data-action="daily-chest"
-      type="button"
-      aria-label="Daily Chest"
-      data-i18n-aria-label="home.dailyChest"
-    >
-      <span class="home-orbit-circle">
-        <span class="home-orbit-icon" aria-hidden="true">🎁</span>
-        <span class="countdown home-orbit-metric" data-countdown="11658">03:14:18</span>
-      </span>
-      <strong class="home-orbit-label" data-i18n="home.dailyChest">Daily Chest</strong>
-    </button>
   </div>
 
-  <div class="home-character-stage">
-    <img aria-label="Hustle Empire character" alt="Hustle Empire character" class="home-character home-character-sprite direct-character-image character-real-image" data-character-sprite="" data-character-stage="1" src="assets/hero_lvl1.png?v=20.3" draggable="false" decoding="async" style="object-fit:contain;display:block;" />
+  <div class="home-bottom-panels">
+    <section class="quick-jobs-panel">
+      <div class="business-section-heading">
+        <div><span class="section-eyebrow" data-i18n="home.quickActivity">Quick Activity</span><h2 data-i18n="home.quickJobs">Quick Jobs</h2></div>
+        <div class="home-business-total"><small data-i18n="home.completed">Completed</small><strong id="quick-jobs-total">0</strong></div>
+      </div>
+      <div class="quick-jobs-grid" id="quick-jobs-list"></div>
+    </section>
+
+    <section class="home-businesses-panel">
+      <div class="business-section-heading">
+        <div><span class="section-eyebrow" data-i18n="home.empireManagement">Empire Management</span><h2 data-i18n="home.activeBusinesses">Active Businesses</h2></div>
+        <div class="home-business-total"><small data-i18n="home.totalIncome">Total Income</small><strong id="home-total-income">$0.20/s</strong></div>
+      </div>
+      <div class="home-business-grid" id="home-business-list"></div>
+    </section>
   </div>
-
-  <div class="home-orbit-column home-orbit-right" aria-label="Right quick actions">
-    <button
-      class="home-orbit-action hustle-streak"
-      data-daily-challenges-open
-      type="button"
-      aria-haspopup="dialog"
-      aria-controls="daily-challenges-modal"
-      aria-label="Hustle Streak"
-      data-i18n-aria-label="home.streak"
-    >
-      <span class="home-orbit-circle">
-        <span class="home-orbit-icon fire" aria-hidden="true">🔥</span>
-        <span class="home-orbit-metric feature-value">0</span>
-        <small class="home-orbit-micro">+0%</small>
-      </span>
-      <strong class="home-orbit-label" data-i18n="home.streak">Hustle Streak</strong>
-    </button>
-
-    <button
-      class="home-orbit-action offline-income"
-      data-action="offline-income"
-      type="button"
-      aria-label="Offline Earnings"
-      data-i18n-aria-label="home.offlineEarnings"
-    >
-      <span class="home-orbit-circle">
-        <span class="home-orbit-icon" aria-hidden="true">⏱</span>
-        <span class="offline-value home-orbit-metric">$0</span>
-      </span>
-      <strong class="home-orbit-label" data-i18n="home.offlineEarnings">Offline Earnings</strong>
-    </button>
-  </div>
-</div>
-<div class="home-tap-zone">
-<div aria-hidden="true" class="tap-float-layer" id="tap-float-layer"></div>
-<button class="tap-button home-main-tap" type="button">
-<span class="home-main-tap-glow"></span>
-<span class="home-main-tap-icon">⚡</span>
-<span class="home-main-tap-copy">
-<small data-i18n="home.quickHustle">Quick Hustle</small>
-<strong data-i18n="home.tapToEarn">Tap to Earn</strong>
-<span class="home-main-tap-value">+$1 / tap</span>
-</span>
-</button></div>
-<!-- V20.3 Step 4: missions leave the Home flow and live in a dedicated drawer. -->
-<button
-  class="home-missions-launcher"
-  type="button"
-  data-missions-open
-  aria-haspopup="dialog"
-  aria-controls="missions-modal"
-  aria-expanded="false"
-  aria-label="Missions"
-  data-i18n-aria-label="home.missions"
->
-  <span class="home-missions-launcher-icon" aria-hidden="true">✓</span>
-  <span class="home-missions-launcher-copy">
-    <strong data-i18n="home.missions">Missions</strong>
-    <small>
-      <span data-home-mission-level>LV 1</span>
-      <span aria-hidden="true">•</span>
-      <span data-home-mission-count>0/4</span>
-    </small>
-  </span>
-</button>
-</div>
-</div>
-
-<section class="quick-jobs-panel">
-<div class="business-section-heading">
-<div><span class="section-eyebrow" data-i18n="home.quickActivity">Quick Activity</span><h2 data-i18n="home.quickJobs">Quick Jobs</h2></div>
-<div class="home-business-total"><small data-i18n="home.completed">Completed</small><strong id="quick-jobs-total">0</strong></div>
-</div>
-<div class="quick-jobs-grid" id="quick-jobs-list"></div>
-</section>
-
-<section class="home-businesses-panel"><div class="business-section-heading">
-<div><span class="section-eyebrow" data-i18n="home.empireManagement">Empire Management</span><h2 data-i18n="home.activeBusinesses">Active Businesses</h2></div>
-<div class="home-business-total"><small data-i18n="home.totalIncome">Total Income</small><strong id="home-total-income">$0.20/s</strong></div>
-</div>
-<div class="home-business-grid" id="home-business-list"></div>
-</section>
 </section>
 <!-- CITY -->
 <section class="screen" data-screen="city">
