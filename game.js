@@ -2755,7 +2755,10 @@
       ||
       Date.now();
 
-    const stats = computePlayerStats(s);
+    // Local saves are read before the leaderboard module is initialized.
+    // Its income-only boost is irrelevant to the energy/tap fields restored
+    // here; recomputeDerivedState applies it after startup has completed.
+    const stats = computePlayerStats(s, { includeLeaderboardBoost: false });
     s.maxEnergy = stats.maxEnergy;
     s.clickPower = stats.tapPower;
     s.energy = Math.min(s.maxEnergy, Math.max(0, Number(s.energy) || 0));
@@ -2849,29 +2852,30 @@
     }
 
     candidates.sort((a, b) => b.updatedAt - a.updatedAt);
-    const best = candidates[0];
-
-    try {
-      return {
-        state: sanitizeState(
-          deepMerge(clone(DEFAULT_STATE), best.state),
-          best.state
-        ),
-        updatedAt: best.updatedAt,
-        source: best.key
-      };
-    } catch (error) {
-      console.warn(
-        "[Urban Tycoon] Local save sanitize failed:",
-        error
-      );
-
-      return {
-        state: clone(DEFAULT_STATE),
-        updatedAt: 0,
-        source: "default"
-      };
+    for (const candidate of candidates) {
+      try {
+        return {
+          state: sanitizeState(
+            deepMerge(clone(DEFAULT_STATE), candidate.state),
+            candidate.state
+          ),
+          updatedAt: candidate.updatedAt,
+          source: candidate.key
+        };
+      } catch (error) {
+        console.warn(
+          "[Hustle Empire] Local save rejected; trying the next backup:",
+          candidate.key,
+          error
+        );
+      }
     }
+
+    return {
+      state: clone(DEFAULT_STATE),
+      updatedAt: 0,
+      source: "default"
+    };
   }
 
   const initialLocalSave = loadBestLocalSave();
@@ -3251,9 +3255,10 @@
   function queueCloudSave(reason = "state-change") {
     if (!getTelegramCloudStorage()) return;
 
-    if (cloudSaveTimer) {
-      clearTimeout(cloudSaveTimer);
-    }
+    // Passive income changes state every second. Restarting a 1.4s debounce
+    // on each change would postpone the cloud write indefinitely.
+    // Keep the scheduled write; it captures the latest state when it runs.
+    if (cloudSaveTimer) return;
 
     cloudSaveTimer = window.setTimeout(() => {
       cloudSaveTimer = 0;
@@ -3320,18 +3325,19 @@
   }
 
   async function hydratePersistence() {
-    const localUpdatedAt =
-      Math.max(
-        initialLocalSave.updatedAt,
-        Number(state.timestamps?.lastSaveAt) || 0
-      );
+    // Compare durable snapshots only. DEFAULT_STATE has a current timestamp,
+    // which must never make an empty new WebView beat an existing cloud save.
+    const localUpdatedAt = initialLocalSave.updatedAt;
 
     const cloudSnapshot =
       await readTelegramCloudSnapshot();
 
     if (
       cloudSnapshot
-      && cloudSnapshot.updatedAt > localUpdatedAt
+      && (
+        initialLocalSave.source === "default"
+        || cloudSnapshot.updatedAt > localUpdatedAt
+      )
     ) {
       const restored =
         applyLoadedSnapshot(cloudSnapshot);
