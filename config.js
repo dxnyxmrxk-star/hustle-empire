@@ -1,6 +1,7 @@
 /* ============================================================
    HUSTLE EMPIRE TYCOON
-   CENTRAL CONFIG — V11
+   CENTRAL CONFIG
+   Build version: index.html data-app-version
    Level-1 progression + Accessory Cases + Random Events + Compact Cards
 ============================================================ */
 

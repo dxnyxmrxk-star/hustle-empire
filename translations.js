@@ -1,6 +1,6 @@
 /* ============================================================
    HUSTLE EMPIRE — CENTRAL EN/RU TRANSLATIONS
-   Version 21.0
+   Build version: index.html data-app-version
 
    Canonical translation engine.
 
@@ -4371,7 +4371,7 @@
               domAudit,
 
             version:
-              "21.0"
+              document.documentElement.dataset.appVersion
 
           }
         }

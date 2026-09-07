@@ -1,6 +1,7 @@
 /* ============================================================
    HUSTLE EMPIRE TYCOON
-   GAME ENGINE V12.5 — Mission Progression
+   GAME ENGINE — Mission Progression
+   Build version: index.html data-app-version
    - Level 1 formula economy
    - Quick Jobs
    - District business progression
@@ -112,7 +113,7 @@
      CSS/UI frame overlay rendered above it.
   ========================================================== */
 
-  const SPRITE_BUILD_VERSION = "20.3";
+  const SPRITE_BUILD_VERSION = document.documentElement.dataset.appVersion;
 
   const REAL_GAME_ASSET_PATHS = Object.freeze([
     "assets/acc_epic.png",
@@ -2816,7 +2817,7 @@
 
     return {
       schema: 2,
-      appVersion: "20.3",
+      appVersion: SPRITE_BUILD_VERSION,
       updatedAt,
       state: JSON.parse(JSON.stringify(state))
     };

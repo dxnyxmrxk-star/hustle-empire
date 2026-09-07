@@ -1,6 +1,6 @@
 /* ============================================================
    HUSTLE EMPIRE — APPLICATION SHELL
-   Version 21.0
+   Build version: index.html data-app-version
 
    Responsibilities:
    - Telegram Mini App bootstrap
@@ -25,7 +25,7 @@
   ========================================================== */
 
   const APP_NAME = "Hustle Empire";
-  const APP_VERSION = "21.0";
+  const APP_VERSION = document.documentElement.dataset.appVersion;
 
   const PRIMARY_SCREENS = Object.freeze([
     "home",
