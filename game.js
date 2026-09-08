@@ -15,7 +15,11 @@
   "use strict";
 
   if (!window.HustleSaveSchema?.create) {
-    throw new Error("[Hustle Empire] js/core/save-schema.js must load before game.js");
+    throw new Error("[Hustle Empire] save-schema.js must load before game.js");
+  }
+
+  if (!window.HustleLocalSave?.create) {
+    throw new Error("[Hustle Empire] save-local.js must load before game.js");
   }
 
   const CONFIG = window.GAME_CONFIG;
@@ -2781,54 +2785,25 @@
     };
   }
 
-  function readLocalSaveCandidate(key) {
-    try {
-      const raw = localStorage.getItem(key);
-      const parsed = parseSavedState(raw);
-      return parsed ? { key, raw, ...parsed } : null;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  function loadBestLocalSave() {
-    const candidates = [
-      readLocalSaveCandidate(SAVE_KEY),
-      readLocalSaveCandidate(SAVE_BACKUP_KEY),
-      ...LEGACY_SAVE_KEYS.map(readLocalSaveCandidate)
-    ].filter(Boolean);
-
-    if (!candidates.length) {
-      return {
-        state: clone(DEFAULT_STATE),
-        updatedAt: 0,
-        source: "default"
-      };
-    }
-
-    candidates.sort((a, b) => b.updatedAt - a.updatedAt);
-    for (const candidate of candidates) {
-      try {
-        return {
-          state: prepareLoadedState(candidate),
-          updatedAt: candidate.updatedAt,
-          source: candidate.key
-        };
-      } catch (error) {
-        console.warn(
-          "[Hustle Empire] Local save rejected; trying the next backup:",
-          candidate.key,
-          error
-        );
-      }
-    }
-
-    return {
-      state: clone(DEFAULT_STATE),
-      updatedAt: 0,
-      source: "default"
-    };
-  }
+  const { loadBestLocalSave, writeLocalSnapshot } = window.HustleLocalSave.create({
+    // Resolve storage inside each operation so denied access is still caught.
+    storage: {
+      getItem: (key) => localStorage.getItem(key),
+      setItem: (key, value) => localStorage.setItem(key, value)
+    },
+    saveKey: SAVE_KEY,
+    backupKey: SAVE_BACKUP_KEY,
+    metaKey: SAVE_META_KEY,
+    legacyKeys: LEGACY_SAVE_KEYS,
+    defaultState: DEFAULT_STATE,
+    clone,
+    parseSavedState,
+    prepareLoadedState,
+    migrateSavedSnapshot,
+    isWriteBlocked: () => unsupportedSaveSchema !== null,
+    onSaved: (timestamp) => { lastLocalSaveAt = timestamp; },
+    warn: (...args) => console.warn(...args)
+  });
 
   const initialLocalSave = loadBestLocalSave();
 
@@ -3236,57 +3211,6 @@
       persistenceMuted = false;
     }
 
-    return true;
-  }
-
-  function writeLocalSnapshot(envelope) {
-    if (unsupportedSaveSchema !== null) return false;
-    let serialized;
-    let current;
-    try {
-      migrateSavedSnapshot(envelope);
-      serialized = JSON.stringify(envelope);
-      current = localStorage.getItem(SAVE_KEY);
-    } catch (error) {
-      console.warn("[Hustle Empire] Local snapshot could not be prepared:", error);
-      return false;
-    }
-    const validCurrent = current ? parseSavedState(current) : null;
-    if (unsupportedSaveSchema !== null) return false;
-    if (validCurrent) {
-      try {
-        localStorage.setItem(
-          SAVE_BACKUP_KEY,
-          current
-        );
-      } catch (error) {
-        // Backup/metadata failure must not prevent a usable primary write.
-        console.warn("[Hustle Empire] Backup write failed:", error);
-      }
-    }
-    try {
-      localStorage.setItem(
-        SAVE_KEY,
-        serialized
-      );
-    } catch (error) {
-      console.warn("[Hustle Empire] Local save failed:", error);
-      return false;
-    }
-    lastLocalSaveAt = envelope.updatedAt;
-    try {
-      localStorage.setItem(
-        SAVE_META_KEY,
-        JSON.stringify({
-          schema: envelope.schema,
-          updatedAt: envelope.updatedAt,
-          appVersion: envelope.appVersion
-        })
-      );
-
-    } catch (error) {
-      console.warn("[Hustle Empire] Save metadata write failed:", error);
-    }
     return true;
   }
 
