@@ -2480,7 +2480,8 @@
       lastEnergyAt: Date.now(),
       lastIncomeAt: Date.now(),
       lastSaveAt: Date.now(),
-      lastClaimTime: 0
+      lastClaimTime: 0,
+      dailyChestReadyAt: 0
     }
   };
 
@@ -2776,8 +2777,120 @@
   let cloudSaveQueued = false;
   let lastLocalSaveAt = 0;
   let lastCloudSaveAt = 0;
+  let gameInitializationStarted = false;
+  let lifecycleReady = false;
+  let gameSuspended = false;
+  let gameTickTimer = 0;
+  let gameAutoSaveTimer = 0;
+  let pageIsHidden = false;
+  let telegramIsInactive = window.Telegram?.WebApp?.isActive === false;
 
   const persistenceProxyCache = new WeakMap();
+  const SAVE_SCHEMA_VERSION = 2;
+  let unsupportedSaveSchema = null;
+
+  function isSaveRecord(value) {
+    return value !== null && typeof value === "object" && !Array.isArray(value);
+  }
+
+  function validateSaveTree(value, depth = 0) {
+    if (depth > 40) throw new Error("Save nesting limit exceeded");
+    if (typeof value === "number" && !Number.isFinite(value)) {
+      throw new Error("Non-finite save value");
+    }
+    if (value && typeof value === "object") {
+      for (const [key, child] of Object.entries(value)) {
+        if (["__proto__", "constructor", "prototype"].includes(key)) {
+          throw new Error("Invalid save property");
+        }
+        validateSaveTree(child, depth + 1);
+      }
+    }
+  }
+
+  function validateKnownSaveFields(template, source) {
+    for (const [key, expected] of Object.entries(template)) {
+      const value = source[key];
+      if (value === undefined || value === null) continue;
+      if (typeof expected === "number") {
+        if (
+          !["number", "string"].includes(typeof value)
+          || (typeof value === "string" && !value.trim())
+          || !Number.isFinite(Number(value))
+        ) throw new Error(`Invalid numeric save field: ${key}`);
+      } else if (isSaveRecord(expected)) {
+        if (!isSaveRecord(value)) throw new Error(`Invalid save section: ${key}`);
+        validateKnownSaveFields(expected, value);
+      }
+    }
+  }
+
+  function validateSavedState(source) {
+    if (
+      !isSaveRecord(source)
+      || !["money", "level"].some((key) => Object.prototype.hasOwnProperty.call(source, key))
+    ) throw new Error("Unrecognized game save");
+    validateSaveTree(source);
+    validateKnownSaveFields(DEFAULT_STATE, source);
+  }
+
+  const SAVE_MIGRATIONS = Object.freeze({
+    0(snapshot) {
+      // Plain legacy states gain the envelope timestamp without new rewards.
+      snapshot.state.timestamps ||= {};
+      snapshot.state.timestamps.lastSaveAt ||= snapshot.updatedAt;
+      return { ...snapshot, schema: 1 };
+    },
+    1(snapshot) {
+      const source = snapshot.state;
+      const gender = readPersistedCharacterGender(source) ?? DEFAULT_CHARACTER_GENDER;
+      const selected = Boolean(
+        source.profile?.hasSelectedGender ?? source.hasSelectedGender
+        ?? source.profile?.characterSelected ?? source.characterSelected ?? false
+      );
+      source.profile ||= {};
+      source.profile.characterGender = gender;
+      source.gender = gender;
+      source.profile.hasSelectedGender = selected;
+      source.profile.characterSelected = selected;
+      delete source.profile.gender;
+      delete source.hasSelectedGender;
+      delete source.characterSelected;
+      return { ...snapshot, schema: 2 };
+    }
+  });
+
+  function migrateSavedSnapshot(snapshot) {
+    const schema = snapshot.schema;
+    if (!Number.isInteger(schema) || schema < 0) throw new Error("Invalid save schema");
+    if (schema > SAVE_SCHEMA_VERSION) {
+      unsupportedSaveSchema = schema;
+      console.warn("[Hustle Empire] Save belongs to a newer build; persistence paused:", schema);
+      throw new Error("Unsupported future save schema");
+    }
+    if (!Number.isFinite(snapshot.updatedAt) || snapshot.updatedAt < 0) {
+      throw new Error("Invalid save timestamp");
+    }
+    validateSavedState(snapshot.state);
+    let migrated = { ...snapshot, state: clone(snapshot.state) };
+    while (migrated.schema < SAVE_SCHEMA_VERSION) {
+      const migration = SAVE_MIGRATIONS[migrated.schema];
+      if (!migration) throw new Error("Missing save migration");
+      migrated = migration(migrated);
+    }
+    validateSavedState(migrated.state);
+    return migrated;
+  }
+
+  function prepareLoadedState(snapshot) {
+    const migrated = migrateSavedSnapshot(snapshot);
+    const prepared = sanitizeState(
+      deepMerge(clone(DEFAULT_STATE), migrated.state),
+      migrated.state
+    );
+    validateSavedState(prepared);
+    return prepared;
+  }
 
   function parseSavedState(raw) {
     if (!raw) return null;
@@ -2785,45 +2898,34 @@
     try {
       const parsed = JSON.parse(raw);
 
-      /*
-         V19.1 supports both the new envelope and all older plain-state
-         snapshots so existing players never lose their progress on update.
-      */
+      if (!isSaveRecord(parsed)) return null;
+      const envelope = Object.prototype.hasOwnProperty.call(parsed, "state");
+      const source = envelope ? parsed.state : parsed;
+      const rawSchema = envelope ? (parsed.schema ?? 1) : 0;
+      if (!["number", "string"].includes(typeof rawSchema)) return null;
+      if (typeof rawSchema === "string" && !rawSchema.trim()) return null;
+      const rawTimestamp = (envelope ? parsed.updatedAt : undefined)
+        ?? source?.timestamps?.lastSaveAt ?? 0;
       if (
-        parsed
-        && typeof parsed === "object"
-        && parsed.state
-        && typeof parsed.state === "object"
-      ) {
-        return {
-          state: parsed.state,
-          updatedAt:
-            Math.max(
-              0,
-              Number(parsed.updatedAt)
-              || Number(parsed.state?.timestamps?.lastSaveAt)
-              || 0
-            ),
-          schema: Number(parsed.schema) || 1
-        };
-      }
-
-      return {
-        state: parsed,
-        updatedAt:
-          Math.max(0, Number(parsed?.timestamps?.lastSaveAt) || 0),
-        schema: 0
-      };
+        !["number", "string"].includes(typeof rawTimestamp)
+        || !Number.isFinite(Number(rawTimestamp)) || Number(rawTimestamp) < 0
+      ) return null;
+      return migrateSavedSnapshot({
+        state: source,
+        updatedAt: Number(rawTimestamp),
+        schema: Number(rawSchema)
+      });
     } catch (error) {
       return null;
     }
   }
 
   function buildSaveEnvelope(timestamp = Date.now()) {
+    validateSavedState(state);
     const updatedAt = Math.max(0, Number(timestamp) || Date.now());
 
     return {
-      schema: 2,
+      schema: SAVE_SCHEMA_VERSION,
       appVersion: SPRITE_BUILD_VERSION,
       updatedAt,
       state: JSON.parse(JSON.stringify(state))
@@ -2859,10 +2961,7 @@
     for (const candidate of candidates) {
       try {
         return {
-          state: sanitizeState(
-            deepMerge(clone(DEFAULT_STATE), candidate.state),
-            candidate.state
-          ),
+          state: prepareLoadedState(candidate),
           updatedAt: candidate.updatedAt,
           source: candidate.key
         };
@@ -3120,11 +3219,13 @@
   }
 
   async function writeTelegramCloudSnapshot(envelope) {
+    if (unsupportedSaveSchema !== null) return false;
+    try { migrateSavedSnapshot(envelope); } catch (_) { return false; }
     if (!getTelegramCloudStorage()) return false;
     if (!cloudSlotsReady) await readTelegramCloudSnapshot();
     // A failed read is not evidence that a slot is empty. Retry later rather
     // than choosing a destination that might hold the only complete save.
-    if (!cloudSlotsReady) return false;
+    if (!cloudSlotsReady || unsupportedSaveSchema !== null) return false;
 
     const serialized = JSON.stringify(envelope);
     const slot = lastCloudSlot === "a" ? "b" : "a";
@@ -3263,10 +3364,7 @@
     let sanitized;
 
     try {
-      sanitized = sanitizeState(
-        deepMerge(clone(DEFAULT_STATE), snapshot.state),
-        snapshot.state
-      );
+      sanitized = prepareLoadedState(snapshot);
     } catch (error) {
       console.warn(
         "[Urban Tycoon] Snapshot sanitize failed:",
@@ -3293,23 +3391,41 @@
   }
 
   function writeLocalSnapshot(envelope) {
-    const serialized = JSON.stringify(envelope);
-
+    if (unsupportedSaveSchema !== null) return false;
+    let serialized;
+    let current;
     try {
-      const current = localStorage.getItem(SAVE_KEY);
-
-      if (current) {
+      migrateSavedSnapshot(envelope);
+      serialized = JSON.stringify(envelope);
+      current = localStorage.getItem(SAVE_KEY);
+    } catch (error) {
+      console.warn("[Hustle Empire] Local snapshot could not be prepared:", error);
+      return false;
+    }
+    const validCurrent = current ? parseSavedState(current) : null;
+    if (unsupportedSaveSchema !== null) return false;
+    if (validCurrent) {
+      try {
         localStorage.setItem(
           SAVE_BACKUP_KEY,
           current
         );
+      } catch (error) {
+        // Backup/metadata failure must not prevent a usable primary write.
+        console.warn("[Hustle Empire] Backup write failed:", error);
       }
-
+    }
+    try {
       localStorage.setItem(
         SAVE_KEY,
         serialized
       );
-
+    } catch (error) {
+      console.warn("[Hustle Empire] Local save failed:", error);
+      return false;
+    }
+    lastLocalSaveAt = envelope.updatedAt;
+    try {
       localStorage.setItem(
         SAVE_META_KEY,
         JSON.stringify({
@@ -3319,15 +3435,10 @@
         })
       );
 
-      lastLocalSaveAt = envelope.updatedAt;
-      return true;
     } catch (error) {
-      console.warn(
-        "[Urban Tycoon] Local save failed:",
-        error
-      );
-      return false;
+      console.warn("[Hustle Empire] Save metadata write failed:", error);
     }
+    return true;
   }
 
   async function flushCloudSave() {
@@ -3389,13 +3500,17 @@
 
     const now = Date.now();
 
-    persistenceMuted = true;
-    state.timestamps ||= {};
-    state.timestamps.lastSaveAt = now;
-    const envelope = buildSaveEnvelope(now);
-    persistenceMuted = false;
-
-    const saved = writeLocalSnapshot(envelope);
+    let saved = false;
+    try {
+      persistenceMuted = true;
+      state.timestamps ||= {};
+      state.timestamps.lastSaveAt = now;
+      saved = writeLocalSnapshot(buildSaveEnvelope(now));
+    } catch (error) {
+      console.warn("[Hustle Empire] Invalid state was not saved:", error);
+    } finally {
+      persistenceMuted = false;
+    }
 
     if (!saved) {
       console.warn(
@@ -3530,11 +3645,14 @@
   }
 
   function persistOnExit(reason = "exit") {
+    if (gameSuspended) return reason;
+    stopGameTimers();
     /*
        localStorage is synchronous and is the only persistence API safe to
        depend on during beforeunload/pagehide.
     */
     recordSessionCloseTimestamp();
+    gameSuspended = true;
 
     /*
        Best effort cloud mirror. visibilitychange normally fires early enough
@@ -4776,6 +4894,8 @@
   }
 
   function tap() {
+    if (gameSuspended) return false;
+    regenerateEnergy();
     if (state.energy <= 0) {
       emitGameEvent("outOfEnergy");
       updateUI();
@@ -4823,6 +4943,10 @@
     }
 
     const last = Number(state.timestamps.lastEnergyAt) || now;
+    if (last > now) {
+      state.timestamps.lastEnergyAt = now;
+      return;
+    }
     const interval = getEnergyIntervalMs();
     const ticks = Math.floor((now - last) / interval);
     if (ticks <= 0) return;
@@ -4836,6 +4960,8 @@
   ========================================================== */
 
   function performHustle(hustleId) {
+    if (gameSuspended) return false;
+    regenerateEnergy();
     const cfg = HUSTLE_CONFIGS[hustleId];
     const hs = state.hustles[hustleId];
     if (!cfg || !hs) return false;
@@ -4851,8 +4977,8 @@
     }
 
     processPassiveIncome();
+    if (state.energy >= state.maxEnergy) state.timestamps.lastEnergyAt = Date.now();
     state.energy -= cfg.energyCost;
-    state.timestamps.lastEnergyAt = Date.now();
     state.money += cfg.rewardMoney;
     addXp(cfg.rewardXp);
     hs.runs += 1;
@@ -5000,6 +5126,7 @@
   }
 
   function processPassiveIncome() {
+    if (gameSuspended) return 0;
     const now = Date.now();
     const last = Number(state.timestamps.lastIncomeAt) || now;
     const elapsed = Math.max(0, now - last);
@@ -5158,7 +5285,12 @@
       return { ...existingPending };
     }
 
-    const lastClaimTime = readLastClaimTime();
+    // lastIncomeAt is the boundary already paid by active ticks. It also
+    // survives an abrupt close where no exit event was delivered.
+    const lastClaimTime = Math.max(
+      readLastClaimTime(),
+      Number(state.timestamps.lastIncomeAt) || 0
+    );
     const elapsedSeconds = Math.max(
       0,
       Math.floor((now - lastClaimTime) / 1000)
@@ -5274,6 +5406,7 @@
 
     const now = Date.now();
 
+    processPassiveIncome();
     state.money += amount;
     registerMoneyEarned(
       amount,
@@ -8486,7 +8619,7 @@
 
   function getDailyChestCountdownLabel() {
     const countdown = document.querySelector(
-      '.daily-chest [data-countdown], .daily-chest .countdown'
+      '[data-game-countdown="daily-chest"]'
     );
 
     return String(countdown?.textContent || "").trim();
@@ -9240,7 +9373,13 @@
 
 
   function gameTick() {
+    if (!isGameActive()) {
+      persistOnExit("inactive-tick");
+      return;
+    }
+    if (gameSuspended) return;
     regenerateEnergy();
+    renderGameplayCountdowns();
     const earned = processPassiveIncome();
     if (earned > 0) {
       updatePlayerResources();
@@ -9508,7 +9647,109 @@
     });
   }
 
+  function isGameActive() {
+    return !document.hidden && !pageIsHidden && !telegramIsInactive;
+  }
+
+  function stopGameTimers() {
+    if (gameTickTimer) clearInterval(gameTickTimer);
+    if (gameAutoSaveTimer) clearInterval(gameAutoSaveTimer);
+    gameTickTimer = 0;
+    gameAutoSaveTimer = 0;
+  }
+
+  function startGameTimers() {
+    if (!lifecycleReady || gameSuspended || !isGameActive()) return;
+    if (!gameTickTimer) gameTickTimer = setInterval(gameTick, GAME_TICK_INTERVAL);
+    if (!gameAutoSaveTimer) {
+      gameAutoSaveTimer = setInterval(() => {
+        if (isGameActive() && !gameSuspended) saveGame("periodic");
+      }, AUTO_SAVE_INTERVAL);
+    }
+  }
+
+  function renderGameplayCountdowns() {
+    const element = document.querySelector('[data-game-countdown="daily-chest"]');
+    if (!element) return;
+    if (!state.timestamps.dailyChestReadyAt) {
+      // Preserve the existing duration; persist its deadline instead of
+      // restarting a session timer. Reward design remains a retention task.
+      state.timestamps.dailyChestReadyAt = Date.now() + 11658 * 1000;
+    }
+    const remaining = Math.max(0, Math.ceil(
+      (state.timestamps.dailyChestReadyAt - Date.now()) / 1000
+    ));
+    element.textContent = formatDailyResetTimer(remaining);
+    element.dataset.countdownRemaining = String(remaining);
+    element.classList.toggle("is-ready", remaining === 0);
+  }
+
+  function resumeGameClock() {
+    if (!lifecycleReady || !gameSuspended || !isGameActive()) return null;
+    const result = checkOfflineEarnings();
+    regenerateEnergy();
+    gameSuspended = false;
+    startGameTimers();
+    return result;
+  }
+
+  function synchronizeGameLifecycle(reason) {
+    if (!lifecycleReady) return;
+    if (!isGameActive()) {
+      persistOnExit(reason);
+      return;
+    }
+    const result = resumeGameClock();
+    if (!result) return;
+    renderAllDynamic();
+    renderGameplayCountdowns();
+    updateUI();
+    updateHomeMetaUI(result.pendingAmount || 0);
+    if (result.pendingAmount > 0) {
+      if (isCharacterSelectionRequired()) {
+        pendingCharacterSelectionOfflineResult = result;
+        openCharacterSelection({ focus: false });
+      } else {
+        showOfflineEarningsModal(result);
+      }
+    }
+    scheduleSpriteRender(document);
+  }
+
+  function initializeGameLifecycle() {
+    if (lifecycleReady) return;
+    telegramIsInactive = window.Telegram?.WebApp?.isActive === false;
+    lifecycleReady = true;
+    document.addEventListener("visibilitychange", () => {
+      synchronizeGameLifecycle("visibility-change");
+    });
+    window.addEventListener("pagehide", () => {
+      pageIsHidden = true;
+      synchronizeGameLifecycle("pagehide");
+    }, { passive: true });
+    window.addEventListener("beforeunload", () => persistOnExit("beforeunload"));
+    window.addEventListener("pageshow", () => {
+      pageIsHidden = false;
+      synchronizeGameLifecycle("pageshow");
+    }, { passive: true });
+    try {
+      window.Telegram?.WebApp?.onEvent?.("deactivated", () => {
+        telegramIsInactive = true;
+        synchronizeGameLifecycle("telegram-deactivated");
+      });
+      window.Telegram?.WebApp?.onEvent?.("activated", () => {
+        telegramIsInactive = false;
+        synchronizeGameLifecycle("telegram-activated");
+      });
+    } catch (_) {}
+    renderGameplayCountdowns();
+    if (isGameActive()) startGameTimers();
+    else persistOnExit("startup-inactive");
+  }
+
   async function initGame() {
+    if (gameInitializationStarted) return;
+    gameInitializationStarted = true;
     document.documentElement.classList.add("sprites-loading");
 
     /*
@@ -9594,6 +9835,7 @@
        Do not paint any CSS sprite sheet before its bitmap is decoded.
        This is especially important in Telegram's WKWebView on iOS.
     */
+    initializeGameLifecycle();
     await Promise.all([spritePreloadPromise, directAssetPreloadPromise]);
     normalizeSpriteFrames();
     installSpriteRendererObservers();
@@ -9605,69 +9847,6 @@
        ready. This removes first-visit stutter without slowing Home startup.
     */
     scheduleIdleScreenWarmup();
-
-    setInterval(gameTick, GAME_TICK_INTERVAL);
-    setInterval(saveGame, AUTO_SAVE_INTERVAL);
-
-    document.addEventListener("visibilitychange", () => {
-      if (document.hidden) {
-        persistOnExit("visibility-hidden");
-      } else {
-        const resumedOfflineResult = checkOfflineEarnings();
-
-        regenerateEnergy();
-        renderAllDynamic();
-        updateUI();
-        updateHomeMetaUI(resumedOfflineResult.pendingAmount || 0);
-
-        if (Number(resumedOfflineResult.pendingAmount) > 0) {
-          if (isCharacterSelectionRequired()) {
-            pendingCharacterSelectionOfflineResult =
-              resumedOfflineResult;
-            openCharacterSelection({ focus: false });
-          } else {
-            showOfflineEarningsModal(resumedOfflineResult);
-          }
-        }
-
-        scheduleSpriteRender(document);
-      }
-    });
-
-    window.addEventListener("pageshow", (event) => {
-      /* WKWebView can restore a frozen page from the back/foreground cache. */
-      if (event.persisted) {
-        const restoredOfflineResult = checkOfflineEarnings();
-        if (Number(restoredOfflineResult.pendingAmount) > 0) {
-          showOfflineEarningsModal(restoredOfflineResult);
-        }
-      }
-      setTimeout(() => scheduleSpriteRender(document), 0);
-    }, { passive: true });
-
-    window.addEventListener("pagehide", () => {
-      persistOnExit("pagehide");
-    }, { passive: true });
-
-    window.addEventListener("beforeunload", () => {
-      persistOnExit("beforeunload");
-    });
-
-    /*
-       Telegram Mini Apps may background/close without a conventional browser
-       unload path. Telegram's viewportChanged is another chance to flush when
-       the app is no longer stable/fully visible.
-    */
-    try {
-      window.Telegram?.WebApp?.onEvent?.(
-        "viewportChanged",
-        (event) => {
-          if (event?.isStateStable === false) {
-            saveGame("telegram-viewport-change");
-          }
-        }
-      );
-    } catch (_) {}
 
     window.addEventListener("hustle:languageChanged", () => {
       renderAllDynamic();
@@ -9827,6 +10006,9 @@
       hydrate: () => hydratePersistence(),
       hasTelegramCloud: () => Boolean(getTelegramCloudStorage()),
       getStatus: () => ({
+        schema: SAVE_SCHEMA_VERSION,
+        unsupportedSaveSchema,
+        writesBlocked: unsupportedSaveSchema !== null,
         localUpdatedAt: lastLocalSaveAt,
         cloudUpdatedAt: lastCloudSaveAt,
         cloudAvailable: Boolean(getTelegramCloudStorage()),

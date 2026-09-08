@@ -9,7 +9,6 @@
    - Generic fallback modal
    - Static shop actions
    - Image fallbacks
-   - Lightweight countdowns
    - Runtime diagnostics
 
    IMPORTANT:
@@ -57,10 +56,7 @@
   const screenScrollPositions =
     Object.create(null);
 
-  const countdownDeadlines =
-    new WeakMap();
-
-  const diagnostics = [];
+const diagnostics = [];
 
   const MAX_DIAGNOSTICS = 50;
 
@@ -1382,154 +1378,6 @@
   }
 
   /* ==========================================================
-     STATIC COUNTDOWNS
-  ========================================================== */
-
-  function formatTimer(
-    seconds
-  ) {
-    const safeSeconds =
-      Math.max(
-        0,
-        Math.floor(
-          Number(seconds) || 0
-        )
-      );
-
-    const hours =
-      Math.floor(
-        safeSeconds / 3600
-      );
-
-    const minutes =
-      Math.floor(
-        (
-          safeSeconds % 3600
-        ) / 60
-      );
-
-    const secs =
-      safeSeconds % 60;
-
-    return [
-      hours,
-      minutes,
-      secs
-    ]
-      .map(
-        (value) =>
-          String(value)
-            .padStart(
-              2,
-              "0"
-            )
-      )
-      .join(":");
-  }
-
-  function initializeCountdownElement(
-    element
-  ) {
-    if (
-      !(
-        element instanceof
-        HTMLElement
-      )
-    ) {
-      return;
-    }
-
-    if (
-      countdownDeadlines.has(
-        element
-      )
-    ) {
-      return;
-    }
-
-    const initialSeconds =
-      Math.max(
-        0,
-        Number(
-          element.dataset
-            .countdown
-        ) || 0
-      );
-
-    countdownDeadlines.set(
-      element,
-
-      Date.now() +
-        initialSeconds *
-        1000
-    );
-  }
-
-  function updateCountdownElement(
-    element
-  ) {
-    initializeCountdownElement(
-      element
-    );
-
-    const deadline =
-      countdownDeadlines.get(
-        element
-      );
-
-    if (!deadline) {
-      return;
-    }
-
-    const remaining =
-      Math.max(
-        0,
-        Math.ceil(
-          (
-            deadline -
-            Date.now()
-          ) / 1000
-        )
-      );
-
-    element.textContent =
-      formatTimer(
-        remaining
-      );
-
-    element.dataset
-      .countdownRemaining =
-      String(
-        remaining
-      );
-
-    element.classList.toggle(
-      "is-ready",
-      remaining <= 0
-    );
-  }
-
-  function initializeCountdowns() {
-    const tick =
-      () => {
-        document
-          .querySelectorAll(
-            "[data-countdown]"
-          )
-          .forEach(
-            updateCountdownElement
-          );
-      };
-
-    tick();
-
-    window.setInterval(
-      tick,
-      1000
-    );
-  }
-
-  /* ==========================================================
      DIAGNOSTICS
   ========================================================== */
 
@@ -1706,7 +1554,7 @@
 
     initializeActions();
 
-    initializeCountdowns();
+
 
     /*
      * translations.js is the only
