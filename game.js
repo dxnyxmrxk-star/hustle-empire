@@ -26,6 +26,10 @@
     throw new Error("[Hustle Empire] save-cloud.js must load before game.js");
   }
 
+  if (!window.HustleGameLifecycle?.create) {
+    throw new Error("[Hustle Empire] game-lifecycle.js must load before game.js");
+  }
+
   const CONFIG = window.GAME_CONFIG;
   if (!CONFIG) throw new Error("[Hustle Empire] config.js must load before game.js");
   if (window.GAME_CONFIG_AUDIT?.ok === false) {
@@ -2732,12 +2736,25 @@
   let lastLocalSaveAt = 0;
   let lastCloudSaveAt = 0;
   let gameInitializationStarted = false;
-  let lifecycleReady = false;
-  let gameSuspended = false;
-  let gameTickTimer = 0;
-  let gameAutoSaveTimer = 0;
-  let pageIsHidden = false;
-  let telegramIsInactive = window.Telegram?.WebApp?.isActive === false;
+  const lifecycle = window.HustleGameLifecycle.create({
+    window, document,
+    getTelegramApp: () => window.Telegram?.WebApp,
+    setInterval: (fn, delay) => setInterval(fn, delay),
+    clearInterval: (id) => clearInterval(id),
+    gameTick: () => gameTick(),
+    tickInterval: GAME_TICK_INTERVAL,
+    saveGame: (reason) => saveGame(reason),
+    autoSaveInterval: AUTO_SAVE_INTERVAL,
+    recordSessionCloseTimestamp: () => recordSessionCloseTimestamp(),
+    getTelegramCloudStorage: () => getTelegramCloudStorage(),
+    flushCloudSave: () => flushCloudSave(),
+    checkOfflineEarnings: () => checkOfflineEarnings(),
+    regenerateEnergy: () => regenerateEnergy(),
+    renderGameplayCountdowns: () => renderGameplayCountdowns(),
+    onResume: (result) => handleLifecycleResume(result)
+  });
+  const { persistOnExit, isGameActive, startGameTimers, stopGameTimers,
+    resumeGameClock, synchronizeGameLifecycle, initializeGameLifecycle } = lifecycle;
 
   const persistenceProxyCache = new WeakMap();
   const SAVE_SCHEMA_VERSION = window.HustleSaveSchema.schemaVersion;
@@ -3118,27 +3135,6 @@
     */
     saveGame("gender-selection-startup-migration");
     return true;
-  }
-
-  function persistOnExit(reason = "exit") {
-    if (gameSuspended) return reason;
-    stopGameTimers();
-    /*
-       localStorage is synchronous and is the only persistence API safe to
-       depend on during beforeunload/pagehide.
-    */
-    recordSessionCloseTimestamp();
-    gameSuspended = true;
-
-    /*
-       Best effort cloud mirror. visibilitychange normally fires early enough
-       for this to complete; pagehide/beforeunload still have the local copy.
-    */
-    if (getTelegramCloudStorage()) {
-      flushCloudSave().catch(() => {});
-    }
-
-    return reason;
   }
 
   /* ==========================================================
@@ -4370,7 +4366,7 @@
   }
 
   function tap() {
-    if (gameSuspended) return false;
+    if (lifecycle.isSuspended()) return false;
     regenerateEnergy();
     if (state.energy <= 0) {
       emitGameEvent("outOfEnergy");
@@ -4436,7 +4432,7 @@
   ========================================================== */
 
   function performHustle(hustleId) {
-    if (gameSuspended) return false;
+    if (lifecycle.isSuspended()) return false;
     regenerateEnergy();
     const cfg = HUSTLE_CONFIGS[hustleId];
     const hs = state.hustles[hustleId];
@@ -4598,7 +4594,7 @@
   }
 
   function processPassiveIncome() {
-    if (gameSuspended) return 0;
+    if (lifecycle.isSuspended()) return 0;
     const now = Date.now();
     const last = Number(state.timestamps.lastIncomeAt) || now;
     const elapsed = Math.max(0, now - last);
@@ -8849,7 +8845,7 @@
       persistOnExit("inactive-tick");
       return;
     }
-    if (gameSuspended) return;
+    if (lifecycle.isSuspended()) return;
     regenerateEnergy();
     renderGameplayCountdowns();
     const earned = processPassiveIncome();
@@ -9119,27 +9115,6 @@
     });
   }
 
-  function isGameActive() {
-    return !document.hidden && !pageIsHidden && !telegramIsInactive;
-  }
-
-  function stopGameTimers() {
-    if (gameTickTimer) clearInterval(gameTickTimer);
-    if (gameAutoSaveTimer) clearInterval(gameAutoSaveTimer);
-    gameTickTimer = 0;
-    gameAutoSaveTimer = 0;
-  }
-
-  function startGameTimers() {
-    if (!lifecycleReady || gameSuspended || !isGameActive()) return;
-    if (!gameTickTimer) gameTickTimer = setInterval(gameTick, GAME_TICK_INTERVAL);
-    if (!gameAutoSaveTimer) {
-      gameAutoSaveTimer = setInterval(() => {
-        if (isGameActive() && !gameSuspended) saveGame("periodic");
-      }, AUTO_SAVE_INTERVAL);
-    }
-  }
-
   function renderGameplayCountdowns() {
     const element = document.querySelector('[data-game-countdown="daily-chest"]');
     if (!element) return;
@@ -9156,23 +9131,7 @@
     element.classList.toggle("is-ready", remaining === 0);
   }
 
-  function resumeGameClock() {
-    if (!lifecycleReady || !gameSuspended || !isGameActive()) return null;
-    const result = checkOfflineEarnings();
-    regenerateEnergy();
-    gameSuspended = false;
-    startGameTimers();
-    return result;
-  }
-
-  function synchronizeGameLifecycle(reason) {
-    if (!lifecycleReady) return;
-    if (!isGameActive()) {
-      persistOnExit(reason);
-      return;
-    }
-    const result = resumeGameClock();
-    if (!result) return;
+  function handleLifecycleResume(result) {
     renderAllDynamic();
     renderGameplayCountdowns();
     updateUI();
@@ -9186,37 +9145,6 @@
       }
     }
     scheduleSpriteRender(document);
-  }
-
-  function initializeGameLifecycle() {
-    if (lifecycleReady) return;
-    telegramIsInactive = window.Telegram?.WebApp?.isActive === false;
-    lifecycleReady = true;
-    document.addEventListener("visibilitychange", () => {
-      synchronizeGameLifecycle("visibility-change");
-    });
-    window.addEventListener("pagehide", () => {
-      pageIsHidden = true;
-      synchronizeGameLifecycle("pagehide");
-    }, { passive: true });
-    window.addEventListener("beforeunload", () => persistOnExit("beforeunload"));
-    window.addEventListener("pageshow", () => {
-      pageIsHidden = false;
-      synchronizeGameLifecycle("pageshow");
-    }, { passive: true });
-    try {
-      window.Telegram?.WebApp?.onEvent?.("deactivated", () => {
-        telegramIsInactive = true;
-        synchronizeGameLifecycle("telegram-deactivated");
-      });
-      window.Telegram?.WebApp?.onEvent?.("activated", () => {
-        telegramIsInactive = false;
-        synchronizeGameLifecycle("telegram-activated");
-      });
-    } catch (_) {}
-    renderGameplayCountdowns();
-    if (isGameActive()) startGameTimers();
-    else persistOnExit("startup-inactive");
   }
 
   async function initGame() {
