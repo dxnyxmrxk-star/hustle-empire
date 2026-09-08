@@ -34,6 +34,10 @@
     throw new Error("[Hustle Empire] game-energy.js must load before game.js");
   }
 
+  if (!window.HustleGameOffline?.create) {
+    throw new Error("[Hustle Empire] game-offline.js must load before game.js");
+  }
+
   const CONFIG = window.GAME_CONFIG;
   if (!CONFIG) throw new Error("[Hustle Empire] config.js must load before game.js");
   if (window.GAME_CONFIG_AUDIT?.ok === false) {
@@ -2897,6 +2901,31 @@
 
   const state = createPersistentProxy(initialLocalSave.state);
 
+  const { readLastClaimTime, persistLastClaimTime, getPendingOfflineEarnings,
+    clearPendingOfflineEarnings, checkOfflineEarnings, claimOfflineEarnings } = window.HustleGameOffline.create({
+    state,
+    storage: {
+      getItem: (key) => localStorage.getItem(key),
+      setItem: (key, value) => localStorage.setItem(key, value)
+    },
+    claimStorageKey: OFFLINE_LAST_CLAIM_STORAGE_KEY,
+    capSeconds: OFFLINE_EARNINGS_CAP_SECONDS,
+    sanitizeOfflineEarnings: (value) => sanitizeOfflineEarnings(value),
+    getTotalPassiveIncomePerSecond: (options) => getTotalPassiveIncomePerSecond(options),
+    processPassiveIncome: () => processPassiveIncome(),
+    registerMoneyEarned: (...args) => registerMoneyEarned(...args),
+    saveGame: () => saveGame(),
+    hideOfflineEarningsModal: () => hideOfflineEarningsModal(),
+    onClaimed: (amount) => {
+      updateUI();
+      renderMissions();
+      updateHomeMetaUI(amount);
+    },
+    emitGameEvent: (...args) => emitGameEvent(...args),
+    getNow: () => Date.now(),
+    warn: (...args) => console.warn(...args)
+  });
+
   const { getEnergyIntervalMs, regenerateEnergy } = window.HustleGameEnergy.create({
     state,
     config: CONFIG,
@@ -4644,55 +4673,6 @@
     return earned;
   }
 
-  function readLastClaimTime() {
-    let stored = 0;
-    try {
-      stored = Number(localStorage.getItem(OFFLINE_LAST_CLAIM_STORAGE_KEY)) || 0;
-    } catch (_) {}
-
-    return (
-      stored
-      ||
-      Number(state.timestamps?.lastClaimTime)
-      ||
-      Number(state.timestamps?.lastSaveAt)
-      ||
-      Date.now()
-    );
-  }
-
-  function persistLastClaimTime(timestamp = Date.now()) {
-    const safeTimestamp = Math.max(0, Number(timestamp) || Date.now());
-    state.timestamps ||= {};
-    state.timestamps.lastClaimTime = safeTimestamp;
-
-    try {
-      localStorage.setItem(
-        OFFLINE_LAST_CLAIM_STORAGE_KEY,
-        String(safeTimestamp)
-      );
-    } catch (error) {
-      console.warn("[Hustle Empire] lastClaimTime save failed:", error);
-    }
-
-    return safeTimestamp;
-  }
-
-  function getPendingOfflineEarnings() {
-    state.offlineEarnings = sanitizeOfflineEarnings(state.offlineEarnings);
-    return state.offlineEarnings;
-  }
-
-  function clearPendingOfflineEarnings() {
-    state.offlineEarnings = {
-      pendingAmount: 0,
-      elapsedSeconds: 0,
-      cappedSeconds: 0,
-      wasCapped: false,
-      calculatedAt: 0
-    };
-  }
-
   function formatOfflineDuration(elapsedSeconds, wasCapped = false) {
     const safeSeconds = Math.max(0, Math.floor(Number(elapsedSeconds) || 0));
 
@@ -4712,89 +4692,6 @@
     }
 
     return tr("offline.awayLessMinute");
-  }
-
-  /*
-     Calculates the reward ONCE and stores it as pending.
-     Temporary Level-Up boosts are deliberately excluded from the offline
-     formula so a 3/5/10 minute boost cannot be stretched to three hours.
-     Permanent Card/Wardrobe/Business multipliers still apply.
-  */
-  function checkOfflineEarnings() {
-    const now = Date.now();
-    const existingPending = getPendingOfflineEarnings();
-
-    /*
-       If the player closed Telegram before claiming, keep the exact reward
-       previously calculated instead of recalculating it with newer upgrades.
-    */
-    if (existingPending.pendingAmount > 0) {
-      state.timestamps.lastIncomeAt = now;
-      return { ...existingPending };
-    }
-
-    // lastIncomeAt is the boundary already paid by active ticks. It also
-    // survives an abrupt close where no exit event was delivered.
-    const lastClaimTime = Math.max(
-      readLastClaimTime(),
-      Number(state.timestamps.lastIncomeAt) || 0
-    );
-    const elapsedSeconds = Math.max(
-      0,
-      Math.floor((now - lastClaimTime) / 1000)
-    );
-    const cappedSeconds = Math.min(
-      OFFLINE_EARNINGS_CAP_SECONDS,
-      elapsedSeconds
-    );
-    const wasCapped = elapsedSeconds > OFFLINE_EARNINGS_CAP_SECONDS;
-
-    const incomePerSecond = Math.max(
-      0,
-      getTotalPassiveIncomePerSecond({ includeLevelUpBoost: false, includeLeaderboardBoost: false })
-    );
-
-    const pendingAmount = Math.max(
-      0,
-      incomePerSecond * cappedSeconds
-    );
-
-    /*
-       Prevent processPassiveIncome() from paying the same offline interval a
-       second time when the normal 1-second game tick starts.
-    */
-    state.timestamps.lastIncomeAt = now;
-
-    if (pendingAmount <= 0) {
-      clearPendingOfflineEarnings();
-
-      /*
-         Important anti-exploit rule:
-         if income is currently zero, start a fresh accumulation window now.
-         Otherwise a player could wait 3h with no Business, buy one, reload
-         and receive 3h at the new income rate.
-      */
-      persistLastClaimTime(now);
-      saveGame();
-      return {
-        pendingAmount: 0,
-        elapsedSeconds,
-        cappedSeconds,
-        wasCapped,
-        calculatedAt: now
-      };
-    }
-
-    state.offlineEarnings = {
-      pendingAmount,
-      elapsedSeconds,
-      cappedSeconds,
-      wasCapped,
-      calculatedAt: now
-    };
-
-    saveGame();
-    return { ...state.offlineEarnings };
   }
 
   function showOfflineEarningsModal(offlineResult = getPendingOfflineEarnings()) {
@@ -4839,45 +4736,6 @@
     modal.hidden = true;
     modal.setAttribute("aria-hidden", "true");
     document.body.classList.remove("offline-earnings-modal-open");
-  }
-
-  function claimOfflineEarnings() {
-    const pending = getPendingOfflineEarnings();
-    const amount = Math.max(0, Number(pending.pendingAmount) || 0);
-
-    if (amount <= 0) {
-      hideOfflineEarningsModal();
-      persistLastClaimTime(Date.now());
-      saveGame();
-      return 0;
-    }
-
-    const now = Date.now();
-
-    processPassiveIncome();
-    state.money += amount;
-    registerMoneyEarned(
-      amount,
-      "offlineIncome",
-      { save: false, render: false }
-    );
-
-    clearPendingOfflineEarnings();
-    persistLastClaimTime(now);
-    state.timestamps.lastIncomeAt = now;
-
-    saveGame();
-    hideOfflineEarningsModal();
-    updateUI();
-    renderMissions();
-    updateHomeMetaUI(amount);
-
-    emitGameEvent("offlineEarningsClaimed", {
-      amount,
-      claimedAt: now
-    });
-
-    return amount;
   }
 
   /*
