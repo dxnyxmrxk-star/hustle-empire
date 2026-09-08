@@ -30,6 +30,10 @@
     throw new Error("[Hustle Empire] game-lifecycle.js must load before game.js");
   }
 
+  if (!window.HustleGameEnergy?.create) {
+    throw new Error("[Hustle Empire] game-energy.js must load before game.js");
+  }
+
   const CONFIG = window.GAME_CONFIG;
   if (!CONFIG) throw new Error("[Hustle Empire] config.js must load before game.js");
   if (window.GAME_CONFIG_AUDIT?.ok === false) {
@@ -2893,6 +2897,15 @@
 
   const state = createPersistentProxy(initialLocalSave.state);
 
+  const { getEnergyIntervalMs, regenerateEnergy } = window.HustleGameEnergy.create({
+    state,
+    config: CONFIG,
+    computePlayerStats: (source) => computePlayerStats(source),
+    recomputeDerivedState: () => recomputeDerivedState(),
+    baseRegenMultiplier: BASE_ENERGY_REGEN_SPEED_MULTIPLIER,
+    getNow: () => Date.now()
+  });
+
   const { getTelegramCloudStorage, readTelegramCloudSnapshot, writeTelegramCloudSnapshot } = window.HustleCloudSave.create({
     getCloudStorage: () => window.Telegram?.WebApp?.CloudStorage,
     parseSavedState,
@@ -4392,39 +4405,6 @@
     spawnTapFloatingNumber(moneyEarned, isCritical);
     emitGameEvent("tap", { moneyEarned, isCritical, multiplier });
     return true;
-  }
-
-  function getEnergyIntervalMs() {
-    const stats = computePlayerStats(state);
-    const totalRegenSpeed =
-      Math.max(0.01, Number(stats.energyRegenMultiplier) || 1)
-      *
-      BASE_ENERGY_REGEN_SPEED_MULTIPLIER;
-
-    return (CONFIG.ENERGY_REGEN_INTERVAL_SECONDS * 1000) / totalRegenSpeed;
-  }
-
-  function regenerateEnergy() {
-    const now = Date.now();
-    recomputeDerivedState();
-
-    if (state.energy >= state.maxEnergy) {
-      state.energy = state.maxEnergy;
-      state.timestamps.lastEnergyAt = now;
-      return;
-    }
-
-    const last = Number(state.timestamps.lastEnergyAt) || now;
-    if (last > now) {
-      state.timestamps.lastEnergyAt = now;
-      return;
-    }
-    const interval = getEnergyIntervalMs();
-    const ticks = Math.floor((now - last) / interval);
-    if (ticks <= 0) return;
-
-    state.energy = Math.min(state.maxEnergy, state.energy + ticks * CONFIG.ENERGY_REGEN_RATE);
-    state.timestamps.lastEnergyAt = state.energy < state.maxEnergy ? last + ticks * interval : now;
   }
 
   /* ==========================================================
