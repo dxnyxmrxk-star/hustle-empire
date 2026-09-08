@@ -16,6 +16,9 @@
 
   const CONFIG = window.GAME_CONFIG;
   if (!CONFIG) throw new Error("[Hustle Empire] config.js must load before game.js");
+  if (window.GAME_CONFIG_AUDIT?.ok === false) {
+    throw new Error("[Hustle Empire] Invalid game configuration; see GAME_CONFIG_AUDIT");
+  }
 
   /*
      V19.8 — resolve repository assets from the actual game.js location.
@@ -35,15 +38,6 @@
   })();
 
   const APP_ROOT_URL = new URL("./", GAME_SCRIPT_URL);
-
-  /*
-     script.js is loaded before game.js and older builds overwrite window.i18n.
-     Restore the canonical V18 flat i18n API while leaving window.LOCALES
-     available in the nested legacy format for script.js itself.
-  */
-  if (window.I18N?.t && window.I18N?.setLanguage) {
-    window.i18n = window.I18N;
-  }
 
   const SAVE_KEY = "urbanTycoonSave_v19_1";
   const SAVE_BACKUP_KEY = "urbanTycoonSave_v19_1_backup";
@@ -1484,7 +1478,7 @@
      base automatic energy regeneration is 30% faster.
      Existing Card / Wardrobe regen multipliers still stack normally.
   */
-  const BASE_ENERGY_REGEN_SPEED_MULTIPLIER = 1.30;
+  const BASE_ENERGY_REGEN_SPEED_MULTIPLIER = CONFIG.RUNTIME.BASE_ENERGY_REGEN_MULTIPLIER;
 
   const MISSION_ICONS = {
     taps: "☝",
@@ -1674,14 +1668,14 @@
     return reward;
   }
 
-  const GAME_TICK_INTERVAL = 1000;
-  const AUTO_SAVE_INTERVAL = 10000;
+  const GAME_TICK_INTERVAL = CONFIG.RUNTIME.GAME_TICK_MS;
+  const AUTO_SAVE_INTERVAL = CONFIG.RUNTIME.AUTO_SAVE_MS;
 
   /* ==========================================================
      V14.3 — OFFLINE EARNINGS
      Max accumulation: exactly 3 hours.
   ========================================================== */
-  const OFFLINE_EARNINGS_CAP_SECONDS = 3 * 60 * 60;
+  const OFFLINE_EARNINGS_CAP_SECONDS = CONFIG.RUNTIME.OFFLINE_CAP_SECONDS;
   const OFFLINE_LAST_CLAIM_STORAGE_KEY = "lastClaimTime";
 
   /* ==========================================================
@@ -1719,58 +1713,13 @@
 
   const clone = (value) => JSON.parse(JSON.stringify(value));
 
-  const CRITICAL_POPUP_TRANSLATIONS = Object.freeze({
-    en: Object.freeze({
-      "offline.cappedAway": "Maximum: 3 hours",
-      "offline.claimAmount": "Claim ${amount}",
-      "modal.dailyChest": "Daily Chest",
-      "modal.dailyChestText": "Come back when the timer reaches zero to claim your Daily Chest.",
-      "modal.dailyChestRemaining": "Time remaining: {time}",
-      "common.ok": "OK",
-      "modal.premiumPlaceholder": "Telegram Stars payment will open here when payments are enabled."
-    }),
-    ru: Object.freeze({
-      "offline.cappedAway": "Максимум: 3 часа",
-      "offline.claimAmount": "Забрать ${amount}",
-      "modal.dailyChest": "Ежедневный сундук",
-      "modal.dailyChestText": "Вернись, когда таймер дойдёт до нуля, чтобы забрать ежедневный сундук.",
-      "modal.dailyChestRemaining": "Осталось: {time}",
-      "common.ok": "OK",
-      "modal.premiumPlaceholder": "Оплата через Telegram Stars откроется здесь после подключения платежей."
-    })
-  });
-
   function currentLanguage() {
     return window.i18n?.getLanguage?.() || document.documentElement.lang || "en";
   }
 
-  function interpolateCriticalTranslation(template, params = {}) {
-    return String(template ?? "").replace(/\{([a-zA-Z0-9_]+)\}/g, (_, key) => {
-      return Object.prototype.hasOwnProperty.call(params, key)
-        ? String(params[key])
-        : `{${key}}`;
-    });
-  }
-
   function tr(key, params = {}) {
-    const translated = window.i18n?.t?.(key, params);
-
-    if (translated && translated !== key) {
-      return translated;
-    }
-
-    const lang = currentLanguage() === "ru" ? "ru" : "en";
-    const fallback =
-      CRITICAL_POPUP_TRANSLATIONS[lang]?.[key]
-      ?? CRITICAL_POPUP_TRANSLATIONS.en?.[key];
-
-    if (fallback) {
-      return interpolateCriticalTranslation(fallback, params);
-    }
-
-    return currentLanguage() === "ru"
-      ? "Текст недоступен"
-      : "Text unavailable";
+    return window.i18n?.t?.(key, params)
+      ?? (currentLanguage() === "ru" ? "Текст недоступен" : "Text unavailable");
   }
 
   function looksLikeTechnicalTranslationValue(value) {
@@ -2106,12 +2055,12 @@
     */
     const visited = new WeakSet();
 
-    const scan = (value) => {
+    const scan = (value, translatedField = false) => {
       if (!value) return;
 
       if (typeof value === "string") {
         if (
-          looksLikeTechnicalTranslationValue(value)
+          translatedField && looksLikeTechnicalTranslationValue(value)
           && !/\.(?:png|jpe?g|webp|svg|css|js)$/i.test(value)
         ) {
           keys.add(value);
@@ -2121,7 +2070,12 @@
 
       if (typeof value !== "object" || visited.has(value)) return;
       visited.add(value);
-      Object.values(value).forEach(scan);
+      Object.entries(value).forEach(([field, child]) => scan(
+        child,
+        ["name", "description", "tagline", "range", "label"].includes(field)
+        || field.endsWith("Key")
+        || (translatedField && ["en", "ru"].includes(field))
+      ));
     };
 
     scan(CONFIG);
@@ -2136,11 +2090,12 @@
       requiredMissing: requiredKeys
     };
 
+    window.__HUSTLE_EMPIRE_GAME_I18N_AUDIT__ = report;
     window.__URBAN_TYCOON_GAME_I18N_AUDIT__ = report;
 
     if (!report.ok) {
       console.error(
-        "[Urban Tycoon i18n] Runtime translation audit failed:",
+        "[Hustle Empire i18n] Runtime translation audit failed:",
         report
       );
     }
@@ -5007,10 +4962,8 @@
       const direct = value.trim();
 
       if (direct) {
-        const translated = window.i18n?.t?.(direct);
-
-        if (translated && translated !== direct) {
-          return translated;
+        if (window.i18n?.has?.(direct, lang)) {
+          return tr(direct);
         }
 
         /*
@@ -5025,10 +4978,8 @@
     }
 
     const specificKey = `hustles.${hustleId}.name`;
-    const specific = window.i18n?.t?.(specificKey);
-
-    if (specific && specific !== specificKey && !/Text unavailable|Текст недоступен/.test(specific)) {
-      return specific;
+    if (window.i18n?.has?.(specificKey, lang)) {
+      return tr(specificKey);
     }
 
     return tr("hustles.jobFallback");
@@ -9674,7 +9625,7 @@
     if (!state.timestamps.dailyChestReadyAt) {
       // Preserve the existing duration; persist its deadline instead of
       // restarting a session timer. Reward design remains a retention task.
-      state.timestamps.dailyChestReadyAt = Date.now() + 11658 * 1000;
+      state.timestamps.dailyChestReadyAt = Date.now() + CONFIG.RUNTIME.DAILY_CHEST_COUNTDOWN_SECONDS * 1000;
     }
     const remaining = Math.max(0, Math.ceil(
       (state.timestamps.dailyChestReadyAt - Date.now()) / 1000

@@ -3482,7 +3482,7 @@ img[src*="sprite_cases"] {
   min-height: clamp(300px, 62vw, 390px) !important;
   background-image:
     linear-gradient(180deg, rgba(4,11,20,.02), rgba(4,11,20,.12)),
-    url("assets/city_map.png?v=21.4.0") !important;
+    url("assets/city_map.png?v=21.5.0") !important;
   background-size: cover !important;
   background-position: center center !important;
   background-repeat: no-repeat !important;
@@ -5483,7 +5483,7 @@ body .screen[data-screen="home"] .home-center > .home-character-stage {
 .city-map-wrapper.city-map-sprite-background {
   background-image:
     linear-gradient(180deg, rgba(4,11,20,.02), rgba(4,11,20,.12)),
-    url("assets/city_map.png?v=21.4.0") !important;
+    url("assets/city_map.png?v=21.5.0") !important;
 }
 
 

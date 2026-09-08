@@ -617,6 +617,8 @@
       "rarity.legendary":
         "Legendary",
 
+      "rarity.exclusive": "Exclusive",
+
       "rarity.mythic":
         "Mythic",
 
@@ -2219,6 +2221,8 @@
 
       "rarity.legendary":
         "Легендарная",
+
+      "rarity.exclusive": "Эксклюзивная",
 
       "rarity.mythic":
         "Мифическая",
@@ -4219,9 +4223,8 @@
   /*
    * Temporary aliases.
    *
-   * Current game.js still references these names.
-   * They will be removed only when we clean game.js
-   * during the next stabilization step.
+   * Retained for older integrations and diagnostic tools.
+   * The current game uses the canonical window.i18n API.
    */
   window.translations =
     TRANSLATIONS;

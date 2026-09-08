@@ -6,6 +6,13 @@
 ============================================================ */
 
 window.GAME_CONFIG = {
+  RUNTIME: {
+    GAME_TICK_MS: 1000,
+    AUTO_SAVE_MS: 10000,
+    BASE_ENERGY_REGEN_MULTIPLIER: 1.30,
+    OFFLINE_CAP_SECONDS: 3 * 60 * 60,
+    DAILY_CHEST_COUNTDOWN_SECONDS: 11658
+  },
   BASE_TAP_REWARD: 1,
   XP_PER_TAP: 1,
 
@@ -603,3 +610,95 @@ window.GAME_CONFIG = {
     hustleBundle: 1000
   }
 };
+
+// Read-only validation: never repair gameplay values silently or touch saves.
+(() => {
+  "use strict";
+  function validateGameConfig(config) {
+    const errors = [];
+    const record = value => value !== null && typeof value === "object" && !Array.isArray(value);
+    if (!record(config)) return { ok: false, errors: ["GAME_CONFIG must be an object"] };
+    const requireNumber = (value, path, minimum = 0, integer = false) => {
+      if (typeof value !== "number" || !Number.isFinite(value) || value < minimum
+        || (integer && !Number.isInteger(value))) errors.push(`${path}: invalid number`);
+    };
+    const section = name => {
+      if (!record(config[name])) { errors.push(`${name}: missing section`); return {}; }
+      return config[name];
+    };
+    for (const name of ["BASE_TAP_REWARD", "XP_PER_TAP", "ENERGY_MAX", "ENERGY_REGEN_RATE", "ENERGY_REGEN_INTERVAL_SECONDS"]) {
+      requireNumber(config[name], name, 1);
+    }
+    const runtime = section("RUNTIME");
+    for (const key of ["GAME_TICK_MS", "AUTO_SAVE_MS", "OFFLINE_CAP_SECONDS", "DAILY_CHEST_COUNTDOWN_SECONDS"]) {
+      requireNumber(runtime[key], `RUNTIME.${key}`, 1, true);
+    }
+    requireNumber(runtime.BASE_ENERGY_REGEN_MULTIPLIER, "RUNTIME.BASE_ENERGY_REGEN_MULTIPLIER", 0.01);
+    const economy = section("ECONOMY");
+    for (const name of ["PLAYER_XP_BASE", "PLAYER_XP_GROWTH", "BUSINESS_UPGRADE_GROWTH", "EQUIPMENT_UPGRADE_GROWTH"]) {
+      requireNumber(economy[name], `ECONOMY.${name}`, 1);
+    }
+    const stats = section("PLAYER_STATS");
+    requireNumber(stats.BASE_CRIT_RATE, "PLAYER_STATS.BASE_CRIT_RATE");
+    requireNumber(stats.CRIT_RATE_CAP, "PLAYER_STATS.CRIT_RATE_CAP");
+    requireNumber(stats.BASE_CRIT_DAMAGE_MULTIPLIER, "PLAYER_STATS.BASE_CRIT_DAMAGE_MULTIPLIER", 1);
+    if (stats.BASE_CRIT_RATE > stats.CRIT_RATE_CAP || stats.CRIT_RATE_CAP > 1) errors.push("PLAYER_STATS: invalid critical rate range");
+    const catalogs = {};
+    for (const name of ["BUSINESSES", "DISTRICTS", "HUSTLES", "CARDS", "EQUIPMENT", "STYLE_SETS", "TIMED_CASES", "ACCESSORY_CASES", "WARDROBE_CATALOG", "EXCLUSIVE_CARDS"]) {
+      catalogs[name] = section(name);
+      for (const [id, entry] of Object.entries(catalogs[name])) {
+        if (!record(entry) || entry.id !== id) errors.push(`${name}.${id}: inconsistent id`);
+      }
+    }
+    for (const [id, d] of Object.entries(catalogs.DISTRICTS)) {
+      if (!record(d)) continue;
+      requireNumber(d.unlockLevel, `DISTRICTS.${id}.unlockLevel`, 1, true);
+      if (!Array.isArray(d.businessIds)) { errors.push(`DISTRICTS.${id}: missing businessIds`); continue; }
+      if (new Set(d.businessIds).size !== d.businessIds.length) errors.push(`DISTRICTS.${id}: duplicate businesses`);
+      for (const businessId of d.businessIds) if (catalogs.BUSINESSES[businessId]?.districtId !== id) errors.push(`DISTRICTS.${id}: invalid business ${businessId}`);
+    }
+    for (const [id, b] of Object.entries(catalogs.BUSINESSES)) {
+      if (!record(b)) continue;
+      const district = catalogs.DISTRICTS[b.districtId];
+      if (!district?.businessIds?.includes?.(id)) errors.push(`BUSINESSES.${id}: invalid district`);
+      for (const field of ["baseCost", "baseIncomePerSecond", "purchaseCost"]) requireNumber(b[field], `BUSINESSES.${id}.${field}`);
+      for (const field of ["unlockLevel", "startingLevel"]) requireNumber(b[field], `BUSINESSES.${id}.${field}`, 1, true);
+      if (b.unlockLevel < district?.unlockLevel) errors.push(`BUSINESSES.${id}: unlocks before district`);
+    }
+    for (const [id, job] of Object.entries(catalogs.HUSTLES)) {
+      if (!record(job)) continue;
+      for (const field of ["energyCost", "rewardMoney", "rewardXp"]) requireNumber(job[field], `HUSTLES.${id}.${field}`);
+      requireNumber(job.unlockLevel, `HUSTLES.${id}.unlockLevel`, 1, true);
+    }
+    for (const [id, card] of Object.entries(catalogs.CARDS)) {
+      if (card?.effect?.type === "businessIncomePercent" && !catalogs.BUSINESSES[card.effect.businessId]) errors.push(`CARDS.${id}: unknown business`);
+    }
+    for (const name of ["TIMED_CASES", "ACCESSORY_CASES"]) for (const [id, item] of Object.entries(catalogs[name])) {
+      if (!record(item)) continue;
+      if (!record(item.rates)) { errors.push(`${name}.${id}: missing rarity rates`); continue; }
+      for (const [rarity, weight] of Object.entries(item.rates)) {
+        requireNumber(weight, `${name}.${id}.rates.${rarity}`);
+        const pool = name === "TIMED_CASES" ? catalogs.CARDS : catalogs.WARDROBE_CATALOG;
+        if (weight > 0 && !Object.values(pool).some(entry => entry?.rarity === rarity)) errors.push(`${name}.${id}: empty rarity pool ${rarity}`);
+      }
+      const total = Object.values(item.rates).reduce((sum, n) => sum + n, 0);
+      if (Math.abs(total - 100) > 0.000001 || !Number.isFinite(total)) errors.push(`${name}.${id}: rates must sum to 100`);
+      if (name === "TIMED_CASES" || item.type === "free") requireNumber(item.durationSeconds, `${name}.${id}.durationSeconds`, 1, true);
+      if (name === "TIMED_CASES") {
+        for (const field of ["moneyMultiplier", "gemReward", "skipGemCost"]) requireNumber(item[field], `${name}.${id}.${field}`);
+        requireNumber(item.fragments?.min, `${name}.${id}.fragments.min`, 0, true);
+        requireNumber(item.fragments?.max, `${name}.${id}.fragments.max`, 0, true);
+        if (item.fragments?.min > item.fragments?.max) errors.push(`${name}.${id}: invalid fragment range`);
+      } else requireNumber(item.gemCost, `${name}.${id}.gemCost`);
+    }
+    for (const [id, item] of Object.entries(catalogs.WARDROBE_CATALOG)) {
+      if (!record(item)) continue;
+      if (!catalogs.EQUIPMENT[item.slot]) errors.push(`WARDROBE_CATALOG.${id}: invalid slot`);
+      if (!Array.isArray(item.sources) || item.sources.some(source => !catalogs.ACCESSORY_CASES[source])) errors.push(`WARDROBE_CATALOG.${id}: invalid source`);
+    }
+    return { ok: errors.length === 0, errors };
+  }
+  window.validateGameConfig = validateGameConfig;
+  window.GAME_CONFIG_AUDIT = validateGameConfig(window.GAME_CONFIG);
+  if (!window.GAME_CONFIG_AUDIT.ok) console.error("[Hustle Empire] Configuration audit failed:", window.GAME_CONFIG_AUDIT);
+})();
